@@ -8,7 +8,7 @@ export default function Form() {
 
     return (
         <div className={styles.page}>
-            <div className={styles.temp} onClick={() => router.push('./Assets')}>ObjectMaker</div>
+            <div className={styles.temp} onClick={() => router.push('.MobileTester')}>MobileTester</div>
             <div className={styles.game} onClick={() => router.push('./Game')}>GAME</div>
         </div>
     )
