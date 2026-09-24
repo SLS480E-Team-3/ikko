@@ -3,6 +3,9 @@ SLS480E Team 3 Japanese learning App for Beginners
 
 ## Target
 
+## Story Line
+
+
 ### Credits
 - **Team Lead / PM** Jordi Yamauchi (https://github.com/jordiyamauchi)
 - **UX/UI Designer** Sarah (https://github.com/temp)

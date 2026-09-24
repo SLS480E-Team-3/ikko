@@ -1,8 +1,9 @@
-/* --iphone-17-width / --iphone-17-pro-width / --iphone-17-pro-max-width are
-   NOT declared here -- they're set as an inline style on <html> in
-   layout.tsx, sourced from mobileScreenSIze.ts, so that file stays the single
-   source of truth for device sizes. They still resolve via var() anywhere
-   below through normal CSS inheritance from :root. */
+/* Per-device width vars (--iphone-17-width, --iphone-16-pro-width,
+   --iphone-se-2nd-gen-width, etc.) are NOT declared here -- they're set as an
+   inline style on <html> in layout.tsx, sourced from mobileScreenSIze.ts, so
+   that file stays the single source of truth for device sizes. They still
+   resolve via var() anywhere below through normal CSS inheritance from
+   :root. */
 :root {
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-right: env(safe-area-inset-right, 0px);

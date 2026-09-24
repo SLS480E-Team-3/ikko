@@ -4,17 +4,41 @@ import {
   IPHONE17_SCREEN,
   IPHONE17_PRO_SCREEN,
   IPHONE17_MAX_SCREEN,
+  IPHONE16_SCREEN,
+  IPHONE16_PRO_SCREEN,
+  IPHONE16_MAX_SCREEN,
+  IPHONE15_SCREEN,
+  IPHONE15_PRO_SCREEN,
+  IPHONE15_MAX_SCREEN,
+  IPHONE13_MINI_SCREEN,
+  IPHONE13_SCREEN,
+  IPHONE13_PRO_SCREEN,
+  IPHONE13_MAX_SCREEN,
+  IPHONE_SE_3RD_GEN_SCREEN,
+  IPHONE_SE_2ND_GEN_SCREEN,
 } from '@/utils/mobileScreenSIze'
 import './globals.css'
 
-// Single source of truth for the iPhone 17 lineup's CSS custom properties
-// lives in mobileScreenSIze.ts; merged here and applied on <html> so every
-// var(--iphone-17-...) reference in globals.css/*.module.css resolves via
+// Single source of truth for every device's CSS custom properties lives in
+// mobileScreenSIze.ts; merged here and applied on <html> so every
+// var(--iphone-...) reference in globals.css/*.module.css resolves via
 // normal CSS inheritance from :root, same as if they'd been hardcoded there.
 const screenSizeVars: CSSProperties = {
   ...IPHONE17_SCREEN,
   ...IPHONE17_PRO_SCREEN,
   ...IPHONE17_MAX_SCREEN,
+  ...IPHONE16_SCREEN,
+  ...IPHONE16_PRO_SCREEN,
+  ...IPHONE16_MAX_SCREEN,
+  ...IPHONE15_SCREEN,
+  ...IPHONE15_PRO_SCREEN,
+  ...IPHONE15_MAX_SCREEN,
+  ...IPHONE13_MINI_SCREEN,
+  ...IPHONE13_SCREEN,
+  ...IPHONE13_PRO_SCREEN,
+  ...IPHONE13_MAX_SCREEN,
+  ...IPHONE_SE_3RD_GEN_SCREEN,
+  ...IPHONE_SE_2ND_GEN_SCREEN,
 }
 // fixed: globals.css was never imported anywhere, so it was never bundled --
 // in the App Router a global stylesheet only applies when a layout/page
