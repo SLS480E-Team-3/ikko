@@ -32,3 +32,7 @@ Branch name is `IssueX` for issue #X (ex: issue #1 → branch name `Issue1`). Th
 ## After edit
 
 under edited line or block include technical approach
+
+## Auto Compact
+
+after token is over 60% full summarize session history and auto compact
