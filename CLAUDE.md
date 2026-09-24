@@ -33,9 +33,15 @@ Branch name is `IssueX` for issue #X (ex: issue #1 → branch name `Issue1`). Th
 
 under edited line or block include technical approach
 
-## Auto Compact
+## Compact instructions
 
-after token is over 60% full summarize session history and auto compact
+Auto-compact threshold is 120k (60% of 200K), set by the user with `/autocompact 120k`. Before every compact, a `PreCompact` hook (`.claude/hooks/archive-transcript.sh`) saves the full transcript to `.claude/history/`.
+
+When compacting, the summary must keep:
+- every file created/edited/deleted, with a one-line reason
+- decisions the user made or confirmed, and corrections they gave
+- commits made (hash + message)
+- open issues, loose ends, and the task in progress
 
 ## File
 files that are development purposes should have 'DEV' in the first line
