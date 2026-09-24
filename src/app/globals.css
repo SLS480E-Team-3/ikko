@@ -10,6 +10,25 @@
   --safe-left: env(safe-area-inset-left, 0px);
 }
 
+@font-face {
+  font-family: "EnglishPixel";
+  src: url("/EnglishPixelFont.ttf") format("truetype");
+  font-display: swap;
+  /* its capitals are 7/8 em tall, JapanesePF's are 11/16 em (drawn to sit beside
+     its kana), so scale by 11/14 to make mixed English/Japanese text match */
+  size-adjust: 78.57%;
+}
+
+@font-face {
+  font-family: "JapanesePF";
+  src: url("/JapanesePF.ttf") format("truetype");
+  font-display: swap;
+  /* CJK punctuation, hiragana, katakana, kanji, full-width forms */
+  unicode-range: U+3000-30FF, U+4E00-9FFF, U+FF00-FFEF;
+}
+/* unicode-range: the 3MB file is only downloaded once Japanese text is on the
+   page, and English letters never come from it even though it has them. */
+
 html,
 body {
   font-family: sans-serif;
@@ -24,3 +43,5 @@ body {
    100vh + 16px and scrolled the page by exactly that margin, whatever its
    contents did. Zeroing it here rather than per-screen: every route that wants
    to fill the viewport hits the same wall otherwise. */
+
+   

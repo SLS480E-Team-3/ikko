@@ -9,3 +9,7 @@ SLS480E Team 3 Japanese learning App for Beginners
 - **Instructional Designer** Tiffany (https://github.com/temp)
 - **Lead Developer** Shuto Nishida (https://github.com/shuton-gif)
 - **Research & Testing Lead** Genki Ando (https://github.com/genkiand0)
+
+### Assets
+EnglishFont Credit [TBD]
+JapaneseFont Credit [TBD]
