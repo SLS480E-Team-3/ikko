@@ -36,3 +36,10 @@ under edited line or block include technical approach
 ## Auto Compact
 
 after token is over 60% full summarize session history and auto compact
+
+## File
+files that are development purposes should have 'DEV' in the first line
+```ts
+// DEV
+'use client'
+```
