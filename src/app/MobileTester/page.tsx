@@ -59,11 +59,13 @@ export default function MobileTester() {
             display: 'flex'
         }}>
             <div style={{
-                justifyContent: 'left'
+                justifyContent: 'left',
             }}>
                 <select
-                    name="phones"
-                    id=""
+                    style={{
+                        height: 50,
+                        fontSize: 32
+                    }}
                     onChange={(e) => {
                         const selected = PHONES.find((p) => p.label === e.target.value)
                         if (selected) setPhone(selected.screen)
@@ -77,8 +79,7 @@ export default function MobileTester() {
             <div style={{
                 flex: 1,
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
+                overflow: 'auto'
             }}>
                 <TestMobileView size={phone} />
             </div>
