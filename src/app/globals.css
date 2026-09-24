@@ -17,7 +17,7 @@
 
 @font-face {
   font-family: "EnglishPixel";
-  src: url("/EnglishPixelFont.ttf") format("truetype");
+  src: url("/fonts/EnglishPixelFont.ttf") format("truetype");
   font-display: swap;
   /* its capitals are 7/8 em tall, JapanesePF's are 11/16 em (drawn to sit beside
      its kana), so scale by 11/14 to make mixed English/Japanese text match */
@@ -26,7 +26,7 @@
 
 @font-face {
   font-family: "JapanesePF";
-  src: url("/JapanesePF.ttf") format("truetype");
+  src: url("/fonts/JapanesePF.ttf") format("truetype");
   font-display: swap;
   /* CJK punctuation, hiragana, katakana, kanji, full-width forms */
   unicode-range: U+3000-30FF, U+4E00-9FFF, U+FF00-FFEF;
@@ -36,7 +36,9 @@
 
 html,
 body {
-  font-family: sans-serif;
+  /* EnglishPixel first for Latin; JapanesePF picks up kana/kanji that
+     EnglishPixel lacks (per its unicode-range) */
+  font-family: "EnglishPixel", "JapanesePF", sans-serif;
   font-size: large;
 }
 
