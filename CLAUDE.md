@@ -25,5 +25,10 @@ A Japanese-learning web app for English speakers who are just starting to learn 
 
 Early scaffold stage — routing/layout and a placeholder form/nav exist (`src/app/form.tsx`), but core learning features (lessons, kana/kanji practice, progress tracking) are not built yet. Supabase project/env vars are not yet wired up (`.env` is currently empty).
 
+## GH Issues and Branch Naming
+
+Branch name is `IssueX` for issue #X (ex: issue #1 → branch name `Issue1`). This is a denotation, not an order.
+
 ## After edit
+
 under edited line or block include technical approach
