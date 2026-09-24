@@ -1,0 +1,14 @@
+html,
+body {
+  font-family: sans-serif;
+  font-size: large;
+}
+
+body {
+  margin: 0;
+}
+/* There is no CSS reset in this project, so body kept the UA default 8px
+   margin. Any full-height screen (objectMaker is height: 100vh) then measured
+   100vh + 16px and scrolled the page by exactly that margin, whatever its
+   contents did. Zeroing it here rather than per-screen: every route that wants
+   to fill the viewport hits the same wall otherwise. */

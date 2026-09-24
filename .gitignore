@@ -1,3 +1,8 @@
 .claude
-node_module/
 
+node_modules
+
+*.tsbuildinfo
+next-env.d.ts
+
+.env*.local
