@@ -63,3 +63,36 @@ export const IPHONE_SE_3RD_GEN_SCREEN = {
 export const IPHONE_SE_2ND_GEN_SCREEN = {
   "--iphone-se-2nd-gen-width": "375px",
 } as CSSProperties
+
+// Android: no equivalent to Apple's fixed device lineup, so per-device
+// widths below are just reference points -- BREAKPOINT_* further down are
+// what layouts should actually target.
+
+export const GALAXY_S26_SCREEN = {
+  "--galaxy-s26-width": "360px",
+} as CSSProperties
+
+export const GALAXY_S26_ULTRA_SCREEN = {
+  "--galaxy-s26-ultra-width": "412px",
+} as CSSProperties
+
+export const PIXEL_10_SCREEN = {
+  "--pixel-10-width": "412px",
+} as CSSProperties
+
+export const PIXEL_10_PRO_SCREEN = {
+  "--pixel-10-pro-width": "410px",
+} as CSSProperties
+
+export const XIAOMI_15_PRO_SCREEN = {
+  "--xiaomi-15-pro-width": "412px",
+} as CSSProperties
+
+// Golden mobile-first breakpoints (Android web design convention). Plain
+// numbers, not CSS custom properties -- media query conditions can't
+// reference var(), so these are meant for @media rules written directly
+// with these values, or for JS-side width checks.
+export const BREAKPOINT_NARROW_ANDROID = 320 // old/folded-cover-screen floor
+export const BREAKPOINT_BASELINE_ANDROID = 360 // mainstream Android floor
+export const BREAKPOINT_FLAGSHIP_ANDROID = 412 // Pixel/Galaxy Ultra sweet spot
+export const BREAKPOINT_MOBILE_MAX = 480 // cutoff before tablet sizes

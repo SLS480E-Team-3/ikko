@@ -16,6 +16,11 @@ import {
   IPHONE13_MAX_SCREEN,
   IPHONE_SE_3RD_GEN_SCREEN,
   IPHONE_SE_2ND_GEN_SCREEN,
+  GALAXY_S26_SCREEN,
+  GALAXY_S26_ULTRA_SCREEN,
+  PIXEL_10_SCREEN,
+  PIXEL_10_PRO_SCREEN,
+  XIAOMI_15_PRO_SCREEN,
 } from '@/utils/mobileScreenSIze'
 import './globals.css'
 
@@ -39,7 +44,15 @@ const screenSizeVars: CSSProperties = {
   ...IPHONE13_MAX_SCREEN,
   ...IPHONE_SE_3RD_GEN_SCREEN,
   ...IPHONE_SE_2ND_GEN_SCREEN,
+  ...GALAXY_S26_SCREEN,
+  ...GALAXY_S26_ULTRA_SCREEN,
+  ...PIXEL_10_SCREEN,
+  ...PIXEL_10_PRO_SCREEN,
+  ...XIAOMI_15_PRO_SCREEN,
 }
+// BREAKPOINT_* constants (mobileScreenSIze.ts) aren't wired in here -- they're
+// plain numbers for @media rules, and CSS custom properties can't be
+// referenced inside a media query condition, so there's nothing to merge.
 // fixed: globals.css was never imported anywhere, so it was never bundled --
 // in the App Router a global stylesheet only applies when a layout/page
 // imports it; sitting in src/app/ does nothing on its own. Importing it in the
