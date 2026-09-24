@@ -1,0 +1,29 @@
+/* Mobile-first: fills the phone viewport (393-440px across the iPhone 17
+   lineup) and never grows past --iphone-17-pro-max-width, so on larger
+   screens it stays phone-sized and centered instead of stretching full-bleed. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: var(--iphone-17-pro-max-width);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: calc(var(--safe-top) + 16px) calc(var(--safe-right) + 16px)
+    calc(var(--safe-bottom) + 16px) calc(var(--safe-left) + 16px);
+  box-sizing: border-box;
+}
+
+/* 44px is Apple's minimum recommended tap-target height. */
+.temp,
+.game {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f2f2f2;
+  text-align: center;
+  cursor: pointer;
+}
