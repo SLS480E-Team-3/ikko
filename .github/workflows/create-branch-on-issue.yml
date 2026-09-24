@@ -1,0 +1,47 @@
+name: Create branch on issue
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  create-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create IssueX branch
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const branch = `Issue${context.issue.number}`;
+            const ref = `refs/heads/${branch}`;
+
+            const { data: repo } = await github.rest.repos.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            const baseBranch = repo.default_branch;
+
+            const { data: baseRef } = await github.rest.git.getRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `heads/${baseBranch}`,
+            });
+
+            try {
+              await github.rest.git.createRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref,
+                sha: baseRef.object.sha,
+              });
+            } catch (error) {
+              if (error.status === 422) {
+                console.log(`Branch ${branch} already exists, skipping.`);
+              } else {
+                throw error;
+              }
+            }
