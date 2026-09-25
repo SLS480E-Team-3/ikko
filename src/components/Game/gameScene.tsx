@@ -221,7 +221,7 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, scr
                 }}
             >
                 {/* entities go here, sized/positioned in world px (no zoom) */}
-                <PlayerRenderer velocity={velocityRef.current} player={playerRef.current} />
+                <PlayerRenderer velocity={velocityRef.current} maxSpeed={PLAYER_SPEED} player={playerRef.current} /> {/* props: **velocity, player** -> **+ maxSpeed**, reason: lean scales with how hard the stick is pushed, mechanism: PLAYER_SPEED is full speed, so vel.x / PLAYER_SPEED is the stick's x (or ±1 / ±0.71 on keys); passed as a prop because the renderers importing it from here would be a circular import */}
                 {/* reads straight from the refs; force() re-renders every frame,
                     so ref mutations in the tick show up on the next frame */}
             </div>

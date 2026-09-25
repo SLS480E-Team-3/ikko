@@ -34,48 +34,19 @@ export const ENT_H = 20
 // exported so wrappers (player name tag) can fall back to the same default
 // size EntityRenderer uses when no ent is passed
 
-function applyRotation(velocity: { x: number, y: number }): string {
-    const up = velocity.y < 0
-    const down = velocity.y > 0
-    const right = velocity.x > 0
-    const left = velocity.x < 0
-    const DEG = 10
-    // need to skew + DEG
-    const template = (deg: number) => `rotate(${deg}deg)`
-    if (up) {
-        if (right) {
-            return template(-DEG)
-        }
-        if (left) {
-            return template(DEG)
-        }
-    }
-    if (down) {
-        if (right) {
-            return template(DEG)
-        }
-        if (left) {
-            return template(-DEG)
-        }
-    }
-    return ''
-}
-
 export default function EntityRenderer({
     velocity,
+    maxSpeed = 1, // props: **no maxSpeed** -> **maxSpeed = 1**, reason: the lean needs to know what full speed is, mechanism: velocity / maxSpeed gives -1..1; default 1 means a caller passing an already-normalized velocity needs nothing
     ent = {
         w: ENT_W,
         h: ENT_H,
         color: 'gray', // temp default
         facing: 'none'
     }
-}: { velocity: { x: number, y: number }, ent?: EntityProps }) {
+}: { velocity: { x: number, y: number }, maxSpeed?: number, ent?: EntityProps }) {
 
-    const skew = velocity.x > 0 ? `skewX(${-TILT_MAX}deg)` // moving right
-        : velocity.x < 0 ? `skewX(${TILT_MAX}deg)` // moving left
-            : ''
-
-    const rot = applyRotation(velocity)
+    const lean = Math.min(Math.max(velocity.x / maxSpeed, -1), 1) // skew: **full TILT_MAX on any x** -> **TILT_MAX x x-speed fraction**, reason: a slight joystick push leaned the body all the way, mechanism: x speed / max speed clamped to -1..1 scales the angle, so a half push leans half (diagonals lean ~0.71 since only that much of the speed is sideways)
+    const skew = `skewX(${-TILT_MAX * lean}deg)` // skew: **ternary picking ±TILT_MAX or ''** -> **one proportional skewX**, reason: same as lean, mechanism: negative lean (moving left) flips the sign; standing still gives skewX(0deg), which draws the same as no skew
 
     return (
         <div
@@ -85,7 +56,7 @@ export default function EntityRenderer({
                 top: ent.y,
                 width: ent.w,
                 height: ent.h,
-                transform: `translate(-50%, -50%) ${skew} ${rot}`,
+                transform: `translate(-50%, -50%) ${skew}`,
                 transition: 'background-color 0.2s, transform 0.15s ease-out',
                 backgroundColor: ent.color
             }}

@@ -14,7 +14,7 @@ export type PlayerProps = {
 const NAME_GAP = 4 // px between the top of the body and the name
 const NAME_SIZE = 8 // world px, scaled by the scene zoom like everything else
 
-export default function PlayerRenderer({ velocity, player }: { velocity: { x: number, y: number }, player: PlayerProps }) {
+export default function PlayerRenderer({ velocity, maxSpeed, player }: { velocity: { x: number, y: number }, maxSpeed?: number, player: PlayerProps }) { // props: **no maxSpeed** -> **maxSpeed?**, reason: EntityRenderer's lean scales by it, mechanism: passed straight through below; optional so EntityRenderer's default applies when unset
     const h = player.ent?.h ?? ENT_H
 
     return (
@@ -45,7 +45,7 @@ export default function PlayerRenderer({ velocity, player }: { velocity: { x: nu
                 by its own height (-100%) plus half the body and a gap, so its
                 bottom edge sits NAME_GAP above the body's top. nowrap keeps the
                 name on one line (absolute + zero-width parent would wrap it) */}
-            <EntityRenderer velocity={velocity} ent={player.ent} />
+            <EntityRenderer velocity={velocity} maxSpeed={maxSpeed} ent={player.ent} /> {/* props: **velocity, ent** -> **+ maxSpeed**, reason: lean follows the stick, mechanism: pass-through from GameScene's PLAYER_SPEED */}
         </div>
     )
 }
