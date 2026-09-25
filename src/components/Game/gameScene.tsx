@@ -51,7 +51,7 @@ const TEST_PLAYER: PlayerProps = { // in final will be made from db User info
         y: BG_H / 2,
         w: ENT_W,
         h: ENT_H,
-        color: 'gray',
+        color: 'coral',
         facing: 'none'
     }
 }
