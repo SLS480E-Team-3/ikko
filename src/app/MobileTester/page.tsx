@@ -56,12 +56,12 @@ const PHONES: { label: string; screen: CSSProperties }[] = [
 ]
 
 const PAGES: { label: string; page: ReactNode }[] = [
+    {label: 'mobile game scene', page :<MobileGameScene/>},
     {label: 'sign up', page :<SignUpPage/>},
     {label: 'log in', page :<LogInPage/>},
     {label: 'recovery', page :<InfoRecovery/>},
     {label: 'edit info', page :<EditInfo/>},
     {label: 'game scene', page :<GameScene/>},
-    {label: 'mobile game scene', page :<MobileGameScene/>}
 ]
 // mobile game scene = GameScene + the touch joystick; drag with the mouse
 // in the left half of the phone to test it on a laptop

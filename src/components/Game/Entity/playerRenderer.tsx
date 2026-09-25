@@ -33,7 +33,8 @@ export default function PlayerRenderer({ velocity, maxSpeed, player }: { velocit
                         fontSize: NAME_SIZE,
                         whiteSpace: 'nowrap',
                         pointerEvents: 'none',
-                        userSelect: 'none'
+                        userSelect: 'none',
+                        zIndex: 1 // layer: **source order (under the gust)** -> **zIndex 1**, reason: moving down, the gust trails up into the name and was drawn over it, mechanism: the name and EntityRenderer's gust/body are absolute siblings in the same stacking context, so zIndex 1 paints the name above them instead of in DOM order
                     }}
                 >
                     {player.name}

@@ -1,5 +1,7 @@
 'use client'
 
+import GustRenderer from "./gustRenderer"
+
 export type Facing =
     | 'up'
     | 'down'
@@ -49,6 +51,8 @@ export default function EntityRenderer({
     const skew = `skewX(${-TILT_MAX * lean}deg)` // skew: **ternary picking ±TILT_MAX or ''** -> **one proportional skewX**, reason: same as lean, mechanism: negative lean (moving left) flips the sign; standing still gives skewX(0deg), which draws the same as no skew
 
     return (
+        <>
+        <GustRenderer velocity={velocity} maxSpeed={maxSpeed} x={ent.x} y={ent.y} w={ent.w} h={ent.h} /> {/* render: **body only** -> **gust + body**, reason: white lines trail behind a moving entity, longer the faster it goes, mechanism: rendered as a sibling before the body so the body draws on top and the gust doesn't inherit its skew/rotate */}
         <div
             style={{
                 position: 'absolute',
@@ -84,6 +88,6 @@ export default function EntityRenderer({
             {/* absolute children ignore justifyContent (that's a flex-container
                 prop), so left/right pin each eye to its own side of the body */}
         </div>
-
+        </>
     )
 }
