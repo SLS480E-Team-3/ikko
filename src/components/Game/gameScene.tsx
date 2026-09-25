@@ -16,7 +16,7 @@ type BGProps = {
 
 const BG_H = 10_000
 const BG_W = 7_000
-const BG_COLOR = 'lightgreen'
+export const BG_COLOR = 'lightgreen' // export: **local** -> **exported**, reason: Game/layout.tsx paints the page background with it, mechanism: named export next to the default GameScene export, same as ZOOM_DEF
 
 const TEMP_BG: BGProps = {
     x: BG_W / 2,
