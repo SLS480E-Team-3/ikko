@@ -1,4 +1,3 @@
-// DEV
 import { CSSProperties } from "react"
 
 // CSS viewport sizes (logical px, portrait) -- what window.innerWidth /
