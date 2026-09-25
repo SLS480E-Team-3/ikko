@@ -138,6 +138,40 @@ create table profiles (
 // handles; name is an optional display name. Run order: USERS_SQL,
 // ISLANDS_SQL, QUESTS_SQL
 
+export const SIGNUP_TRIGGER_SQL = `
+create function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer set search_path = ''
+as $$
+begin
+  insert into public.profiles (id, username, name)
+  values (
+    new.id,
+    new.raw_user_meta_data ->> 'username',
+    new.raw_user_meta_data ->> 'name'
+  );
+  return new;
+end;
+$$;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
+`
+// every new auth.users row (signup) inserts its matching profiles row in
+// the same transaction, so an account never exists without a profile.
+// username/name come from the signup call's metadata:
+//   supabase.auth.signUp({ email, password,
+//     options: { data: { username, name } } })
+// If username is missing or already taken, the insert fails (not null /
+// unique) and the whole signup is rolled back -- check availability
+// before calling signUp for a friendly error. security definer runs the
+// function as its owner, since the auth service inserting the user can't
+// write to public.profiles itself; search_path = '' (with the
+// fully-qualified public.profiles) blocks search_path hijacking, per the
+// Supabase docs pattern. Run after USERS_SQL (profiles must exist)
+
 // ===========================================================================
 // ===========================================================================
 //                                  USER
