@@ -31,7 +31,11 @@ Branch name is `IssueX` for issue #X (ex: issue #1 → branch name `Issue1`). Th
 
 ## After edit
 
-under edited line or block include technical approach
+if completely new code
+- under edited line or block include technical approach
+
+if fix
+- behind edited line and format as 'method: **before** -> **after**, reason: what its doing, mechanism: how it works'
 
 ## Compact instructions
 
