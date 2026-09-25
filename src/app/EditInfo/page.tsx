@@ -76,15 +76,15 @@ export default function EditInfo() {
     // request() never throws, so busy is always reset without try/finally
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 16, width: '100%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 16, width: '100%', boxSizing: 'border-box' }}> {/* style: **content-box** -> **border-box**, reason: on a phone the page was 32px wider than the screen and the underlines ran off the right edge, mechanism: width 100% now includes the 16px padding on each side instead of adding to it */}
             EDIT INFO {/* title: **RECOVERY** -> **EDIT INFO**, reason: copied from the recovery stub, mechanism: plain text label */}
             {info && (
                 <form ref={formRef} onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}> {/* ref: **none** -> **formRef**, reason: submit() needs the form, mechanism: requestSubmit on it */} {/* onSubmit: **{ }** -> **{handleSubmit}**, reason: empty braces were a syntax error, mechanism: form submit now posts to /api/EditInfo; form waits for info so the fields start pre-filled */}
                     <Input name="name" placeholder="name" text={info.name} onChange={edit('name')} onSubmit={submit} required /> {/* tag: **<input defaultValue>** -> **<Input text/onChange>**, reason: match the game theme; Input has no defaultValue, mechanism: controlled by info so it starts pre-filled, and the hidden <input> keeps name/required so FormData and the required check work as before (same for the 2 below) */}
                     <Input name="username" placeholder="username" autoCapitalize="none" text={info.username} onChange={edit('username')} onSubmit={submit} required />
                     <Input name="email" inputMode="email" autoCapitalize="none" placeholder="email" text={info.email} onChange={edit('email')} onSubmit={submit} required /> {/* type: **email** -> **inputMode email**, reason: Input can't take type email, mechanism: inputMode still opens the email keyboard; the address check moved to handleSubmit */}
-                    <Input name="password" type="password" placeholder="new password (blank = keep)" onSubmit={submit} /> {/* tag: **<input autoComplete="new-password">** -> **<Input>**, reason: match the game theme, mechanism: uncontrolled like before; Input has no autoComplete prop so that hint is dropped (same for the 1 below) */}
-                    <Input name="password-check" type="password" placeholder="confirm new password" onSubmit={submit} />
+                    <Input name="password" type="password" placeholder="new password (blank = keep)" autoComplete="new-password" onSubmit={submit} /> {/* tag: **<input autoComplete="new-password">** -> **<Input autoComplete="new-password">**, reason: match the game theme, mechanism: uncontrolled like before; Input now forwards autoComplete to its hidden <input>, so password managers still offer a new password (same for the 1 below) */}
+                    <Input name="password-check" type="password" placeholder="confirm new password" autoComplete="new-password" onSubmit={submit} />
 
                     <Button size={24} action={submit} disabled={busy}>{busy ? '...' : 'SAVE'}</Button> {/* tag: **<button>** -> **<Button>**, reason: match the game theme, mechanism: action calls submit(), disabled blocks it while busy */}
                 </form>

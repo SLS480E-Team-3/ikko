@@ -1,6 +1,6 @@
 'use client'
 
-import { CSSProperties, Fragment, HTMLAttributes, PointerEvent, useEffect, useRef, useState } from "react" // imports: **+ HTMLAttributes** for the inputMode type // imports: **MouseEvent** -> **PointerEvent**, reason: the box now listens for pointerdown, mechanism: see handlePointerDown
+import { CSSProperties, Fragment, HTMLAttributes, HTMLInputAutoCompleteAttribute, MouseEvent, PointerEvent, useEffect, useRef, useState } from "react" // imports: **+ HTMLAttributes** for the inputMode type // imports: **MouseEvent** -> **PointerEvent**, reason: the box now listens for pointerdown, mechanism: see handlePointerDown
 
 /**
  * @param text the value; pass it (with onChange) to control the input, leave it
@@ -15,6 +15,7 @@ import { CSSProperties, Fragment, HTMLAttributes, PointerEvent, useEffect, useRe
  * @param type 'password' draws every char as a dot
  * @param inputMode which phone keyboard to open (e.g. 'email')
  * @param autoCapitalize passed to the hidden input ('none' for usernames)
+ * @param autoComplete passed to the hidden input (e.g. 'new-password')
  * @param required blocks the form's submit while empty
  * @returns JSX input component
  *
@@ -41,6 +42,7 @@ type InputProps = {
     type?: 'text' | 'password'
     inputMode?: HTMLAttributes<HTMLInputElement>['inputMode']
     autoCapitalize?: string
+    autoComplete?: HTMLInputAutoCompleteAttribute // prop: **none** -> **autoComplete**, reason: EditInfo lost its 'new-password' hint when it moved to Input, mechanism: handed to the hidden <input> like the other form props
     required?: boolean
 }
 // form props, all handed straight to the hidden <input>: it is a real form
@@ -120,9 +122,11 @@ function Caret({ visible, atStart }: { visible: boolean, atStart: boolean }) { /
 // `visibility` and not unmounting, for the same reason -- nothing reflows on
 // the blink.
 
-export default function Input({ text: textProp, onChange, onSubmit, limit, placeholder, disabled, style, name, type = 'text', inputMode, autoCapitalize, required }: InputProps) { // props: **no form props** -> **+ name, type, inputMode, autoCapitalize, required**, reason: SignUp needs them, mechanism: see InputProps
+export default function Input({ text: textProp, onChange, onSubmit, limit, placeholder, disabled, style, name, type = 'text', inputMode, autoCapitalize, autoComplete, required }: InputProps) { // props: **no form props** -> **+ name, type, inputMode, autoCapitalize, required**, reason: SignUp needs them, mechanism: see InputProps
     const boxRef = useRef<HTMLDivElement>(null)
     const inputRef = useRef<HTMLInputElement>(null)
+    const pendingOffset = useRef<number | null>(null)
+    // where a touch pressed, kept until its click focuses the input (see handlePointerDown)
     const [internalText, setInternalText] = useState('')
     const controlled = textProp !== undefined
     const text = controlled ? textProp : internalText
@@ -196,10 +200,33 @@ export default function Input({ text: textProp, onChange, onSubmit, limit, place
         }
         const offset = chars.slice(0, index).join('').length
 
+        if (e.pointerType !== 'mouse') { // focus: **on pointerdown for all** -> **on click for touch/pen**, reason: on iPhone the field lost focus as soon as the finger lifted (it only stayed selected while held), mechanism: iOS handles the tap on the unfocusable div at touchend and blurs the input; click comes after that, so focusing there sticks (and still counts as a user gesture, so the keyboard opens)
+            pendingOffset.current = offset
+            return
+        }
+        placeCaret(offset)
+    }
+
+    function placeCaret(offset: number) {
+        const input = inputRef.current
+        if (!input) return
         input.focus()
         input.setSelectionRange(offset, offset)
         syncSelection()
     }
+    // shared by the mouse path (right away on pointerdown) and the touch path
+    // (on click, from the offset worked out on pointerdown)
+
+    function handleClick(e: MouseEvent<HTMLDivElement>) {
+        e.stopPropagation()
+        const offset = pendingOffset.current
+        if (offset === null || disabled) return
+        pendingOffset.current = null
+        placeCaret(offset)
+    }
+    // the offset is read on pointerdown, where the touch point is, and applied
+    // here. null means the press was a mouse one (already handled) or there
+    // was no press on this box, so a stray click does nothing
     // the hidden input is 1px wide and ignores the mouse, so the browser cannot
     // place the cursor from a click -- it is worked out here from which
     // character was hit. Right half of a char puts the caret after it, left
@@ -217,6 +244,7 @@ export default function Input({ text: textProp, onChange, onSubmit, limit, place
     return (
         <div
             ref={boxRef}
+            onClick={handleClick} // handler: **none** -> **onClick**, reason: touch focus moved here, mechanism: see handleClick
             onPointerDown={handlePointerDown} // handler: **onMouseDown** -> **onPointerDown**, reason: see handlePointerDown, mechanism: stopPropagation there now also keeps the tap from reaching MobileGameScene's pinch/joystick handlers
             style={{ ...INPUT_STYLE, ...DEFAULT_INPUT_STYLE, ...(disabled && { cursor: 'default' }), ...style }}
         >
@@ -227,6 +255,7 @@ export default function Input({ text: textProp, onChange, onSubmit, limit, place
                 type={type}
                 inputMode={inputMode}
                 autoCapitalize={autoCapitalize}
+                autoComplete={autoComplete} // attr: **none** -> **autoComplete**, reason: see InputProps, mechanism: password managers read it off the real (hidden) input
                 required={required}
                 maxLength={limit}
                 disabled={disabled}

@@ -59,7 +59,7 @@ export default function SignUpPage() {
     // first await because e.currentTarget is null once the handler yields
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 16, width: '100%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 16, width: '100%', boxSizing: 'border-box' }}> {/* style: **content-box** -> **border-box**, reason: on a phone the page was 32px wider than the screen and the underlines ran off the right edge, mechanism: width 100% now includes the 16px padding on each side instead of adding to it */}
             SIGNUP
             <form ref={formRef} onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}> {/* ref: **none** -> **formRef**, reason: submit() needs the form, mechanism: requestSubmit on it */}
                 <Input name="name" placeholder="name" onSubmit={submit} required /> {/* tag: **<input>** -> **<Input>**, reason: match the game theme, mechanism: Input hands name/type/required to its hidden <input>, so FormData and the required check work as before (same for the 4 below) */}

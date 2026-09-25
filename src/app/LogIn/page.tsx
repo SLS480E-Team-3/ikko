@@ -41,7 +41,7 @@ export default function LogInPage() {
     // session cookies, so later requests are logged in
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 16, width: '100%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 16, width: '100%', boxSizing: 'border-box' }}> {/* style: **content-box** -> **border-box**, reason: on a phone the page was 32px wider than the screen and the underlines ran off the right edge, mechanism: width 100% now includes the 16px padding on each side instead of adding to it */}
             LOGIN
             <form ref={formRef} onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}> {/* ref: **none** -> **formRef**, reason: submit() did nothing (formRef.current was null), mechanism: requestSubmit on the form runs the required checks then handleSubmit */}
                 <Input name="identifier" placeholder="username or email" onSubmit={submit} autoCapitalize="none" required />

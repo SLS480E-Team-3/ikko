@@ -62,7 +62,7 @@ export default function InfoRecovery() {
     // is the same whether or not the email exists (see the route)
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 16, width: '100%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 16, width: '100%', boxSizing: 'border-box' }}> {/* style: **content-box** -> **border-box**, reason: on a phone the page was 32px wider than the screen and the underlines ran off the right edge, mechanism: width 100% now includes the 16px padding on each side instead of adding to it */}
             RECOVERY
             <form ref={formRef} onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}> {/* ref: **none** -> **formRef**, reason: submit() needs the form, mechanism: requestSubmit on it */}
                 <Input name="email" inputMode="email" autoCapitalize="none" placeholder="email" onSubmit={submit} required /> {/* tag: **<input type="email">** -> **<Input inputMode="email">**, reason: match the game theme; Input can't take type email, mechanism: name/required go to its hidden <input> so FormData and the empty check work as before, inputMode keeps the email keyboard, the address check moved to handleSubmit */}
