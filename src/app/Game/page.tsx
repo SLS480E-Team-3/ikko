@@ -1,3 +1,5 @@
+import MobileGameScene from "@/components/Game/MobileGameScene";
+
 export default function Game() {
-    return <div>GAME</div>
+    return <MobileGameScene/>
 }

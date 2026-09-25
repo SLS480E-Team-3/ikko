@@ -14,8 +14,8 @@ type BGProps = {
     color: string
 }
 
-const BG_H = 10_00
-const BG_W = 7_00
+const BG_H = 10_000
+const BG_W = 7_000
 const BG_COLOR = 'lightgreen'
 
 const TEMP_BG: BGProps = {
@@ -36,9 +36,32 @@ type SceneProps = {
 
 }
 
-const ZOOM_DEF = 1
+export const ZOOM_DEF = 1 // export: **local** -> **exported**, reason: MobileGameScene's pinch starts its zoom ref here, mechanism: named export next to the default GameScene export
 const ZOOM_MIN = 0.2
 const ZOOM_MAX = 4
+
+export const clampZoom = (z: number) => Math.min(Math.max(z, ZOOM_MIN), ZOOM_MAX)
+// one place for the zoom limits, shared by the wheel here and the pinch in
+// MobileGameScene so both stop at the same min/max
+
+const WHEEL_ZOOM_RATE = 0.0015 // zoom per wheel delta px: a 100px mouse notch is exp(-0.15), about 14%
+const PINCH_WHEEL_RATE = 0.01 // trackpad pinch arrives as ctrl+wheel with small deltas, so it needs a bigger rate
+const ZOOM_EASE_RATE = 0.3 // fraction of the gap to the target zoom closed per 60fps frame
+// the wheel/pinch set a target zoom and the tick eases toward it, so a
+// wheel notch glides instead of jumping
+
+export const wheelZoom = (e: WheelEvent, target: { current: number }) => {
+    e.preventDefault()
+    const delta = e.deltaY * (e.deltaMode === 1 ? 16 : 1)
+    const rate = e.ctrlKey ? PINCH_WHEEL_RATE : WHEEL_ZOOM_RATE
+    target.current = clampZoom(target.current * Math.exp(-delta * rate))
+}
+// one wheel -> target zoom step, shared by GameScene's own listener and
+// MobileGameScene's stick overlay (a sibling of the scene, so its wheel
+// events never reach GameScene). preventDefault stops ctrl+wheel /
+// trackpad pinch from zooming the page. deltaMode 1 (Firefox) reports
+// lines, ~16px each. exp(-delta * rate) zooms by the same ratio per notch
+// at any zoom level; wheel up (negative delta) zooms in
 
 const VIEWPORT_FOLLOW_RATE = 0.1
 
@@ -60,7 +83,7 @@ const TEST_PLAYER: PlayerProps = { // in final will be made from db User info
 
 const SCENE_PADDING = 50
 
-export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, screenSize, moveInput }: { bgProps?: BGProps, player?: PlayerProps, screenSize?: { w: number, h: number }, moveInput?: { current: { x: number, y: number } } }) { // props: **no moveInput** -> **moveInput?**, reason: lets MobileGameScene's joystick steer the player, mechanism: a ref object (-1..1 per axis, length <= 1) the tick reads each frame; optional so a bare <GameScene /> stays keyboard-only
+export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, screenSize, moveInput, zoomInput }: { bgProps?: BGProps, player?: PlayerProps, screenSize?: { w: number, h: number }, moveInput?: { current: { x: number, y: number } }, zoomInput?: { current: number } }) { // props: **no zoomInput** -> **zoomInput?**, reason: lets MobileGameScene's pinch set the zoom, mechanism: a ref holding the target zoom that the wheel and the tick share; optional so a bare <GameScene /> uses its own ref // props: **no moveInput** -> **moveInput?**, reason: lets MobileGameScene's joystick steer the player, mechanism: a ref object (-1..1 per axis, length <= 1) the tick reads each frame; optional so a bare <GameScene /> stays keyboard-only
     // props are optional (?) because they have defaults -- lets a page mount
     // a bare <GameScene /> while the db-backed bg/player aren't wired yet.
     // screenSize has no default and isn't read yet, so it's undefined for now
@@ -81,6 +104,11 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, scr
     // through ent?. and fall back to the bg center (where the camera already
     // looks) -- keeps the ref typed as plain numbers
     const zoomRef = useRef<number>(ZOOM_DEF)
+    const ownZoomTarget = useRef<number>(ZOOM_DEF)
+    const zoomTarget = zoomInput ?? ownZoomTarget
+    // zoomRef = the zoom drawn this frame; zoomTarget = where the wheel/pinch
+    // wants it. Uses the parent's ref when given (pinch), else its own. Both
+    // are stable ref objects, so the mount-time tick/wheel closures stay current
     const sceneRef = useRef<HTMLDivElement>(null)
     const sceneSizeRef = useRef<{ w: number, h: number }>({ w: 0, h: 0 })
     // on-screen size of the scene box in css px, measured below -- the
@@ -134,6 +162,12 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, scr
             // rescales it by dt so a 120Hz or laggy screen follows at the same
             // speed (closing 0.4 twice at 120Hz would overshoot 60Hz's 0.4)
 
+            const zoomFollow = 1 - Math.pow(1 - ZOOM_EASE_RATE, dt * 60)
+            zoomRef.current += (zoomTarget.current - zoomRef.current) * zoomFollow
+            // eases the drawn zoom toward the target the same dt-corrected way
+            // the camera follows the player, so frame rate doesn't change the
+            // speed. Done before the clamp below so it uses this frame's zoom
+
             const zoom = zoomRef.current
             const halfW = sceneSizeRef.current.w / 2 / zoom
             const halfH = sceneSizeRef.current.h / 2 / zoom
@@ -173,6 +207,19 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, scr
     // measures once right away (before the first rAF tick uses it), then a
     // ResizeObserver keeps it current when the box changes -- phone rotation,
     // mobile browser bars showing/hiding (100dvh), window resize
+
+    useEffect(() => {
+        const el = sceneRef.current
+        if (!el) return
+        const handleWheel = (e: WheelEvent) => wheelZoom(e, zoomTarget) // body: **inline wheel math** -> **wheelZoom helper**, reason: MobileGameScene's stick overlay needs the same step, mechanism: the math moved into the exported wheelZoom above, unchanged
+        el.addEventListener('wheel', handleWheel, { passive: false })
+        return (() => {
+            el.removeEventListener('wheel', handleWheel)
+        })
+    }, [])
+    // native listener because React's onWheel is passive and can't
+    // preventDefault (see wheelZoom). Only the target changes -- the tick
+    // eases the drawn zoom toward it
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {

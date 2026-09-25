@@ -1,7 +1,7 @@
 'use client'
 
-import { ComponentProps, PointerEvent, useRef, useState } from "react"
-import GameScene from "./gameScene"
+import { ComponentProps, PointerEvent, useEffect, useRef, useState } from "react" // imports: **no useEffect** -> **+ useEffect**, reason: the overlay's wheel listener, mechanism: attached/removed in an effect below
+import GameScene, { clampZoom, wheelZoom, ZOOM_DEF } from "./gameScene" // imports: **clampZoom, ZOOM_DEF** -> **+ wheelZoom**, reason: wheel over the stick half didn't zoom, mechanism: the overlay reuses GameScene's wheel step
 
 const RADIUS = 50 // css px the knob can travel from the base center
 const DEADZONE = 0.15 // fraction of RADIUS treated as "not pushed"
@@ -11,7 +11,7 @@ const KNOB_SIZE = 44 // css px
 
 type Stick = { base: { x: number, y: number }, knob: { x: number, y: number } }
 
-export default function MobileGameScene(props: Omit<ComponentProps<typeof GameScene>, 'moveInput'>) {
+export default function MobileGameScene(props: Omit<ComponentProps<typeof GameScene>, 'moveInput' | 'zoomInput'>) { // props: **Omit moveInput** -> **Omit moveInput | zoomInput**, reason: the pinch below owns the zoom, mechanism: this component always passes zoomInput itself, so callers can't
     // takes the same optional props as GameScene (bgProps, player,
     // screenSize) and passes them through; ComponentProps reads them off
     // GameScene so its local BGProps type doesn't need exporting
@@ -19,6 +19,14 @@ export default function MobileGameScene(props: Omit<ComponentProps<typeof GameSc
     const stickRef = useRef<{ x: number, y: number }>({ x: 0, y: 0 })
     const activeIdRef = useRef<number | null>(null)
     const [stick, setStick] = useState<Stick | null>(null)
+    const zoomRef = useRef<number>(ZOOM_DEF)
+    const pointersRef = useRef<Map<number, { x: number, y: number }>>(new Map())
+    const pinchRef = useRef<{ dist0: number, zoom0: number } | null>(null)
+    const overlayRef = useRef<HTMLDivElement>(null)
+    // zoomRef = GameScene's target zoom (its tick eases toward it).
+    // pointersRef = every finger currently down anywhere on the scene, by
+    // pointerId. pinchRef = the finger distance and zoom when the pinch
+    // started; null = not pinching
     // stickRef is what GameScene's rAF tick reads (-1..1 per axis, length
     // <= 1) -- a ref so a move doesn't need a render to reach the loop.
     // activeIdRef = the one pointer driving the stick. stick is only for
@@ -34,7 +42,7 @@ export default function MobileGameScene(props: Omit<ComponentProps<typeof GameSc
     // notification or system swipe)
 
     const handleDown = (e: PointerEvent<HTMLDivElement>) => {
-        if (activeIdRef.current !== null) return
+        if (activeIdRef.current !== null || pinchRef.current) return // guard: **stick already held** -> **+ while pinching**, reason: a finger landing mid-pinch shouldn't start walking, mechanism: pinchRef is set from the second finger down until fewer than two remain
         activeIdRef.current = e.pointerId
         e.currentTarget.setPointerCapture(e.pointerId)
         const rect = e.currentTarget.getBoundingClientRect()
@@ -47,7 +55,7 @@ export default function MobileGameScene(props: Omit<ComponentProps<typeof GameSc
     // its edge. Positions are overlay-local px so they match the drawing below
 
     const handleMove = (e: PointerEvent<HTMLDivElement>) => {
-        if (e.pointerId !== activeIdRef.current || !stick) return
+        if (e.pointerId !== activeIdRef.current || !stick || pinchRef.current) return // guard: **not the stick finger** -> **+ while pinching**, reason: same as handleDown, mechanism: release() already cleared the stick when the pinch started, this also covers a stale stick state from the same frame
         const rect = e.currentTarget.getBoundingClientRect()
         const dx = e.clientX - rect.left - stick.base.x
         const dy = e.clientY - rect.top - stick.base.y
@@ -64,10 +72,69 @@ export default function MobileGameScene(props: Omit<ComponentProps<typeof GameSc
     // tops out at 1 (full speed). Inside the deadzone the output is 0, so
     // GameScene falls back to the keyboard
 
+    const fingerDist = () => {
+        const [a, b] = [...pointersRef.current.values()]
+        return Math.hypot(a.x - b.x, a.y - b.y)
+    }
+
+    const handlePinchDown = (e: PointerEvent<HTMLDivElement>) => {
+        pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+        if (pointersRef.current.size === 2) {
+            pinchRef.current = { dist0: fingerDist() || 1, zoom0: zoomRef.current }
+            release()
+        }
+    }
+
+    const handlePinchMove = (e: PointerEvent<HTMLDivElement>) => {
+        if (!pointersRef.current.has(e.pointerId)) return
+        pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+        const pinch = pinchRef.current
+        if (pinch && pointersRef.current.size >= 2) {
+            zoomRef.current = clampZoom(pinch.zoom0 * fingerDist() / pinch.dist0)
+        }
+    }
+
+    const handlePinchUp = (e: PointerEvent<HTMLDivElement>) => {
+        pointersRef.current.delete(e.pointerId)
+        if (pointersRef.current.size < 2) pinchRef.current = null
+    }
+    // these sit on the outer wrapper, so pointer events from both the stick
+    // overlay (left half) and GameScene (right half) bubble up to them and a
+    // pinch works anywhere. The second finger down starts the pinch and
+    // releases the stick so the player stops. The zoom is the start zoom times
+    // how much the finger distance grew (spread = in, pinch = out), in client
+    // px so it doesn't matter which element each finger is over. fingerDist
+    // uses the first two fingers; || 1 avoids /0 if both land on one point.
+    // Below two fingers the pinch ends and the leftover finger does nothing
+    // until it lifts
+
+    useEffect(() => {
+        const el = overlayRef.current
+        if (!el) return
+        const handleWheel = (e: WheelEvent) => wheelZoom(e, zoomRef)
+        el.addEventListener('wheel', handleWheel, { passive: false })
+        return (() => {
+            el.removeEventListener('wheel', handleWheel)
+        })
+    }, [])
+    // the stick overlay is a sibling of GameScene's scene div, not inside it,
+    // so a wheel over the left half never reached GameScene's listener. This
+    // gives the overlay the same native, non-passive listener, writing to
+    // zoomRef -- the target GameScene already eases toward -- so both halves
+    // zoom the same. No double step: a wheel event only bubbles through one
+    // of the two siblings
+
     return (
-        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-            <GameScene {...props} moveInput={stickRef} />
+        <div
+            onPointerDown={handlePinchDown}
+            onPointerMove={handlePinchMove}
+            onPointerUp={handlePinchUp}
+            onPointerCancel={handlePinchUp}
+            style={{ position: 'relative', width: '100%', height: '100%', touchAction: 'none' }} // style: **no touchAction** -> **touchAction none**, reason: a pinch on the right half zoomed the browser page instead of the game, mechanism: touch-action applies to touches starting on any descendant, so the whole scene stops browser pan/zoom (the overlay had it only for the left half)
+        >
+            <GameScene {...props} moveInput={stickRef} zoomInput={zoomRef} /> {/* props: **moveInput** -> **+ zoomInput**, reason: pinch zoom, mechanism: GameScene eases its drawn zoom toward zoomRef each tick */}
             <div
+                ref={overlayRef} // ref: **none** -> **overlayRef**, reason: the wheel effect needs the element, mechanism: native addEventListener on it
                 onPointerDown={handleDown}
                 onPointerMove={handleMove}
                 onPointerUp={release}
