@@ -2,11 +2,8 @@
 'use client'
 
 import { CSSProperties, ReactNode } from "react"
-import GameScene from "./Game/gameScene"
-import SignUpPage from "@/app/SignUp/page"
-import LogInPage from "@/app/LogIn/page"
 
-export default function TestMobileView({ size }: { size: CSSProperties, page?: ReactNode }) {
+export default function TestMobileView({ size, page }: { size: CSSProperties, page?: ReactNode }) {
     // `size` only carries custom properties (--<device>-width/-height), which
     // resize nothing on their own -- pick them out by suffix and apply them as
     // the real width/height. The --iphone prefix is the only platform signal.
@@ -32,9 +29,7 @@ export default function TestMobileView({ size }: { size: CSSProperties, page?: R
                 overflow: 'hidden'
             }}
         >
-            {/* <GameScene/> */}
-            <SignUpPage/>
-            <LogInPage/>
+            {page}
         </div>
     )
 }

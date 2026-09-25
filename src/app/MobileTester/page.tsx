@@ -24,7 +24,10 @@ import {
     PIXEL_10_PRO_SCREEN,
     XIAOMI_15_PRO_SCREEN,
 } from "@/utils/mobileScreenSIze"
-import { CSSProperties, useState } from "react"
+import { CSSProperties, ReactNode, useState } from "react"
+import GameScene from "@/components/Game/gameScene"
+import SignUpPage from "@/app/SignUp/page"
+import LogInPage from "@/app/LogIn/page"
 
 const PHONES: { label: string; screen: CSSProperties }[] = [
     { label: 'IPHONE17', screen: IPHONE17_SCREEN },
@@ -49,9 +52,16 @@ const PHONES: { label: string; screen: CSSProperties }[] = [
     { label: 'XIAOMI_15_PRO', screen: XIAOMI_15_PRO_SCREEN },
 ]
 
+const PAGES: { label: string; page: ReactNode }[] = [
+    {label: 'sign up', page :<SignUpPage/>},
+    {label: 'log in', page :<LogInPage/>},
+    {label: 'game scene', page :<GameScene/>}
+]
+
 export default function MobileTester() {
 
     const [phone, setPhone] = useState<CSSProperties>(PHONES[0].screen)
+    const [page, setPage] = useState<ReactNode>(PAGES[0].page)
 
     return (
         <div style={{
@@ -78,11 +88,29 @@ export default function MobileTester() {
                 </select>
             </div>
             <div style={{
+                justifyContent: 'left',
+            }}>
+                <select
+                    style={{
+                        height: 50,
+                        fontSize: 32
+                    }}
+                    onChange={(e) => {
+                        const selected = PAGES.find((p) => p.label === e.target.value)
+                        if (selected) setPage(selected.page)
+                    }}
+                >
+                    {
+                        PAGES.map((p) => <option key={p.label} value={p.label}>{p.label}</option>)
+                    }
+                </select>
+            </div>
+            <div style={{
                 flex: 1,
                 display: 'flex',
                 overflow: 'auto'
             }}>
-                <TestMobileView size={phone} />
+                <TestMobileView size={phone} page={page}/>
             </div>
         </div>
     )
