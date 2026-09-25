@@ -17,6 +17,7 @@ import { CSSProperties, Fragment, HTMLAttributes, HTMLInputAutoCompleteAttribute
  * @param autoCapitalize passed to the hidden input ('none' for usernames)
  * @param autoComplete passed to the hidden input (e.g. 'new-password')
  * @param required blocks the form's submit while empty
+ * @param error turns the underline red (e.g. after a failed submit)
  * @returns JSX input component
  *
  * @description
@@ -30,6 +31,8 @@ const BLINK_INTERVAL_MS = 530
 const SELECTION_COLOR = '#dbdbdb'
 const PLACEHOLDER_COLOR = '#aaaaaa'
 const CARET_WIDTH = '0.15em'
+const ERROR_COLOR = 'red'
+// underline color while `error` is set; only the line changes, the text keeps its color
 // caret bar width; INPUT_STYLE's paddingLeft uses it too
 
 type InputProps = {
@@ -46,6 +49,7 @@ type InputProps = {
     autoCapitalize?: string
     autoComplete?: HTMLInputAutoCompleteAttribute // prop: **none** -> **autoComplete**, reason: EditInfo lost its 'new-password' hint when it moved to Input, mechanism: handed to the hidden <input> like the other form props
     required?: boolean
+    error?: boolean // prop: **none** -> **error**, reason: auth pages show a failed submit by turning every underline red, mechanism: see ERROR_COLOR
 }
 // form props, all handed straight to the hidden <input>: it is a real form
 // control, so name/required make it part of the surrounding <form> the same
@@ -128,7 +132,7 @@ function Caret({ visible }: { visible: boolean }) {
 // `visibility` and not unmounting, for the same reason -- nothing reflows on
 // the blink.
 
-export default function Input({ text: textProp, onChange, onSubmit, limit, placeholder, disabled, style, name, type = 'text', inputMode, autoCapitalize, autoComplete, required }: InputProps) { // props: **no form props** -> **+ name, type, inputMode, autoCapitalize, required**, reason: SignUp needs them, mechanism: see InputProps
+export default function Input({ text: textProp, onChange, onSubmit, limit, placeholder, disabled, style, name, type = 'text', inputMode, autoCapitalize, autoComplete, required, error }: InputProps) { // props: **no form props** -> **+ name, type, inputMode, autoCapitalize, required**, reason: SignUp needs them, mechanism: see InputProps
     const boxRef = useRef<HTMLDivElement>(null)
     const inputRef = useRef<HTMLInputElement>(null)
     const pendingOffset = useRef<number | null>(null)
@@ -252,7 +256,7 @@ export default function Input({ text: textProp, onChange, onSubmit, limit, place
             ref={boxRef}
             onClick={handleClick} // handler: **none** -> **onClick**, reason: touch focus moved here, mechanism: see handleClick
             onPointerDown={handlePointerDown} // handler: **onMouseDown** -> **onPointerDown**, reason: see handlePointerDown, mechanism: stopPropagation there now also keeps the tap from reaching MobileGameScene's pinch/joystick handlers
-            style={{ ...INPUT_STYLE, ...DEFAULT_INPUT_STYLE, ...(disabled && { cursor: 'default' }), ...style }}
+            style={{ ...INPUT_STYLE, ...DEFAULT_INPUT_STYLE, ...(disabled && { cursor: 'default' }), ...(error && { borderBottomColor: ERROR_COLOR }), ...style }} // style: **no error look** -> **+ red underline on error**, reason: auth pages mark bad fields, mechanism: overrides only the color of DEFAULT_INPUT_STYLE's border, before `style` so a caller can still restyle it
         >
             <input
                 ref={inputRef}
