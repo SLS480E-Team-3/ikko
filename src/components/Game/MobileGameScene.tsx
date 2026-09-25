@@ -9,7 +9,7 @@ const KNOB_SIZE = 44 // css px
 // RADIUS sets both the drawn ring and how far a full push is; DEADZONE keeps
 // a resting thumb's jitter from flipping the player's skew/rotate
 export const SENSITIVITY_DEF = 1.3
-// default stick sensitivity: a full push takes RADIUS / 1.2 ~= 42px of drag
+// default stick sensitivity: a full push takes RADIUS / 1.3 ~= 42px of drag
 // instead of 50, so the stick reaches full speed slightly sooner
 
 type Stick = { base: { x: number, y: number }, knob: { x: number, y: number } }
