@@ -29,6 +29,8 @@ import { CSSProperties, Fragment, HTMLAttributes, HTMLInputAutoCompleteAttribute
 const BLINK_INTERVAL_MS = 530
 const SELECTION_COLOR = '#dbdbdb'
 const PLACEHOLDER_COLOR = '#aaaaaa'
+const CARET_WIDTH = '0.15em'
+// caret bar width; INPUT_STYLE's paddingLeft uses it too
 
 type InputProps = {
     text?: string
@@ -67,6 +69,7 @@ const INPUT_STYLE: CSSProperties = {
     userSelect: 'none',
     touchAction: 'manipulation', // style: **auto** -> **manipulation**, reason: a double tap on the field zoomed the page, mechanism: turns off double-tap zoom but keeps pan and pinch
     WebkitTapHighlightColor: 'transparent', // style: **default** -> **transparent**, reason: iOS flashed a grey box over the field on tap, mechanism: removes the tap highlight
+    paddingLeft: CARET_WIDTH, // style: **0** -> **CARET_WIDTH**, reason: the caret at index 0 was drawn over the 1st char, mechanism: room for the caret bar (which sits just left of its gap) inside overflow:hidden, so '|u' shows before the 1st char
 }
 // `pre` for the same reason as RainbowText: every character is its own <span>,
 // and collapsed whitespace between spans would eat typed spaces.
@@ -101,24 +104,27 @@ function toCharIndex(text: string, offset: number): number {
     return Array.from(text.slice(0, offset)).length
 }
 
-function Caret({ visible, atStart }: { visible: boolean, atStart: boolean }) { // props: **visible** -> **+ atStart**, reason: the caret was invisible in an empty field (and before the 1st char), mechanism: see transform below
+function Caret({ visible }: { visible: boolean }) {
     return (
         <span data-caret style={{ display: 'inline-block', width: 0 }}>
             <span
                 style={{
                     display: 'inline-block',
-                    transform: atStart ? 'none' : 'translateX(-50%)', // transform: **always -50%** -> **none at index 0**, reason: at the box's left edge the half-width pull put the '|' outside the box and overflow:hidden clipped it, mechanism: at index 0 it stays inside the box, flush with the left edge
+                    width: CARET_WIDTH,
+                    height: '1em',
+                    marginLeft: `-${CARET_WIDTH}`,
+                    verticalAlign: 'text-bottom',
+                    background: 'currentColor',
                     visibility: visible ? 'visible' : 'hidden',
                 }}
-            >
-                |
-            </span>
+            />
         </span>
-    )
+    ) // caret: **'|' glyph pulled back 50%** -> **CSS bar ending at the gap**, reason: at index 0 the caret was drawn over the middle of the 1st char ('u' looked split), mechanism: the pixel font draws its '|' bar somewhere inside the glyph, so no offset of the glyph lined it up; a plain bar has its ink exactly where its box is, and marginLeft puts its right edge on the gap
 }
-// a zero-width box with the '|' overflowing it, pulled back by half its own
-// width: the caret sits ON the gap between two characters instead of pushing
-// the text after it sideways every time it moves or blinks.
+// a zero-width box with the bar overflowing it to the left: the caret sits
+// just before the gap instead of pushing the text after it sideways every
+// time it moves or blinks. At index 0 that's INPUT_STYLE's paddingLeft, so
+// overflow:hidden doesn't clip it.
 // `visibility` and not unmounting, for the same reason -- nothing reflows on
 // the blink.
 
@@ -285,7 +291,7 @@ export default function Input({ text: textProp, onChange, onSubmit, limit, place
             />
             {chars.map((char, i) => (
                 <Fragment key={i}>
-                    {showCaret && caretIndex === i && <Caret visible={caretOn} atStart={i === 0} />}
+                    {showCaret && caretIndex === i && <Caret visible={caretOn} />}
                     <span
                         data-char-index={i}
                         style={{ background: focused && i >= start && i < end ? SELECTION_COLOR : undefined }}
@@ -295,7 +301,7 @@ export default function Input({ text: textProp, onChange, onSubmit, limit, place
                     </span>
                 </Fragment>
             ))}
-            {showCaret && caretIndex === chars.length && <Caret visible={caretOn} atStart={chars.length === 0} />}
+            {showCaret && caretIndex === chars.length && <Caret visible={caretOn} />}
             {chars.length === 0 && placeholder !== undefined && (
                 <span style={{ color: PLACEHOLDER_COLOR }}>{placeholder}</span>
             )}
