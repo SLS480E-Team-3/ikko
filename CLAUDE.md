@@ -37,6 +37,8 @@ under edited line or block include technical approach
 
 Auto-compact threshold is 120k (60% of 200K), set by the user with `/autocompact 120k`. Before every compact, a `PreCompact` hook (`.claude/hooks/archive-transcript.sh`) saves the full transcript to `.claude/history/`.
 
+Skip the archive for a manual compact with `/compact nosave`. Plain `/compact` and auto compacts always archive.
+
 When compacting, the summary must keep:
 - every file created/edited/deleted, with a one-line reason
 - decisions the user made or confirmed, and corrections they gave
