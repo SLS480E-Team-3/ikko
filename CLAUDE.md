@@ -35,7 +35,7 @@ if completely new code
 - under edited line or block include technical approach
 
 if fix
-- behind edited line and format as 'method: **before** -> **after**, reason: what its doing, mechanism: how it works'
+- behind edited line and format as 'method: **before** -> **after**, mechanism: how it works'
 
 ## Compact instructions
 
