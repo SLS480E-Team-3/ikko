@@ -1,12 +1,9 @@
-// DEV
+// Dev
 'use client'
 
 import { CSSProperties, ReactNode } from "react"
 
-export default function TestMobileView({ size, page }: { size: CSSProperties, page?: ReactNode }) {
-    // `size` only carries custom properties (--<device>-width/-height), which
-    // resize nothing on their own -- pick them out by suffix and apply them as
-    // the real width/height. The --iphone prefix is the only platform signal.
+export default function MobileView({ size, page }: { size: CSSProperties, page?: ReactNode }) {
     const entries = Object.entries(size) as [string, string][]
     const width = entries.find(([k]) => k.endsWith('-width'))?.[1]
     const height = entries.find(([k]) => k.endsWith('-height'))?.[1]

@@ -18,6 +18,7 @@ export type EntityProps = {
     y?: number,
     w: number,
     h: number,
+    deg?: number 
 
     color?: string,
 

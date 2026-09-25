@@ -60,7 +60,7 @@ const TEST_PLAYER: PlayerProps = { // in final will be made from db User info
 
 const SCENE_PADDING = 50
 
-export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, screenSize }: { bgProps?: BGProps, player?: PlayerProps, screenSize?: { w: number, h: number } }) {
+export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, screenSize, moveInput }: { bgProps?: BGProps, player?: PlayerProps, screenSize?: { w: number, h: number }, moveInput?: { current: { x: number, y: number } } }) { // props: **no moveInput** -> **moveInput?**, reason: lets MobileGameScene's joystick steer the player, mechanism: a ref object (-1..1 per axis, length <= 1) the tick reads each frame; optional so a bare <GameScene /> stays keyboard-only
     // props are optional (?) because they have defaults -- lets a page mount
     // a bare <GameScene /> while the db-backed bg/player aren't wired yet.
     // screenSize has no default and isn't read yet, so it's undefined for now
@@ -105,8 +105,10 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, scr
             const dy = (keys.has('KeyS') ? 1 : 0) - (keys.has('KeyW') ? 1 : 0)
             const len = Math.hypot(dx, dy) || 1
             const vel = velocityRef.current
-            vel.x = dx / len * PLAYER_SPEED
-            vel.y = dy / len * PLAYER_SPEED
+            const stick = moveInput?.current
+            const useStick = !!stick && (stick.x !== 0 || stick.y !== 0)
+            vel.x = (useStick ? stick.x : dx / len) * PLAYER_SPEED // input: **keys only** -> **stick while pushed, else keys**, reason: phones have no keyboard, mechanism: stick length <= 1 so a half push walks at half speed (analog); moveInput is a stable ref so reading it from this mount-time closure stays current
+            vel.y = (useStick ? stick.y : dy / len) * PLAYER_SPEED // input: **keys only** -> **stick while pushed, else keys**, reason: same as vel.x, mechanism: same as vel.x
             // each axis is -1/0/1 (opposite keys cancel). Dividing by the
             // length makes diagonals the same speed as straight moves instead
             // of ~1.41x; `|| 1` avoids 0/0 when nothing is held. vel is

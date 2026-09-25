@@ -1,7 +1,7 @@
 // DEV
 'use client'
 
-import TestMobileView from "@/components/testMobileView"
+import MobileView from "@/components/MobileView"
 import {
     IPHONE17_SCREEN,
     IPHONE17_PRO_SCREEN,
@@ -30,6 +30,7 @@ import SignUpPage from "@/app/SignUp/page"
 import LogInPage from "@/app/LogIn/page"
 import InfoRecovery from "@/app/InfoRecovery/page"
 import EditInfo from "@/app/EditInfo/page"
+import MobileGameScene from "@/components/Game/MobileGameScene"
 
 const PHONES: { label: string; screen: CSSProperties }[] = [
     { label: 'IPHONE17', screen: IPHONE17_SCREEN },
@@ -59,8 +60,11 @@ const PAGES: { label: string; page: ReactNode }[] = [
     {label: 'log in', page :<LogInPage/>},
     {label: 'recovery', page :<InfoRecovery/>},
     {label: 'edit info', page :<EditInfo/>},
-    {label: 'game scene', page :<GameScene/>}
+    {label: 'game scene', page :<GameScene/>},
+    {label: 'mobile game scene', page :<MobileGameScene/>}
 ]
+// mobile game scene = GameScene + the touch joystick; drag with the mouse
+// in the left half of the phone to test it on a laptop
 
 export default function MobileTester() {
 
@@ -114,7 +118,7 @@ export default function MobileTester() {
                 display: 'flex',
                 overflow: 'auto'
             }}>
-                <TestMobileView size={phone} page={page}/>
+                <MobileView size={phone} page={page}/>
             </div>
         </div>
     )
