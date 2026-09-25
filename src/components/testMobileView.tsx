@@ -3,6 +3,8 @@
 
 import { CSSProperties, ReactNode } from "react"
 import GameScene from "./Game/gameScene"
+import SignUpPage from "@/app/SignUp/page"
+import LogInPage from "@/app/LogIn/page"
 
 export default function TestMobileView({ size }: { size: CSSProperties, page?: ReactNode }) {
     // `size` only carries custom properties (--<device>-width/-height), which
@@ -31,6 +33,8 @@ export default function TestMobileView({ size }: { size: CSSProperties, page?: R
             }}
         >
             <GameScene/>
+            {/* <SignUpPage/> */}
+            {/* <LogInPage/> */}
         </div>
     )
 }
