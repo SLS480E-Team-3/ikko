@@ -1,10 +1,18 @@
 'use client'
 
-import { FormEvent, useState } from "react"
+import { FormEvent, useRef, useState } from "react" // imports: **no useRef** -> **+ useRef**, reason: Button submits the form through a ref, mechanism: see formRef
+import Button from "@/components/CustomTags/button"
+import Input from "@/components/CustomTags/input"
 
 export default function SignUpPage() {
     const [msg, setMsg] = useState('')
     const [busy, setBusy] = useState(false)
+    const formRef = useRef<HTMLFormElement>(null)
+    const submit = () => formRef.current?.requestSubmit()
+    // the themed Button is a div, not a <button>, so it can't submit the form
+    // by itself. requestSubmit does what a submit button would: runs the
+    // required checks, then fires onSubmit -> handleSubmit. Input's Enter
+    // calls the same thing, since a form with no submit button ignores Enter
 
     async function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault()
@@ -13,6 +21,13 @@ export default function SignUpPage() {
             setMsg('passwords do not match')
             return
         }
+        if (!/^\S+@\S+\.\S+$/.test(String(fields.email))) {
+            setMsg('enter a valid email')
+            return
+        }
+        // the themed Input can't be type="email" (see input.tsx), so the
+        // browser no longer checks the address; this is the same rough check:
+        // something@something.something, no spaces
         // checked before any request, so a mismatch never reaches the server.
         // password-check is split off with rest destructuring so only the
         // fields /api/SignUp expects are sent
@@ -46,14 +61,14 @@ export default function SignUpPage() {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 16, width: '100%' }}>
             SIGNUP
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <input name="name" placeholder="name" required />
-                <input name="username" placeholder="username" autoCapitalize="none" required />
-                <input name="email" type="email" placeholder="email" required />
-                <input name="password" type="password" placeholder="password" required />
-                <input name="password-check" type="password" placeholder="confirm password" required />
+            <form ref={formRef} onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}> {/* ref: **none** -> **formRef**, reason: submit() needs the form, mechanism: requestSubmit on it */}
+                <Input name="name" placeholder="name" onSubmit={submit} required /> {/* tag: **<input>** -> **<Input>**, reason: match the game theme, mechanism: Input hands name/type/required to its hidden <input>, so FormData and the required check work as before (same for the 4 below) */}
+                <Input name="username" placeholder="username" autoCapitalize="none" onSubmit={submit} required />
+                <Input name="email" inputMode="email" autoCapitalize="none" placeholder="email" onSubmit={submit} required /> {/* type: **email** -> **inputMode email**, reason: Input can't take type email, mechanism: inputMode still opens the email keyboard; the address check moved to handleSubmit */}
+                <Input name="password" type="password" placeholder="password" onSubmit={submit} required />
+                <Input name="password-check" type="password" placeholder="confirm password" onSubmit={submit} required />
 
-                <button disabled={busy}>{busy ? '...' : 'CONFIRM'}</button>
+                <Button size={24} action={submit} disabled={busy}>{busy ? '...' : 'CONFIRM'}</Button> {/* tag: **<button>** -> **<Button>**, reason: match the game theme, mechanism: action calls submit(), disabled blocks it while busy */}
             </form>
             {msg && <div>{msg}</div>}
         </div>

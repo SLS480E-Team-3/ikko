@@ -1,11 +1,15 @@
 'use client'
 
-import { FormEvent, useState } from "react"
+import { FormEvent, useState, useRef } from "react"
 import { useRouter } from "next/navigation"
+import Input from "@/components/CustomTags/input"
+import Button from "@/components/CustomTags/button"
 
 export default function LogInPage() {
     const [msg, setMsg] = useState('')
     const [busy, setBusy] = useState(false)
+    const formRef = useRef<HTMLFormElement>(null)
+    const submit = () => formRef.current?.requestSubmit()
     const router = useRouter()
 
     async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -39,11 +43,11 @@ export default function LogInPage() {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 16, width: '100%' }}>
             LOGIN
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <input name="identifier" placeholder="username or email" autoCapitalize="none" required />
-                <input name="password" type="password" placeholder="password" required />
+            <form ref={formRef} onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}> {/* ref: **none** -> **formRef**, reason: submit() did nothing (formRef.current was null), mechanism: requestSubmit on the form runs the required checks then handleSubmit */}
+                <Input name="identifier" placeholder="username or email" onSubmit={submit} autoCapitalize="none" required />
+                <Input name="password" type="password" placeholder="password" onSubmit={submit} required />
 
-                <button disabled={busy}>{busy ? '...' : 'LOG IN'}</button>
+                <Button size={24} action={submit} disabled={busy}>{busy ? '...' : 'LOG IN'}</Button> {/* action: **none** -> **submit**, reason: the themed Button is a div, so a tap never submitted the form, mechanism: action calls requestSubmit through formRef, disabled blocks it while busy */}
             </form>
             <div
                 style={{

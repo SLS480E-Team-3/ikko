@@ -1,6 +1,8 @@
 'use client'
 
-import { FormEvent, useEffect, useState } from "react"
+import { FormEvent, useEffect, useRef, useState } from "react" // imports: **no useRef** -> **+ useRef**, reason: Button submits the form through a ref, mechanism: see formRef
+import Button from "@/components/CustomTags/button"
+import Input from "@/components/CustomTags/input"
 
 type Info = { name: string, username: string, email: string }
 
@@ -22,6 +24,15 @@ export default function EditInfo() {
     const [info, setInfo] = useState<Info | null>(null)
     const [msg, setMsg] = useState('')
     const [busy, setBusy] = useState(false)
+    const formRef = useRef<HTMLFormElement>(null)
+    const submit = () => formRef.current?.requestSubmit()
+    // same as SignUpPage: the themed Button is a div, so it submits through
+    // requestSubmit (required checks, then onSubmit -> handleSubmit). Input's
+    // Enter calls it too, since a form with no submit button ignores Enter
+    const edit = (key: keyof Info) => (v: string) => setInfo(i => i && { ...i, [key]: v })
+    // Input has no defaultValue, so name/username/email are controlled by
+    // info itself: edit('name') returns the onChange that writes that one key.
+    // The hidden <input> still carries the value, so FormData reads it as before
 
     useEffect(() => {
         const recovered = new URLSearchParams(window.location.search).has('recovered')
@@ -42,7 +53,13 @@ export default function EditInfo() {
             setMsg('passwords do not match')
             return
         }
-        // same client-side check as SignUpPage; two blanks match, which means
+        if (!/^\S+@\S+\.\S+$/.test(String(fields.email))) {
+            setMsg('enter a valid email')
+            return
+        }
+        // the themed Input can't be type="email" (see input.tsx), so the
+        // browser no longer checks the address; same rough check as SignUpPage.
+        // password match: same client-side check as SignUpPage; two blanks match, which means
         // "keep the current password"
 
         setBusy(true)
@@ -62,14 +79,14 @@ export default function EditInfo() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 16, width: '100%' }}>
             EDIT INFO {/* title: **RECOVERY** -> **EDIT INFO**, reason: copied from the recovery stub, mechanism: plain text label */}
             {info && (
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}> {/* onSubmit: **{ }** -> **{handleSubmit}**, reason: empty braces were a syntax error, mechanism: form submit now posts to /api/EditInfo; form waits for info so defaultValue has data */}
-                    <input name="name" placeholder="name" defaultValue={info.name} required /> {/* defaultValue: **none** -> **info.name**, reason: pre-fill current value, mechanism: uncontrolled input, FormData still reads it */}
-                    <input name="username" placeholder="username" autoCapitalize="none" defaultValue={info.username} required /> {/* defaultValue: **none** -> **info.username**, reason: shows the username to someone who forgot it, mechanism: same as name */}
-                    <input name="email" type="email" placeholder="email" defaultValue={info.email} required /> {/* defaultValue: **none** -> **info.email**, reason: pre-fill, mechanism: route only calls updateUser if it changed */}
-                    <input name="password" type="password" placeholder="new password (blank = keep)" autoComplete="new-password" /> {/* required: **required** -> **optional**, reason: editing a name shouldn't force a password change, mechanism: route skips the password when blank */}
-                    <input name="password-check" type="password" placeholder="confirm new password" autoComplete="new-password" /> {/* required: **required** -> **optional**, reason: matches password, mechanism: two blanks pass the match check */}
+                <form ref={formRef} onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}> {/* ref: **none** -> **formRef**, reason: submit() needs the form, mechanism: requestSubmit on it */} {/* onSubmit: **{ }** -> **{handleSubmit}**, reason: empty braces were a syntax error, mechanism: form submit now posts to /api/EditInfo; form waits for info so the fields start pre-filled */}
+                    <Input name="name" placeholder="name" text={info.name} onChange={edit('name')} onSubmit={submit} required /> {/* tag: **<input defaultValue>** -> **<Input text/onChange>**, reason: match the game theme; Input has no defaultValue, mechanism: controlled by info so it starts pre-filled, and the hidden <input> keeps name/required so FormData and the required check work as before (same for the 2 below) */}
+                    <Input name="username" placeholder="username" autoCapitalize="none" text={info.username} onChange={edit('username')} onSubmit={submit} required />
+                    <Input name="email" inputMode="email" autoCapitalize="none" placeholder="email" text={info.email} onChange={edit('email')} onSubmit={submit} required /> {/* type: **email** -> **inputMode email**, reason: Input can't take type email, mechanism: inputMode still opens the email keyboard; the address check moved to handleSubmit */}
+                    <Input name="password" type="password" placeholder="new password (blank = keep)" onSubmit={submit} /> {/* tag: **<input autoComplete="new-password">** -> **<Input>**, reason: match the game theme, mechanism: uncontrolled like before; Input has no autoComplete prop so that hint is dropped (same for the 1 below) */}
+                    <Input name="password-check" type="password" placeholder="confirm new password" onSubmit={submit} />
 
-                    <button disabled={busy}>{busy ? '...' : 'SAVE'}</button>
+                    <Button size={24} action={submit} disabled={busy}>{busy ? '...' : 'SAVE'}</Button> {/* tag: **<button>** -> **<Button>**, reason: match the game theme, mechanism: action calls submit(), disabled blocks it while busy */}
                 </form>
             )}
             {msg && <div>{msg}</div>}
