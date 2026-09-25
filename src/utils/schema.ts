@@ -45,6 +45,29 @@ create table user_quests (
 // Run in the Supabase SQL editor after the islands table exists
 // (island_id references it)
 
+export const QUESTS_RLS_SQL = `
+alter table quests      enable row level security;
+alter table user_quests enable row level security;
+
+create policy "quests readable by signed-in users"
+  on quests for select
+  to authenticated
+  using (true);
+
+create policy "users read own quest progress"
+  on user_quests for select
+  to authenticated
+  using ((select auth.uid()) = user_id);
+`
+// RLS on = every row is denied unless a policy allows it. quests is shared
+// content, so any signed-in user can read it; user_quests rows only match
+// their owner. No insert/update/delete policies on purpose: the browser
+// can't start or clear quests itself. The Server Action checks the answer,
+// then writes with a service-role client (SUPABASE_SERVICE_ROLE_KEY,
+// server-only, never NEXT_PUBLIC_), which bypasses RLS. auth.uid() is
+// wrapped in (select ...) so Postgres runs it once per query, not per row
+// (Supabase perf advice). Run after QUESTS_SQL
+
 // ===========================================================================
 // ===========================================================================
 //                                  QUEST
@@ -101,6 +124,26 @@ create table user_islands (
 // island. Run this BEFORE QUESTS_SQL, since quests.island_id references
 // islands
 
+export const ISLANDS_RLS_SQL = `
+alter table islands      enable row level security;
+alter table user_islands enable row level security;
+
+create policy "islands readable by signed-in users"
+  on islands for select
+  to authenticated
+  using (true);
+
+create policy "users read own island progress"
+  on user_islands for select
+  to authenticated
+  using ((select auth.uid()) = user_id);
+`
+// same shape as QUESTS_RLS_SQL: shared islands are readable by everyone
+// signed in, progress rows only by their owner, and with no write policies
+// current_points / unlocked_at can only change through the server's
+// service-role client -- a player can't give themselves points or unlock
+// an island from devtools. Run after ISLANDS_SQL
+
 // ===========================================================================
 // ===========================================================================
 //                                  ISLAND
@@ -126,8 +169,8 @@ export type UserProps = {
 export const USERS_SQL = `
 create table profiles (
   id         uuid primary key references auth.users(id) on delete cascade,
-  username   text not null unique,
-  name       text,
+  username   text not null unique check (btrim(username) <> ''),
+  name       text not null check (btrim(name) <> ''),
   color      text,
   created_at timestamptz not null default now()
 );
@@ -135,7 +178,10 @@ create table profiles (
 // profiles.id IS the auth user's id (1:1), so deleting the account in
 // Supabase Auth cascades to the profile, and through auth.users to
 // user_islands / user_quests. username is unique for login/display
-// handles; name is an optional display name. Run order: USERS_SQL,
+// handles; name is the display name. Both are mandatory at signup (with
+// email + password, which Supabase Auth itself requires): not null blocks
+// a missing value, check (btrim(...) <> '') blocks '' or all-spaces, which
+// not null alone lets through. color stays optional. Run order: USERS_SQL,
 // ISLANDS_SQL, QUESTS_SQL
 
 export const SIGNUP_TRIGGER_SQL = `
@@ -164,13 +210,37 @@ create trigger on_auth_user_created
 // username/name come from the signup call's metadata:
 //   supabase.auth.signUp({ email, password,
 //     options: { data: { username, name } } })
-// If username is missing or already taken, the insert fails (not null /
-// unique) and the whole signup is rolled back -- check availability
+// If username or name is missing/blank, or username is already taken, the
+// insert fails (not null / check / unique) and the whole signup is rolled
+// back, so no auth user is left without a profile -- validate the form
+// fields and check username availability
 // before calling signUp for a friendly error. security definer runs the
 // function as its owner, since the auth service inserting the user can't
 // write to public.profiles itself; search_path = '' (with the
 // fully-qualified public.profiles) blocks search_path hijacking, per the
 // Supabase docs pattern. Run after USERS_SQL (profiles must exist)
+
+export const USERS_RLS_SQL = `
+alter table profiles enable row level security;
+
+create policy "profiles readable by signed-in users"
+  on profiles for select
+  to authenticated
+  using (true);
+
+create policy "users update own profile"
+  on profiles for update
+  to authenticated
+  using ((select auth.uid()) = id)
+  with check ((select auth.uid()) = id);
+`
+// profiles only hold public info (username, name, color -- no email), so
+// every signed-in user can read them, e.g. to draw other players' names.
+// Users may edit only their own row: using picks which rows they can
+// target, with check stops them rewriting id to someone else's. No insert
+// policy: SIGNUP_TRIGGER_SQL creates the row, and its security definer
+// function runs as the table owner, which RLS doesn't apply to. No delete
+// policy: deleting the auth user cascades. Run after USERS_SQL
 
 // ===========================================================================
 // ===========================================================================
