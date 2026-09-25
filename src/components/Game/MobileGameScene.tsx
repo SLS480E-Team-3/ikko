@@ -8,10 +8,13 @@ const DEADZONE = 0.15 // fraction of RADIUS treated as "not pushed"
 const KNOB_SIZE = 44 // css px
 // RADIUS sets both the drawn ring and how far a full push is; DEADZONE keeps
 // a resting thumb's jitter from flipping the player's skew/rotate
+export const SENSITIVITY_DEF = 1.3
+// default stick sensitivity: a full push takes RADIUS / 1.2 ~= 42px of drag
+// instead of 50, so the stick reaches full speed slightly sooner
 
 type Stick = { base: { x: number, y: number }, knob: { x: number, y: number } }
 
-export default function MobileGameScene(props: Omit<ComponentProps<typeof GameScene>, 'moveInput' | 'zoomInput'>) { // props: **Omit moveInput** -> **Omit moveInput | zoomInput**, reason: the pinch below owns the zoom, mechanism: this component always passes zoomInput itself, so callers can't
+export default function MobileGameScene({ sensitivity = SENSITIVITY_DEF, ...props }: Omit<ComponentProps<typeof GameScene>, 'moveInput' | 'zoomInput'> & { sensitivity?: number }) { // props: **no sensitivity** -> **sensitivity?**, reason: tune how far a full push is (MobileTester has an input for it), mechanism: pulled out of props so it isn't passed on to GameScene; the rest still spreads through // props: **Omit moveInput** -> **Omit moveInput | zoomInput**, reason: the pinch below owns the zoom, mechanism: this component always passes zoomInput itself, so callers can't
     // takes the same optional props as GameScene (bgProps, player,
     // screenSize) and passes them through; ComponentProps reads them off
     // GameScene so its local BGProps type doesn't need exporting
@@ -31,6 +34,11 @@ export default function MobileGameScene(props: Omit<ComponentProps<typeof GameSc
     // <= 1) -- a ref so a move doesn't need a render to reach the loop.
     // activeIdRef = the one pointer driving the stick. stick is only for
     // drawing the ring/knob; null = nothing on screen
+
+    const reach = RADIUS / Math.max(sensitivity, 0.1)
+    // css px of drag for a full push, also the drawn ring's radius so the
+    // knob still stops on the ring's edge. Max(0.1) guards a 0 / empty input
+    // from dividing by zero
 
     const release = () => {
         activeIdRef.current = null
@@ -60,15 +68,15 @@ export default function MobileGameScene(props: Omit<ComponentProps<typeof GameSc
         const dx = e.clientX - rect.left - stick.base.x
         const dy = e.clientY - rect.top - stick.base.y
         const dist = Math.hypot(dx, dy)
-        const scale = dist > RADIUS ? RADIUS / dist : 1
+        const scale = dist > reach ? reach / dist : 1 // radius: **RADIUS** -> **reach**, reason: sensitivity, mechanism: reach = RADIUS / sensitivity, so a higher sensitivity needs less drag for a full push (same for the 3 lines below)
         const cx = dx * scale
         const cy = dy * scale
-        const push = Math.min(dist, RADIUS) / RADIUS
-        stickRef.current = push < DEADZONE ? { x: 0, y: 0 } : { x: cx / RADIUS, y: cy / RADIUS }
+        const push = Math.min(dist, reach) / reach
+        stickRef.current = push < DEADZONE ? { x: 0, y: 0 } : { x: cx / reach, y: cy / reach }
         setStick({ base: stick.base, knob: { x: stick.base.x + cx, y: stick.base.y + cy } })
     }
     // the offset from the base is shrunk onto the ring when the thumb goes
-    // past RADIUS, so the knob stays on the edge and the vector's length
+    // past reach, so the knob stays on the edge and the vector's length
     // tops out at 1 (full speed). Inside the deadzone the output is 0, so
     // GameScene falls back to the keyboard
 
@@ -98,9 +106,8 @@ export default function MobileGameScene(props: Omit<ComponentProps<typeof GameSc
         pointersRef.current.delete(e.pointerId)
         if (pointersRef.current.size < 2) pinchRef.current = null
     }
-    // these sit on the outer wrapper, so pointer events from both the stick
-    // overlay (left half) and GameScene (right half) bubble up to them and a
-    // pinch works anywhere. The second finger down starts the pinch and
+    // these sit on the outer wrapper, so pointer events from the full-screen
+    // stick overlay bubble up to them and a pinch works anywhere. The second finger down starts the pinch and
     // releases the stick so the player stops. The zoom is the start zoom times
     // how much the finger distance grew (spread = in, pinch = out), in client
     // px so it doesn't matter which element each finger is over. fingerDist
@@ -118,11 +125,11 @@ export default function MobileGameScene(props: Omit<ComponentProps<typeof GameSc
         })
     }, [])
     // the stick overlay is a sibling of GameScene's scene div, not inside it,
-    // so a wheel over the left half never reached GameScene's listener. This
-    // gives the overlay the same native, non-passive listener, writing to
-    // zoomRef -- the target GameScene already eases toward -- so both halves
-    // zoom the same. No double step: a wheel event only bubbles through one
-    // of the two siblings
+    // and covers all of it, so wheel events never reach GameScene's listener
+    // (kept for a bare <GameScene />). This gives the overlay the same
+    // native, non-passive listener, writing to zoomRef -- the target
+    // GameScene already eases toward. No double step: a wheel event only
+    // bubbles through one of the two siblings
 
     return (
         <div
@@ -144,7 +151,7 @@ export default function MobileGameScene(props: Omit<ComponentProps<typeof GameSc
                     position: 'absolute',
                     left: 0,
                     top: 0,
-                    width: '50%',
+                    width: '100%', // style: **width 50%** -> **width 100%**, reason: the stick could only start on one half of the screen, mechanism: the overlay now covers the whole scene so a thumb landing anywhere hits handleDown (GameScene has no pointer handlers of its own to block)
                     height: '100%',
                     zIndex: 1,
                     touchAction: 'none',
@@ -156,10 +163,10 @@ export default function MobileGameScene(props: Omit<ComponentProps<typeof GameSc
                     <>
                         <div style={{
                             position: 'absolute',
-                            left: stick.base.x - RADIUS,
-                            top: stick.base.y - RADIUS,
-                            width: RADIUS * 2,
-                            height: RADIUS * 2,
+                            left: stick.base.x - reach, // ring: **RADIUS** -> **reach**, reason: the ring should match the sensitivity-scaled push distance, mechanism: same reach handleMove clamps the knob to
+                            top: stick.base.y - reach,
+                            width: reach * 2,
+                            height: reach * 2,
                             borderRadius: '50%',
                             background: 'rgba(255, 255, 255, 0.25)',
                             border: '2px solid rgba(255, 255, 255, 0.6)',
@@ -181,8 +188,9 @@ export default function MobileGameScene(props: Omit<ComponentProps<typeof GameSc
             </div>
         </div>
     )
-    // the overlay sits over the left half of the scene (zIndex above the
-    // world); the right half stays free for future buttons. touchAction none
+    // the overlay sits over the whole scene (zIndex above the world), so the
+    // stick can start anywhere; future on-screen buttons need a higher zIndex
+    // than it to receive taps. touchAction none
     // stops the browser from scrolling / pinch-zooming during a drag, and
     // userSelect none stops a long press from selecting text. Ring and knob
     // are centered on their points by subtracting half their size, and have

@@ -30,7 +30,7 @@ import SignUpPage from "@/app/SignUp/page"
 import LogInPage from "@/app/LogIn/page"
 import InfoRecovery from "@/app/InfoRecovery/page"
 import EditInfo from "@/app/EditInfo/page"
-import MobileGameScene from "@/components/Game/MobileGameScene"
+import MobileGameScene, { SENSITIVITY_DEF } from "@/components/Game/MobileGameScene" // imports: **default only** -> **+ SENSITIVITY_DEF**, reason: seed the sensitivity input, mechanism: the input starts at the same default the scene uses
 
 const PHONES: { label: string; screen: CSSProperties }[] = [
     { label: 'IPHONE17', screen: IPHONE17_SCREEN },
@@ -55,21 +55,22 @@ const PHONES: { label: string; screen: CSSProperties }[] = [
     { label: 'XIAOMI_15_PRO', screen: XIAOMI_15_PRO_SCREEN },
 ]
 
-const PAGES: { label: string; page: ReactNode }[] = [
-    {label: 'mobile game scene', page :<MobileGameScene/>},
-    {label: 'sign up', page :<SignUpPage/>},
-    {label: 'log in', page :<LogInPage/>},
-    {label: 'recovery', page :<InfoRecovery/>},
-    {label: 'edit info', page :<EditInfo/>},
-    {label: 'game scene', page :<GameScene/>},
+const PAGES: { label: string; page: (sensitivity: number) => ReactNode }[] = [ // type: **page: ReactNode** -> **page: (sensitivity) => ReactNode**, reason: the sensitivity input must reach MobileGameScene, mechanism: a prebuilt element is frozen with its props, so each page is built at render time from the current input
+    {label: 'mobile game scene', page: (s) => <MobileGameScene sensitivity={s}/>},
+    {label: 'sign up', page: () => <SignUpPage/>},
+    {label: 'log in', page: () => <LogInPage/>},
+    {label: 'recovery', page: () => <InfoRecovery/>},
+    {label: 'edit info', page: () => <EditInfo/>},
+    {label: 'game scene', page: () => <GameScene/>},
 ]
 // mobile game scene = GameScene + the touch joystick; drag with the mouse
-// in the left half of the phone to test it on a laptop
+// anywhere on the phone to test it on a laptop
 
 export default function MobileTester() {
 
     const [phone, setPhone] = useState<CSSProperties>(PHONES[0].screen)
-    const [page, setPage] = useState<ReactNode>(PAGES[0].page)
+    const [page, setPage] = useState<(sensitivity: number) => ReactNode>(() => PAGES[0].page) // state: **the element** -> **its builder**, reason: see PAGES, mechanism: the useState initializer and setPage(() => fn) wrap it because React would call a bare function as an updater
+    const [sensitivity, setSensitivity] = useState<number>(SENSITIVITY_DEF)
 
     return (
         <div style={{
@@ -105,7 +106,7 @@ export default function MobileTester() {
                     }}
                     onChange={(e) => {
                         const selected = PAGES.find((p) => p.label === e.target.value)
-                        if (selected) setPage(selected.page)
+                        if (selected) setPage(() => selected.page)
                     }}
                 >
                     {
@@ -113,12 +114,27 @@ export default function MobileTester() {
                     }
                 </select>
             </div>
+            <label style={{ fontSize: 24, height: 50, display: 'flex', alignItems: 'center', gap: 8, color: 'white' }}>
+                sensitivity
+                <input
+                    type="number"
+                    min={0.1}
+                    max={5}
+                    step={0.1}
+                    value={sensitivity}
+                    onChange={(e) => setSensitivity(Number(e.target.value))}
+                    style={{ width: 80, height: 40, fontSize: 24 }}
+                />
+            </label>
+            {/* joystick sensitivity for 'mobile game scene': full push =
+            50px / sensitivity of drag. A number input with 0.1 steps; an
+            empty box becomes 0, which MobileGameScene floors at 0.1 */}
             <div style={{
                 flex: 1,
                 display: 'flex',
                 overflow: 'auto'
             }}>
-                <MobileView size={phone} page={page}/>
+                <MobileView size={phone} page={page(sensitivity)}/>
             </div>
         </div>
     )
