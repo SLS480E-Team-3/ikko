@@ -10,17 +10,29 @@ export default function LogInPage() {
         e.preventDefault()
         const fields = Object.fromEntries(new FormData(e.currentTarget))
         setBusy(true)
-        const res = await fetch('/api/LogIn', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(fields),
-        })
-        const json = await res.json()
-        setMsg(res.ok ? 'logged in!' : json.error)
-        setBusy(false)
+        setMsg('')
+        try {
+            const res = await fetch('/api/LogIn', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(fields),
+                signal: AbortSignal.timeout(10_000),
+            })
+            const json = await res.json().catch(() => ({}))
+            if (res.ok) setMsg('logged in!')
+            else setMsg(json.error ?? `something went wrong (${res.status}), try again`)
+        } catch (err) {
+            if (err instanceof DOMException && err.name === 'TimeoutError') setMsg('request timed out, try again')
+            else setMsg('no connection, check your internet and try again')
+        } finally {
+            setBusy(false)
+        }
     }
-    // same fetch pattern as SignUpPage. On success the route has already set
-    // the session cookies, so later requests are logged in
+    // same pattern as SignUpPage: AbortSignal.timeout cancels after 10s
+    // (TimeoutError), any other rejection = no response at all, and a
+    // non-JSON reply falls back to the status code. finally re-enables the
+    // button on every path. On success the route has already set the
+    // session cookies, so later requests are logged in
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 16, width: '100%' }}>

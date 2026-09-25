@@ -34,7 +34,7 @@ export default function TestMobileView({ size }: { size: CSSProperties, page?: R
         >
             {/* <GameScene/> */}
             <SignUpPage/>
-            {/* <LogInPage/> */}
+            <LogInPage/>
         </div>
     )
 }
