@@ -63,7 +63,7 @@ create policy "users read own quest progress"
 // content, so any signed-in user can read it; user_quests rows only match
 // their owner. No insert/update/delete policies on purpose: the browser
 // can't start or clear quests itself. The Server Action checks the answer,
-// then writes with a service-role client (SUPABASE_SERVICE_ROLE_KEY,
+// then writes with a service-role client (SUPABASE_SECRET_KEY,
 // server-only, never NEXT_PUBLIC_), which bypasses RLS. auth.uid() is
 // wrapped in (select ...) so Postgres runs it once per query, not per row
 // (Supabase perf advice). Run after QUESTS_SQL
@@ -169,7 +169,7 @@ export type UserProps = {
 export const USERS_SQL = `
 create table profiles (
   id         uuid primary key references auth.users(id) on delete cascade,
-  username   text not null unique check (btrim(username) <> ''),
+  username   text not null unique check (btrim(username) <> '' and position('@' in username) = 0),
   name       text not null check (btrim(name) <> ''),
   color      text,
   created_at timestamptz not null default now()
@@ -241,6 +241,41 @@ create policy "users update own profile"
 // policy: SIGNUP_TRIGGER_SQL creates the row, and its security definer
 // function runs as the table owner, which RLS doesn't apply to. No delete
 // policy: deleting the auth user cascades. Run after USERS_SQL
+
+export const LOGIN_LOOKUP_SQL = `
+create function public.email_for_username(p_username text)
+returns text
+language sql
+stable
+security definer set search_path = ''
+as $$
+  select u.email
+  from auth.users u
+  join public.profiles p on p.id = u.id
+  where p.username = p_username;
+$$;
+
+revoke execute on function public.email_for_username(text) from public, anon, authenticated;
+grant  execute on function public.email_for_username(text) to service_role;
+`
+// Supabase Auth only signs in with email (or phone) + password, so
+// username login = look up that user's email, then do a normal email login.
+// Login flow (future Server Action, one input field + password):
+//   1. input contains '@' -> it's an email, use it as-is
+//      (usernames can't contain '@', see the check in USERS_SQL)
+//   2. otherwise -> service-role client:
+//        rpc('email_for_username', { p_username: input })
+//   3. server client from @supabase/ssr (anon key + cookies):
+//        auth.signInWithPassword({ email, password }) -- sets the session
+//   4. unknown username and wrong password return the SAME error message,
+//      so the form can't be used to test which usernames exist
+// The function reads auth.users, which the API can't reach, so it's
+// security definer (runs as its owner). Because it maps a username to an
+// email, execute is revoked from anon/authenticated -- Supabase grants
+// them execute on public functions by default, so revoking from public
+// alone isn't enough -- and granted only to service_role. The email is
+// only ever read on the server and never sent to the browser.
+// Run after USERS_SQL
 
 // ===========================================================================
 // ===========================================================================
