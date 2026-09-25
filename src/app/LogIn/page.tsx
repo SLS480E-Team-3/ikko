@@ -1,10 +1,12 @@
 'use client'
 
 import { FormEvent, useState } from "react"
+import { useRouter } from "next/navigation"
 
 export default function LogInPage() {
     const [msg, setMsg] = useState('')
     const [busy, setBusy] = useState(false)
+    const router = useRouter()
 
     async function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault()
@@ -43,6 +45,13 @@ export default function LogInPage() {
 
                 <button disabled={busy}>{busy ? '...' : 'LOG IN'}</button>
             </form>
+            <div
+                style={{
+                    color: 'red',
+                    fontSize: '0.5rem',
+                }}
+                onClick={() => router.push('./InfoRecovery')}><u>forgot username or password?</u>
+            </div>
             {msg && <div>{msg}</div>}
         </div>
     )

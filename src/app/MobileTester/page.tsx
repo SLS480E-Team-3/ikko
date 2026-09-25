@@ -28,6 +28,8 @@ import { CSSProperties, ReactNode, useState } from "react"
 import GameScene from "@/components/Game/gameScene"
 import SignUpPage from "@/app/SignUp/page"
 import LogInPage from "@/app/LogIn/page"
+import InfoRecovery from "@/app/InfoRecovery/page"
+import EditInfo from "@/app/EditInfo/page"
 
 const PHONES: { label: string; screen: CSSProperties }[] = [
     { label: 'IPHONE17', screen: IPHONE17_SCREEN },
@@ -55,6 +57,8 @@ const PHONES: { label: string; screen: CSSProperties }[] = [
 const PAGES: { label: string; page: ReactNode }[] = [
     {label: 'sign up', page :<SignUpPage/>},
     {label: 'log in', page :<LogInPage/>},
+    {label: 'recovery', page :<InfoRecovery/>},
+    {label: 'edit info', page :<EditInfo/>},
     {label: 'game scene', page :<GameScene/>}
 ]
 
