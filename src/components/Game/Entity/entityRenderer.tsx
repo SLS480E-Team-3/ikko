@@ -57,7 +57,7 @@ export default function EntityRenderer({
                 width: ent.w,
                 height: ent.h,
                 transform: `translate(-50%, -50%) ${skew}`,
-                transition: 'background-color 0.2s, transform 0.15s ease-out',
+                // transition: 'background-color 0.2s, transform 0.15s ease-out',
                 backgroundColor: ent.color
             }}
         >
