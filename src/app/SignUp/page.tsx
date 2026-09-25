@@ -32,6 +32,7 @@ export default function SignUpPage() {
                 <input name="username" placeholder="username" required />
                 <input name="email" type="email" placeholder="email" required />
                 <input name="password" type="password" placeholder="password" required />
+                <input name="password-check" type="password" placeholder="password" required />
 
                 <button disabled={busy}>{busy ? '...' : 'CONFIRM'}</button>
             </form>

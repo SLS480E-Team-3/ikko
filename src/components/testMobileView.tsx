@@ -28,12 +28,12 @@ export default function TestMobileView({ size }: { size: CSSProperties, page?: R
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                zIndex: -1,
+                isolation: 'isolate',
                 overflow: 'hidden'
             }}
         >
-            <GameScene/>
-            {/* <SignUpPage/> */}
+            {/* <GameScene/> */}
+            <SignUpPage/>
             {/* <LogInPage/> */}
         </div>
     )
