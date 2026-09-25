@@ -23,6 +23,12 @@ export async function POST(req: Request) {
         const supabase = await serverClient()
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
             redirectTo: `${new URL(req.url).origin}/api/InfoRecovery`,
+            // TODO: add this URL in Supabase Dashboard > Authentication >
+            // URL Configuration > Redirect URLs, or the reset link won't work:
+            //   http://localhost:3000/**        (dev)
+            //   https://<production-domain>/**  (after deploying to Vercel)
+            // Without it Supabase sends the link to the Site URL instead, and
+            // the user lands there not logged in
         })
         if (error) {
             const known = AUTH_ERRORS[error.code ?? '']
