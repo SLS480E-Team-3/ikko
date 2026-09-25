@@ -1,8 +1,9 @@
 'use client'
 
-import { CSSProperties } from "react"
+import { CSSProperties, ReactNode } from "react"
+import GameScene from "./Game/gameScene"
 
-export default function TestMobileView({ size }: { size: CSSProperties }) {
+export default function TestMobileView({ size }: { size: CSSProperties, page?: ReactNode }) {
     // `size` only carries custom properties (--<device>-width/-height), which
     // resize nothing on their own -- pick them out by suffix and apply them as
     // the real width/height. The --iphone prefix is the only platform signal.
@@ -17,21 +18,18 @@ export default function TestMobileView({ size }: { size: CSSProperties }) {
                 ...size,
                 width,
                 height,
-                // border sits outside width/height (content-box), so the inner
-                // screen area is exactly the device viewport
                 border: '2px solid black',
                 borderRadius: isIphone ? '36px' : '0',
                 flexShrink: 0,
-                // auto margins center it, but fall back to start-aligned when
-                // the frame is taller than the window, so it scrolls instead
-                // of being clipped off the top
                 margin: 'auto',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                zIndex: -1,
+                overflow: 'hidden'
             }}
         >
-            TEST
+            <GameScene/>
         </div>
     )
 }
