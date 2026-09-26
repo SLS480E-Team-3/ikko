@@ -49,6 +49,42 @@ Then open `.env` in an editor and paste your key as `GEMINI_API_KEY=...`.
 - **`../public/dialog/<voice name>/`**: the game's audio. Each line is `<line>.mp3`, named like the third item of a `say()` line in `npcs.ts`: the text with ！ 、 〜 。 and spaces dropped, and ？ kept. The folder name is the `name` in `voices.json` (e.g. `jordi`), or the speaker name for a prebuilt voice.
 - **`output/`**: whole-scene preview mp3s. This folder is gitignored.
 
+## Voice profile
+
+Every voice in `voices.json` needs all 15 `profile` fields. `create` joins them into the `description` sent to Voice design, so they're free text. Short, concrete phrases work best.
+
+| Field | What it sets | Example |
+|---|---|---|
+| `language` | The spoken language (`Japanese` → ja-JP, `English` → en-US) | `Japanese` |
+| `accent` | Regional accent or dialect | `Tokyo standard`, `Kansai dialect` |
+| `gender` | Voice gender | `female` |
+| `age` | Age in years, as text | `"20"` |
+| `personality` | Overall character, which the other fields should agree with | `sweet, gentle, a little dreamy` |
+| `timbre` | Tone color of the voice | `soft, slightly husky` |
+| `energy` | Default liveliness | `high and cheerful` |
+| `pitch` | Base pitch | `slightly low` |
+| `pitch_range` | How much the pitch moves, and how endings sound | `wide with rising endings` |
+| `speed` | Speaking rate | `slightly slow` |
+| `volume` | Loudness | `medium-soft` |
+| `articulation` | How crisp or loose the pronunciation is | `relaxed, a little lazy on sentence endings` |
+| `register` | Speech style or politeness level | `casual Kansai-ben`, `casual, with light desu/masu when polite` |
+| `pauses` | Gaps between phrases | `medium, unhurried` |
+| `use_case` | What the voice is for | `game character` |
+
+The profile sets who the voice is. A line's `style` in a dialog yaml only sets the mood of that line.
+
+### Voices
+
+| Name | NPC | Gender, age | Accent | Personality | Pitch | Energy |
+|---|---|---|---|---|---|---|
+| `jordi` | Jordi | female, 20 | Tokyo standard | energetic, friendly, a bit playful | slightly high | high and cheerful |
+| `shuto` | Shuto | male, 22 | Kansai dialect | unenergetic, calm, laid-back | low | low and friendly |
+| `genki` | Genki | male, 23 | Tokyo standard | calm, warm, like an older brother | slightly low | steady, gently upbeat |
+| `tiffany` | Tiffany | female, 20 | Tokyo standard | sweet, gentle, a little dreamy | medium-high | mellow and content |
+| `sarah` | Sarah | female, 21 | Tokyo standard | cheerful, easygoing, friendly | medium | light and upbeat |
+
+`voices.json` holds the full profiles. `python voice.py list` shows which voices have been created.
+
 ## Rendering rules
 
 - **One request:** if every speaker uses a prebuilt voice and there are at most 2 speakers, the whole scene is sent as a single multi-speaker request. That clip can't be split into lines, so it only produces the `output/` preview. Use `--per-line` to get the game files.
