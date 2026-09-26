@@ -3,7 +3,7 @@
 import { BGProps } from "./gameScene"
 
 type SceneProps = BGProps & {
-    
+
 }
 
 

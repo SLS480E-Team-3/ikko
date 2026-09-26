@@ -25,7 +25,7 @@ import {
     XIAOMI_15_PRO_SCREEN,
 } from "@/utils/mobileScreenSIze"
 import { CSSProperties, ReactNode, useState } from "react"
-import GameScene from "@/components/Game/gameScene"
+import GameScene from "@/components/Game/Scene/gameScene"
 import SignUpPage from "@/app/SignUp/page"
 import LogInPage from "@/app/LogIn/page"
 import InfoRecovery from "@/app/InfoRecovery/page"
@@ -56,12 +56,12 @@ const PHONES: { label: string; screen: CSSProperties }[] = [
 ]
 
 const PAGES: { label: string; page: (sensitivity: number) => ReactNode }[] = [ // type: **page: ReactNode** -> **page: (sensitivity) => ReactNode**, reason: the sensitivity input must reach MobileGameScene, mechanism: a prebuilt element is frozen with its props, so each page is built at render time from the current input
-    {label: 'mobile game scene', page: (s) => <MobileGameScene sensitivity={s}/>},
-    {label: 'sign up', page: () => <SignUpPage/>},
-    {label: 'log in', page: () => <LogInPage/>},
-    {label: 'recovery', page: () => <InfoRecovery/>},
-    {label: 'edit info', page: () => <EditInfo/>},
-    {label: 'game scene', page: () => <GameScene/>},
+    { label: 'mobile game scene', page: (s) => <MobileGameScene sensitivity={s} /> },
+    { label: 'sign up', page: () => <SignUpPage /> },
+    { label: 'log in', page: () => <LogInPage /> },
+    { label: 'recovery', page: () => <InfoRecovery /> },
+    { label: 'edit info', page: () => <EditInfo /> },
+    { label: 'game scene', page: () => <GameScene /> },
 ]
 // mobile game scene = GameScene + the touch joystick; drag with the mouse
 // anywhere on the phone to test it on a laptop
@@ -134,7 +134,7 @@ export default function MobileTester() {
                 display: 'flex',
                 overflow: 'auto'
             }}>
-                <MobileView size={phone} page={page(sensitivity)}/>
+                <MobileView size={phone} page={page(sensitivity)} />
             </div>
         </div>
     )

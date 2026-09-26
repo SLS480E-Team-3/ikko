@@ -1,7 +1,7 @@
 'use client'
 
 import { ComponentProps, PointerEvent, useEffect, useRef, useState } from "react" // imports: **no useEffect** -> **+ useEffect**, reason: the overlay's wheel listener, mechanism: attached/removed in an effect below
-import GameScene, { clampZoom, wheelZoom, ZOOM_DEF } from "./gameScene" // imports: **clampZoom, ZOOM_DEF** -> **+ wheelZoom**, reason: wheel over the stick half didn't zoom, mechanism: the overlay reuses GameScene's wheel step
+import GameScene, { clampZoom, wheelZoom, ZOOM_DEF } from "./Scene/gameScene" // imports: **clampZoom, ZOOM_DEF** -> **+ wheelZoom**, reason: wheel over the stick half didn't zoom, mechanism: the overlay reuses GameScene's wheel step
 
 const RADIUS = 50 // css px the knob can travel from the base center
 const DEADZONE = 0.15 // fraction of RADIUS treated as "not pushed"

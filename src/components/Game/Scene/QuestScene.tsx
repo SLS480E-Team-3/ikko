@@ -1,7 +1,7 @@
 'use client'
 
 import Link from "next/link"
-import QuestComplete from "./questComplete"
+import QuestComplete from "../questComplete"
 
 export type QuestSceneProps = {
     islandId: number

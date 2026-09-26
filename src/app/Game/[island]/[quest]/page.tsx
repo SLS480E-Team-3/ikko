@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation"
-import QuestScene, { type QuestSceneProps } from "@/components/Game/QuestScene"
+import QuestScene, { type QuestSceneProps } from "@/components/Game/Scene/QuestScene"
 import { adminClient, serverClient } from "@/utils/supabase"
 
 export default async function QuestPage({ // name: **QuestScene** -> **QuestPage**, mechanism: frees the name for the imported QuestScene component this page now renders

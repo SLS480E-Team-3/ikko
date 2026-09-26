@@ -1,6 +1,6 @@
 'use client'
 
-import { BG_COLOR } from "@/components/Game/gameScene"
+import { BG_COLOR } from "@/components/Game/Scene/gameScene"
 
 export default function GameLayout({ children }: { children: React.ReactNode }) {
     return (

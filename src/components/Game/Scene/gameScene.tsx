@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from "react"
-import PlayerRenderer, { PlayerProps } from "./Entity/playerRenderer"
-import { ENT_H, ENT_W } from "./Entity/entityRenderer"
+import PlayerRenderer, { PlayerProps } from "../Entity/playerRenderer"
+import { ENT_H, ENT_W } from "../Entity/entityRenderer"
 
 
 export type BGProps = {

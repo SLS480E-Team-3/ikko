@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation"
-import IslandScene, { type IslandSceneProps } from "@/components/Game/IslandScene"
+import IslandScene, { type IslandSceneProps } from "@/components/Game/Scene/IslandScene"
 import { adminClient, serverClient } from "@/utils/supabase"
 import { firstIsland, homeIsland } from "@/utils/islands"
 

@@ -1,4 +1,6 @@
-export type gameObjectProps = {
+// Assets Path /public/objectSprite/
+
+export type GameObjectProps = {
     x: number,
     y: number,
     w: number,
@@ -8,5 +10,7 @@ export type gameObjectProps = {
     hitBox: {
         x: number,
         y: number
-    }
+    },
+
+    img: string // webP 
 }
