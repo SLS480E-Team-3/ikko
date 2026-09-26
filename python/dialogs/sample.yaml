@@ -1,0 +1,22 @@
+scene: sample
+voices:
+  kaito: Charon   # prebuilt, calm and low: a contrast to jordi's bright custom voice
+lines:
+  - speaker: jordi
+    text: ねえ、かいと！おなかすいた？
+    style: cheerful, bouncy
+  - speaker: kaito
+    text: うん、ちょっとね。
+    style: calm, relaxed
+  - speaker: jordi
+    text: じゃあ、いっしょにすしをたべよう！
+    style: excited
+  - speaker: kaito
+    text: いいね。どこのおみせ？
+    style: interested
+  - speaker: jordi
+    text: えきのちかくに、おいしいおみせがあるよ。
+    style: playful, proud
+  - speaker: kaito
+    text: よし、いこう。
+    style: warm, easygoing

@@ -1,0 +1,20 @@
+scene: jordi
+lines:
+  - speaker: jordi
+    text: こんにちは！
+  - speaker: jordi
+    text: 私はお寿司が大好き！
+    style: happy, enthusiastic
+  - speaker: jordi
+    text: とくにサーモンがすき！
+    style: dreamy, fond
+  - speaker: jordi
+    text: あなたもお寿司好き？
+    style: curious, playful
+  - speaker: jordi
+    text: またお寿司の話しよ！
+    style: warm, friendly goodbye
+# Jordi's island-1 lines from src/components/Game/npcs/npcs.ts, in kanji
+# form. line_mp3 drops ！ 、 and keeps ？, so each file lands on the third
+# item of its say() line (こんにちは, 私はお寿司が大好き, ...). The greeting
+# has no style, so it reuses voice.py's cached test strip (no API call)

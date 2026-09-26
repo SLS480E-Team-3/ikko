@@ -17,45 +17,45 @@ const npc = (name: string, voice: string | undefined, x: number, y: number, colo
 
 //npcs in island 1
 export const ISLAND_1_NPC: NPCProps[] = [
-    npc('Jordi', 'Aoi', 3420, 5070, 'plum', [
+    npc('Jordi', 'jordi', 3420, 5070, 'plum', [ // voice: **'Aoi'** -> **'jordi'**, mechanism: NPCRenderer plays /dialog/<voice>/<file>.mp3, so Jordi now reads from the Gemini voice folder public/dialog/jordi/ (written by python/voice.py and dialog.py)
         say('greeting', ['こんにちは！', 'Hello!', 'こんにちは']),
         say('default',
-            ['わたしはすしがすき！', 'I love sushi!', '私は寿司が好き'],
-            ['とくにサーモンがすき', 'Salmon is my favorite', 'とくにサーモンがすき'],
-            ['あなたもすしずき？', 'Are you also a sushi muncher?', 'あなたもすしずき？']),
-        say('spoken', ['また、すしのはなししよ', "Let's talk sushi again", 'またすしのはなししよ']),
+            ['わたしはおすしがだいすき！', 'I love sushi!', '私はお寿司が大好き'], // file: **'私はお寿司が大好き！'** -> **'私はお寿司が大好き'**, mechanism: dialog.py drops ！ from file names, so the rendered mp3 has no ！
+            ['とくにサーモンがすき！', 'Salmon is my favorite', 'とくにサーモンがすき'],
+            ['あなたもおすしすき？', 'Are you also a sushi muncher?', 'あなたもお寿司好き？']), // file: **'あなたもすしずき？'** -> **'あなたもお寿司好き？'**, mechanism: matches the new line おすしすき, which python/dialogs/jordi.yaml renders to this name
+        say('spoken', ['またおすしのはなししよ！', "Let's talk sushi again", 'またお寿司の話しよ']), // file: **'またすしのはなししよ'** -> **'またお寿司の話しよ'**, mechanism: matches the new line おすしのはなし, rendered by python/dialogs/jordi.yaml
     ]),
-    npc('Shuto', undefined, 3590, 5060, 'steelblue', [
-        say('greeting', ['やあ！', 'Hey!']),
+    npc('Shuto', 'Keita', 3590, 5060, 'steelblue', [
+        say('greeting', ['やあ！', 'Hey!', 'やあ']),
         say('default',
-            ['ラーメンがだいすきだ', 'I really love ramen'],
-            ['みそラーメンがいちばん', 'Miso ramen is the best'],
-            ['いっしょにたべよう！', "Let's eat together!"]),
-        say('spoken', ['おなかすいたなあ', "I'm getting hungry"]),
+            ['ラーメンがだいすきだ', 'I really love ramen', 'ラーメンが大好きだ'],
+            ['とんこつラーメンがいちばん', 'Tonkotsu ramen is the best', '豚骨ラーメンが一番'],
+            ['いっしょにたべよう！', "Let's eat together!", '一緒に食べよう']),
+        say('spoken', ['おなかすいたなあ', "I'm getting hungry", 'お腹空いたなあ']),
     ]),
     npc('Tiffany', 'Shiori', 3500, 5150, 'khaki', [
-        say('greeting', ['おはよう！', 'Good morning!']),
+        say('greeting', ['おはよう！', 'Good morning!', 'おはよう']),
         say('default',
             ['あまいものがすき', 'I like sweet things', '甘い物が好き'],
-            ['もちがいちばんすき！', 'Mochi is my favorite!'],
-            ['やわらかくておいしい', "It's soft and tasty"]),
-        say('spoken', ['もち、たべたいな', 'I want some mochi']),
+            ['もちがいちばんすき！', 'Mochi is my favorite!', '餅が一番好き'],
+            ['やわらかくておいしい', "It's soft and tasty", '柔らかくて美味しい']),
+        say('spoken', ['もち、たべたいな', 'I want some mochi', '餅食べたいな']),
     ]),
     npc('Genki', undefined, 3300, 5110, 'gray', [
-        say('greeting', ['よう！', 'Yo!']),
+        say('greeting', ['よう！', 'Yo!', 'よう']),
         say('default',
-            ['おれはカレーがすきだ', 'I like curry'],
-            ['からいカレーがいい', 'Spicy curry is good'],
-            ['まいにちたべたい！', 'I want it every day!']),
-        say('spoken', ['カレー、たべたか？', 'Did you eat curry?']),
+            ['おれはカレーがすきだ', 'I like curry', '俺はカレーが好きだ'],
+            ['からいカレーがいい', 'Spicy curry is good', '辛いカレーがいい'],
+            ['まいにちたべたい！', 'I want it every day!', '毎日食べたい']),
+        say('spoken', ['カレー、たべたか？', 'Did you eat curry?', 'カレー食べたか？']),
     ]),
     npc('Sarah', undefined, 3710, 5130, 'lightpink', [
-        say('greeting', ['こんにちは〜', 'Hi there~']),
+        say('greeting', ['こんにちは〜', 'Hi there~', 'こんにちは']),
         say('default',
-            ['わたしはおにぎりがすき', 'I like onigiri'],
-            ['うめぼしがすっぱい！', 'Umeboshi is sour!'],
-            ['でも、おいしいよ', "But it's delicious"]),
-        say('spoken', ['またね〜', 'See you~']),
+            ['わたしはおにぎりがすき', 'I like onigiri', '私はおにぎりが好き'],
+            ['うめぼしがすっぱい！', 'Umeboshi is sour!', '梅干しが酸っぱい'],
+            ['でも、おいしいよ', "But it's delicious", 'でも美味しいよ']),
+        say('spoken', ['またね〜', 'See you~', 'またね']),
     ]),
 ]
 // five NPCs around the spawn (world center 3500, 5000), each talking about
@@ -67,7 +67,9 @@ export const ISLAND_1_NPC: NPCProps[] = [
 // beginners; kanji is avoided since there's no furigana yet. Each NPC has a
 // greeting (in range), a default talk (first time) and a shorter spoken
 // talk (after that, this scene); lines are [Japanese, English] pairs
-// voices (mp3 folders in public/dialog/): Jordi = Aoi (all lines recorded),
-// Tiffany = Shiori (only あまいものがすき so far); Shuto, Genki and Sarah
-// have no recordings yet, so they're silent. A third item in a say() pair is
-// the recording's file name, which may differ from the text (kanji, no 、)
+// voices (mp3 folders in public/dialog/): Jordi = jordi (Gemini voice; lines
+// not rendered yet stay silent), Shuto = Keita, Tiffany = Shiori;
+// Genki and Sarah have no folder yet, so they're silent. A third item
+// in a say() pair is the recording's file name (no .mp3): the line in kanji
+// with ！ 、 〜 dropped and ？ kept. A line whose file is missing just fails
+// to load and stays silent

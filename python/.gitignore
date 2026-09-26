@@ -1,0 +1,6 @@
+.env
+output/*
+!output/.gitkeep
+.cache/
+__pycache__/
+.venv/

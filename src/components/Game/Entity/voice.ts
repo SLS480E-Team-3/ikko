@@ -3,12 +3,18 @@ export const dialogUrl = (voice: string, file: string) => `/dialog/${encodeURICo
 // encoded since file names are Japanese and may hold '？', which would
 // otherwise end the path and start a query string
 
+const VOLUME = 0.25
+// dialog clips play 15% quieter than the recordings (0..1 scale). iOS Safari
+// ignores <audio>.volume (only the hardware buttons set it), so there they
+// stay at full volume
+
 let clip: HTMLAudioElement | undefined
 let current: string | undefined
 
 export const playLine = (url: string) => {
     if (typeof Audio === 'undefined') return
     clip ??= new Audio()
+    clip.volume = VOLUME // volume: **1 (default)** -> **VOLUME (0.85)**, reason: clips were too loud, mechanism: set on the shared <audio> before each play
     clip.pause()
     clip.src = url
     current = url
