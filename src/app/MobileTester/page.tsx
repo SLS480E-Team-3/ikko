@@ -25,7 +25,7 @@ import {
     XIAOMI_15_PRO_SCREEN,
 } from "@/utils/mobileScreenSIze"
 import { CSSProperties, ReactNode, useState } from "react"
-import GameScene, { BG_W, BG_H, SceneNPC } from "@/components/Game/Scene/gameScene" // imports: **default only** -> **+ BG_W, BG_H, SceneNPC**, mechanism: places the test NPCs around the player spawn (world center)
+import GameScene, { BG_W, BG_H, SceneNPC, objectHitBoxes } from "@/components/Game/Scene/gameScene" // imports: **default only** -> **+ BG_W, BG_H, SceneNPC, objectHitBoxes**, mechanism: places the test NPCs around the player spawn (world center), clear of the map's object hitBoxes
 import SignUpPage from "@/app/SignUp/page"
 import LogInPage from "@/app/LogIn/page"
 import InfoRecovery from "@/app/InfoRecovery/page"
@@ -69,26 +69,47 @@ const PAGES: { label: string; page: (sensitivity: number) => ReactNode }[] = [ /
 // mobile game scene = GameScene + the touch joystick; drag with the mouse
 // anywhere on the phone to test it on a laptop
 
-const NPC_NAMES = ['Haruto', 'Yui', 'Sota', 'Hina', 'Ren', 'Aoi', 'Yuto', 'Sakura', 'Kaito', 'Mei']
+const NPC_NAMES = ['Gon', 'Killua', 'Kurapika', 'Ren', 'Aoi', 'Yuto', 'Sakura', 'Kaito', 'Mei']
 const randomNames = (n: number) => [...NPC_NAMES].sort(() => Math.random() - 0.5).slice(0, n)
 // n different names picked at random from the pool: shuffle a copy, take the
 // first n. Runs once when the module loads, so names change per page load
 // but stay put while the scene re-renders every frame
 
 const names = randomNames(4)
-const TEST_NPCS: SceneNPC[] = [
-    { dx: -60, dy: -40, color: 'gray' },
-    { dx: 60, dy: -40, color: 'steelblue' },
-    { dx: -60, dy: 50, color: 'plum' },
-    { dx: 60, dy: 50, color: 'khaki' },
-].map((n, i) => ({
+const NPC_COLORS = ['gray', 'steelblue', 'plum', 'khaki']
+const NPC_MIN_DIST = 20
+const NPC_MAX_DIST = 120
+const apart = (a: { dx: number, dy: number }, b: { dx: number, dy: number }) =>
+    Math.abs(a.dx - b.dx) >= 12 + 4 || Math.abs(a.dy - b.dy) >= ENT_H + 4
+// two 12 x ENT_H bodies (centers dx/dy) don't touch when they're a full body
+// width apart on x or height apart on y; + 4 leaves a small gap to walk into
+const MAP_BOXES = objectHitBoxes(ISLAND_MAPS[1])
+const clearOfObjects = (n: { dx: number, dy: number }) => MAP_BOXES.every(b => {
+    const x = BG_W / 2 + n.dx, y = BG_H / 2 + n.dy
+    return x + 6 + 4 <= b.x || x - 6 - 4 >= b.x + b.w || y + ENT_H / 2 + 4 <= b.y || y - ENT_H / 2 - 4 >= b.y + b.h
+})
+// the NPC body (12 x ENT_H, centered on the spot in world px) plus the same
+// 4 px gap lies fully left, right, above or below each object hitBox of the
+// map the scene draws (ISLAND_MAPS[1])
+const npcSpots: { dx: number, dy: number }[] = []
+while (npcSpots.length < NPC_COLORS.length) {
+    const dist = NPC_MIN_DIST + Math.random() * (NPC_MAX_DIST - NPC_MIN_DIST)
+    const angle = Math.random() * Math.PI * 2
+    const spot = { dx: Math.round(Math.cos(angle) * dist), dy: Math.round(Math.sin(angle) * dist) }
+    if (apart(spot, { dx: 0, dy: 0 }) && npcSpots.every(o => apart(spot, o)) && clearOfObjects(spot)) npcSpots.push(spot) // accept: **clear of player + NPCs** -> **+ clearOfObjects**, mechanism: a spot inside an object hitBox is retried like one overlapping the player
+}
+// random spot per NPC: a random angle and a center distance of 20..120 px from
+// the player spawn. A spot is retried if its body would overlap the player's
+// spawn body (the origin) or an NPC already placed, so nobody starts stuck
+// inside someone else. Module-level, so it runs once per page load
+const TEST_NPCS: SceneNPC[] = npcSpots.map((n, i) => ({ // spots: **fixed ±60 / -40,+50 box** -> **random npcSpots 20..120 px away**, mechanism: see npcSpots
     ent: { name: names[i], // name: **`NPC ${i + 1}`** -> **names[i]**, mechanism: random name from NPC_NAMES, no repeats
-         x: BG_W / 2 + n.dx, y: BG_H / 2 + n.dy, w: 12, h: ENT_H, color: n.color, facing: 'none' },
+         x: BG_W / 2 + n.dx, y: BG_H / 2 + n.dy, w: 12, h: ENT_H, color: NPC_COLORS[i], facing: 'none' },
     dialog: 'こんにちは',
 }))
-// four entities in a box around the player spawn (world center), far enough
-// apart that their bubbles don't overlap; module-level so the array is the
-// same every render
+// four entities at random spots near the player spawn (world center);
+// module-level so the array is the same every render. Bubbles can overlap
+// now that they're close, but only NPCs near the player show one
 
 function BubblePreview() {
     const spots = [

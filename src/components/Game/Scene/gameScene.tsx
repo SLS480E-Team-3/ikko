@@ -99,6 +99,9 @@ const STILL = { x: 0, y: 0 }
 // the velocity for NPCs that don't move yet (no lean, no gust)
 
 const SIGN_RANGE = 16 // world px around a sign's hitBox where its text shows
+const TALK_RANGE = 24 // world px around an NPC's body where its dialog shows
+// NPCs are solid, so the closest the player gets is flush (gap 0); 24 px is
+// about two body widths, near enough to read as "next to" them
 
 const overlaps = (cx: number, cy: number, w: number, h: number, box: HitBox, pad = 0) =>
     cx - w / 2 < box.x + box.w + pad && cx + w / 2 > box.x - pad &&
@@ -112,6 +115,15 @@ const worldBox = (obj: PlacedObject, box: HitBox): HitBox =>
     ({ x: obj.x + box.x, y: obj.y + box.y, w: box.w, h: box.h })
 // a def's hitBox is relative to the sprite's top-left; adding the
 // placement's x/y turns it into world px for the checks above
+
+export const objectHitBoxes = (objects: PlacedObject[]): HitBox[] => objects.flatMap(obj => {
+    const base = OBJECTS[obj.def]
+    const box = base && applyScale(base, obj.scale).hitBox
+    return box ? [worldBox(obj, box)] : []
+})
+// the world-px hitBoxes of a map's objects, same lookup + scale + worldBox
+// the scene's own solids use; unknown kinds and walk-through objects give
+// none. Exported so callers (MobileTester's NPC spots) can keep clear of them
 
 export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, moveInput, zoomInput, objects = NO_OBJECTS, npcs = NO_NPCS }: { bgProps?: BGProps, player?: PlayerProps, screenSize?: { w: number, h: number }, moveInput?: { current: { x: number, y: number } }, zoomInput?: { current: number }, objects?: PlacedObject[], npcs?: SceneNPC[] }) { // props: **no npcs** -> **npcs?**, reason: entities with dialog in the scene, mechanism: each is drawn with EntityRenderer at its bottom-edge zIndex like the player; optional so a bare <GameScene /> has none // props: **no objects** -> **objects?**, reason: an island draws its map, mechanism: a PlacedObject list (island_N.ts) resolved against the OBJECTS catalog below; optional so a bare <GameScene /> is an empty field // props: **no zoomInput** -> **zoomInput?**, reason: lets MobileGameScene's pinch set the zoom, mechanism: a ref holding the target zoom that the wheel and the tick share; optional so a bare <GameScene /> uses its own ref // props: **no moveInput** -> **moveInput?**, reason: lets MobileGameScene's joystick steer the player, mechanism: a ref object (-1..1 per axis, length <= 1) the tick reads each frame; optional so a bare <GameScene /> stays keyboard-only
     // props are optional (?) because they have defaults -- lets a page mount
@@ -340,7 +352,7 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, mov
                 </div>
                 {npcs.map((n, i) => (
                     <div key={`npc-${i}`} style={{ position: 'absolute', left: 0, top: 0, zIndex: Math.round((n.ent.y ?? 0) + n.ent.h / 2) }}>
-                        <EntityRenderer velocity={STILL} ent={n.ent} dialog={n.dialog} />
+                        <EntityRenderer velocity={STILL} ent={n.ent} dialog={pEnt && overlaps(pEnt.x ?? 0, pEnt.y ?? 0, pEnt.w, pEnt.h, { x: (n.ent.x ?? 0) - n.ent.w / 2, y: (n.ent.y ?? 0) - n.ent.h / 2, w: n.ent.w, h: n.ent.h }, TALK_RANGE) ? n.dialog : undefined} /> {/* dialog: **always n.dialog** -> **n.dialog only near the player**, mechanism: same overlaps check as signs, on the NPC's body box grown by TALK_RANGE; out of range passes undefined, which EntityRenderer draws as no bubble. Re-checked every frame since force() re-renders each tick */}
                     </div>
                 ))}
                 {/* NPCs: same 0x0 bottom-edge zIndex wrapper as the player, so
