@@ -1,6 +1,7 @@
 'use client'
 
 import { FormEvent, useRef, useState } from "react" // imports: **no useRef** -> **+ useRef**, reason: Button submits the form through a ref, mechanism: see formRef
+import { useRouter } from "next/navigation"
 import Button from "@/components/CustomTags/button"
 import Input from "@/components/CustomTags/input"
 
@@ -11,6 +12,7 @@ export default function SignUpPage() {
     const fail = (text: string) => { setMsg(text); setError(true) }
     // an error message also turns every underline red (Input's `error`);
     // success messages go through setMsg alone and clear it
+    const router = useRouter()
     const formRef = useRef<HTMLFormElement>(null)
     const submit = () => formRef.current?.requestSubmit()
     // the themed Button is a div, not a <button>, so it can't submit the form
@@ -51,7 +53,11 @@ export default function SignUpPage() {
                 signal: AbortSignal.timeout(10_000),
             })
             const json = await res.json().catch(() => ({}))
-            if (res.ok) setMsg(json.needsConfirm ? 'check your email to confirm your account' : 'signed up!')
+            if (res.ok && !json.needsConfirm) return router.replace(`/Game/${json.island ?? 1}`) // success: **setMsg('signed up!')** -> **go to the first island**, reason: a new player starts on island 1, mechanism: the route signed them in and returned the first island; replace so Back doesn't reopen the form
+            if (res.ok) setMsg('check your email to confirm your account')
+            // email confirmation on: no session yet, so stay here with the
+            // message; the link in the email lands on the first island via
+            // /api/SignUp GET
             else fail(json.error ?? `something went wrong (${res.status}), try again`)
         } catch (err) {
             if (err instanceof DOMException && err.name === 'TimeoutError') fail('request timed out, try again')

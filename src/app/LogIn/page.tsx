@@ -34,7 +34,7 @@ export default function LogInPage() {
                 signal: AbortSignal.timeout(10_000),
             })
             const json = await res.json().catch(() => ({}))
-            if (res.ok) setMsg('logged in!')
+            if (res.ok) return router.replace(`/Game/${json.island ?? 1}`) // success: **setMsg('logged in!')** -> **go to the island**, reason: login should land on the last visited island, mechanism: the route returns island (last_island_id or the first); replace, not push, so Back doesn't return to the login form. return skips nothing but finally, which re-enables the button
             else fail(json.error ?? `something went wrong (${res.status}), try again`)
         } catch (err) {
             if (err instanceof DOMException && err.name === 'TimeoutError') fail('request timed out, try again')
@@ -66,6 +66,10 @@ export default function LogInPage() {
                 }}
                 onClick={() => router.push('./InfoRecovery')}><u>forgot username or password?</u>
             </div>} {/* show: **always** -> **after an error**, reason: the recovery link is only needed once a login fails, mechanism: rendered only while `error` is true; cleared again when the next request starts */}
+            <div style={{ fontSize: '0.75rem' }} onClick={() => router.push('/SignUp')}><u>new? sign up</u></div>
+            {/* the way from LogIn to SignUp for a first-time player: '/' sends
+                everyone without a session here, so this link is how they
+                reach the sign-up form */}
         </div>
     )
     // one field takes either a username or an email; the route tells them

@@ -10,7 +10,9 @@ export async function serverClient() {
         {
             cookies: {
                 getAll: () => cookieStore.getAll(),
-                setAll: (list: { name: string, value: string, options: CookieOptions }[]) => list.forEach(({ name, value, options }) => cookieStore.set(name, value, options)),
+                setAll: (list: { name: string, value: string, options: CookieOptions }[]) => {
+                    try { list.forEach(({ name, value, options }) => cookieStore.set(name, value, options)) } catch {}
+                }, // setAll: **always set** -> **set, ignore the throw**, reason: island/quest pages now call serverClient from Server Components, which can't set cookies, mechanism: a token refresh there throws on cookieStore.set; it's safe to drop because src/proxy.ts already refreshed the session before the page rendered
             },
         },
     )

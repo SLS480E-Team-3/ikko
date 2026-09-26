@@ -5,7 +5,7 @@ import PlayerRenderer, { PlayerProps } from "./Entity/playerRenderer"
 import { ENT_H, ENT_W } from "./Entity/entityRenderer"
 
 
-type BGProps = {
+export type BGProps = {
     x: number,
     y: number,
     w: number,
@@ -83,7 +83,7 @@ const TEST_PLAYER: PlayerProps = { // in final will be made from db User info
 
 const SCENE_PADDING = 50
 
-export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, screenSize, moveInput, zoomInput }: { bgProps?: BGProps, player?: PlayerProps, screenSize?: { w: number, h: number }, moveInput?: { current: { x: number, y: number } }, zoomInput?: { current: number } }) { // props: **no zoomInput** -> **zoomInput?**, reason: lets MobileGameScene's pinch set the zoom, mechanism: a ref holding the target zoom that the wheel and the tick share; optional so a bare <GameScene /> uses its own ref // props: **no moveInput** -> **moveInput?**, reason: lets MobileGameScene's joystick steer the player, mechanism: a ref object (-1..1 per axis, length <= 1) the tick reads each frame; optional so a bare <GameScene /> stays keyboard-only
+export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, moveInput, zoomInput }: { bgProps?: BGProps, player?: PlayerProps, screenSize?: { w: number, h: number }, moveInput?: { current: { x: number, y: number } }, zoomInput?: { current: number } }) { // props: **no zoomInput** -> **zoomInput?**, reason: lets MobileGameScene's pinch set the zoom, mechanism: a ref holding the target zoom that the wheel and the tick share; optional so a bare <GameScene /> uses its own ref // props: **no moveInput** -> **moveInput?**, reason: lets MobileGameScene's joystick steer the player, mechanism: a ref object (-1..1 per axis, length <= 1) the tick reads each frame; optional so a bare <GameScene /> stays keyboard-only
     // props are optional (?) because they have defaults -- lets a page mount
     // a bare <GameScene /> while the db-backed bg/player aren't wired yet.
     // screenSize has no default and isn't read yet, so it's undefined for now

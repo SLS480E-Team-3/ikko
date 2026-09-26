@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { adminClient, serverClient } from '@/utils/supabase'
+import { homeIsland } from '@/utils/islands'
 
 const fail = (error: string, status: number) => NextResponse.json({ error }, { status })
 const INVALID = () => fail('wrong username/email or password', 401)
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
         // for a typo. The email never leaves the server
 
         const supabase = await serverClient()
-        const { error } = await supabase.auth.signInWithPassword({ email, password })
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password }) // destructure: **{ error }** -> **{ data, error }**, reason: the user id picks the island to send them to, mechanism: data.user is the signed-in user
         if (error) {
             const known = AUTH_ERRORS[error.code ?? '']
             if (known) return fail(...known)
@@ -51,7 +52,7 @@ export async function POST(req: Request) {
         // success serverClient's setAll has written the session cookies
         // onto this response
 
-        return NextResponse.json({ ok: true })
+        return NextResponse.json({ ok: true, island: await homeIsland(supabase, data.user.id) }) // body: **{ ok }** -> **{ ok, island }**, reason: the page goes to the player's last island after login, mechanism: signInWithPassword already gave this client the session, so RLS lets it read their profiles.last_island_id (first island if none)
     } catch {
         return fail('could not reach the server, try again', 503)
     }

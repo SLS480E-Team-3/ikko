@@ -144,6 +144,30 @@ create policy "users read own island progress"
 // service-role client -- a player can't give themselves points or unlock
 // an island from devtools. Run after ISLANDS_SQL
 
+export const FIRST_ISLAND_SEED_SQL = `
+insert into islands (name, threshold, sort_order)
+values ('Hajime Island', 0, 1)
+on conflict (sort_order) do nothing;
+
+insert into quests (island_id, title, reward_points)
+select i.id, q.title, q.reward_points
+from islands i
+cross join (values
+  ('Hiragana: a i u e o', 10),
+  ('Greetings: konnichiwa', 10)
+) as q(title, reward_points)
+where i.sort_order = 1
+  and not exists (select 1 from quests where quests.island_id = i.id and quests.title = q.title);
+`
+// starter data, not schema: the island every player begins on (lowest
+// sort_order, threshold 0 = open from the start) plus two placeholder
+// quests so the island page has links to tap. id is left to the identity
+// column, and quests find the island by sort_order instead of assuming
+// id 1. Safe to re-run: the unique sort_order and the not-exists check
+// skip rows already there. Accounts made before this runs get the island
+// unlocked on their next visit (/Game/[island] upserts the first island).
+// Run after ISLANDS_SQL, ISLANDS_RLS_SQL and QUESTS_SQL
+
 // ===========================================================================
 // ===========================================================================
 //                                  ISLAND
@@ -197,6 +221,9 @@ begin
     new.raw_user_meta_data ->> 'username',
     new.raw_user_meta_data ->> 'name'
   );
+  insert into public.user_islands (user_id, island_id, unlocked_at)
+  select new.id, id, now() from public.islands
+  order by sort_order limit 1;
   return new;
 end;
 $$;
@@ -204,7 +231,7 @@ $$;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
-`
+` // trigger: **profile only** -> **profile + first island unlocked**, reason: a new player must be able to open island 1, mechanism: the same insert also writes a user_islands row for the lowest sort_order island with unlocked_at now(); re-run as `create or replace function` (drop the `create trigger` part) on an existing project
 // every new auth.users row (signup) inserts its matching profiles row in
 // the same transaction, so an account never exists without a profile.
 // username/name come from the signup call's metadata:
@@ -219,6 +246,17 @@ create trigger on_auth_user_created
 // write to public.profiles itself; search_path = '' (with the
 // fully-qualified public.profiles) blocks search_path hijacking, per the
 // Supabase docs pattern. Run after USERS_SQL (profiles must exist)
+
+export const PROFILE_LAST_ISLAND_SQL = `
+alter table profiles
+  add column last_island_id bigint references islands(id) on delete set null;
+`
+// the island the player last opened: /Game/[island] writes it on every
+// visit, and LogIn / the landing page send the player back there. null
+// (new account, or that island was deleted) falls back to the first island
+// by sort_order. The user edits it through the existing "users update own
+// profile" policy, so no new RLS is needed. Run after USERS_SQL and
+// ISLANDS_SQL
 
 export const USERS_RLS_SQL = `
 alter table profiles enable row level security;

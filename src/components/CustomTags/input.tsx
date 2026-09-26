@@ -61,7 +61,7 @@ type InputProps = {
 const DEFAULT_INPUT_STYLE: CSSProperties = {
     height: 20,
     minWidth: '8ch',
-    borderBottom: '2px solid currentColor',
+    borderBottomWidth: 2, borderBottomStyle: 'solid', borderBottomColor: 'currentColor', // style: **borderBottom shorthand** -> **width/style/color longhands**, mechanism: the error override only swaps borderBottomColor, so React never mixes a shorthand with its longhand when error toggles
 }
 
 const INPUT_STYLE: CSSProperties = {
