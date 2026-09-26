@@ -16,7 +16,7 @@ const npc = (name: string, x: number, y: number, color: string, dialog: Dialog[]
 
 //npcs in island 1
 export const ISLAND_1_NPC: NPCProps[] = [
-    npc('Hana', 3420, 5070, 'plum', [
+    npc('Jordi', 3420, 5070, 'plum', [
         say('greeting', ['こんにちは！', 'Hello!']),
         say('default',
             ['わたしはすしがすき！', 'I love sushi!'],
@@ -24,7 +24,7 @@ export const ISLAND_1_NPC: NPCProps[] = [
             ['あなたもすし、すき？', 'Do you like sushi too?']),
         say('spoken', ['また、すしのはなししよう', "Let's talk sushi again"]),
     ]),
-    npc('Taro', 3590, 5060, 'steelblue', [
+    npc('Shuto', 3590, 5060, 'steelblue', [
         say('greeting', ['やあ！', 'Hey!']),
         say('default',
             ['ラーメンがだいすきだ', 'I really love ramen'],
@@ -32,7 +32,7 @@ export const ISLAND_1_NPC: NPCProps[] = [
             ['いっしょにたべよう！', "Let's eat together!"]),
         say('spoken', ['おなかすいたなあ', "I'm getting hungry"]),
     ]),
-    npc('Yuki', 3500, 5150, 'khaki', [
+    npc('Tiffany', 3500, 5150, 'khaki', [
         say('greeting', ['おはよう！', 'Good morning!']),
         say('default',
             ['あまいものがすき', 'I like sweet things'],
@@ -40,7 +40,7 @@ export const ISLAND_1_NPC: NPCProps[] = [
             ['やわらかくておいしい', "It's soft and tasty"]),
         say('spoken', ['もち、たべたいな', 'I want some mochi']),
     ]),
-    npc('Ken', 3300, 5110, 'gray', [
+    npc('Genki', 3300, 5110, 'gray', [
         say('greeting', ['よう！', 'Yo!']),
         say('default',
             ['おれはカレーがすきだ', 'I like curry'],
@@ -48,7 +48,7 @@ export const ISLAND_1_NPC: NPCProps[] = [
             ['まいにちたべたい！', 'I want it every day!']),
         say('spoken', ['カレー、たべたか？', 'Did you eat curry?']),
     ]),
-    npc('Mei', 3710, 5130, 'lightpink', [
+    npc('Sarah', 3710, 5130, 'lightpink', [
         say('greeting', ['こんにちは〜', 'Hi there~']),
         say('default',
             ['わたしはおにぎりがすき', 'I like onigiri'],
