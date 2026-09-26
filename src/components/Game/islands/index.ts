@@ -1,5 +1,5 @@
 import type { PlacedObject } from "../Object/gameObject"
-import { ISLAND_1 } from "./island_1"
+import { ISLAND_1 } from "./islands"
 
 export const ISLAND_MAPS: Record<number, PlacedObject[]> = {
     1: ISLAND_1,

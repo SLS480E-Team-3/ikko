@@ -1,7 +1,10 @@
 # Ikko!! (いっこ〜！！)
 SLS480E Team 3 Japanese learning App for Beginners
 
-## VER
+## Vercel link
+
+[WEB LINK](https://ikko.vercel.app/)
+for dev purpose some auth fields are disabled
 
 ## Target
 

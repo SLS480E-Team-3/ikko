@@ -4,12 +4,15 @@ import { QuestsProps } from "@/utils/schema"
 import EntityRenderer, { EntityProps } from "./entityRenderer"
 
 type NPCProps = EntityProps & {
-    interatable: boolean
+    selected: boolean
     dialog?: string,
     quest?: QuestsProps
 }
 
-export default function NPCRenderer({velocity}: {velocity: {x: number, y: number}}) {
+export default function NPCRenderer({npc={selected: false}, velocity}: {npc: NPCProps, velocity: {x: number, y: number}}) {
+
+
+
     return (
         <div><EntityRenderer velocity={velocity}/></div>
     )
