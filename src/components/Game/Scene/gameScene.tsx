@@ -2,6 +2,7 @@
 
 import { PointerEvent, useEffect, useMemo, useRef, useState } from "react" // imports: **no PointerEvent** -> **+ PointerEvent**, reason: MobileGameScene merged in, mechanism: types the joystick/pinch handlers that moved here
 import PlayerRenderer, { PlayerProps } from "../Entity/playerRenderer"
+import FootPrintRenderer from "../Entity/footPrintRenderer"
 import { ENT_H, ENT_W } from "../Entity/entityRenderer" // imports: **ENT_H, ENT_W, EntityRenderer, EntityProps** -> **ENT_H, ENT_W**, reason: NPCs draw through NPCRenderer now, mechanism: NPCProps carries the EntityProps, so neither is used here
 import NPCRenderer, { NPCProps, NPC_TAP_ATTR, talkLines } from "../Entity/npcRenderer"
 import ObjectRenderer from "../Object/ObjectRenderer"
@@ -539,6 +540,14 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
             >
                 {placed.map(({ obj, def }) => <ObjectRenderer key={obj.id} obj={obj} def={def} />)}
                 {/* objects, each with a zIndex of its bottom edge */}
+                <div style={{ position: 'absolute', left: 0, top: 0, zIndex: 0 }}>
+                <FootPrintRenderer velocity={velocityRef.current} maxSpeed={PLAYER_SPEED} x={pEnt?.x} y={pEnt?.y} h={pEnt?.h ?? ENT_H} />
+                </div>
+                {/* player footprints on the ground: a 0x0 wrapper at zIndex 0,
+                    below every bottom-edge zIndex, so objects, NPCs and the
+                    player all draw over them. Kept out of the player's wrapper,
+                    whose zIndex follows the player, so prints left behind
+                    don't draw over objects the player walked past */}
                 {/* entities go here, sized/positioned in world px (no zoom) */}
                 <div style={{ position: 'absolute', left: 0, top: 0, zIndex: Math.round((pEnt?.y ?? 0) + (pEnt?.h ?? ENT_H) / 2) }}> {/* wrap: **none** -> **0x0 div with the player's bottom-edge zIndex**, mechanism: ent.y is the center, so + h/2 is the feet; compared with ObjectRenderer's y + sprite.h the lower one draws in front. The wrapper is its own stacking context, so the name tag's zIndex 1 still only orders it against the body */}
                 <PlayerRenderer velocity={velocityRef.current} maxSpeed={PLAYER_SPEED} player={playerRef.current} /> {/* props: **velocity, player** -> **+ maxSpeed**, reason: lean scales with how hard the stick is pushed, mechanism: PLAYER_SPEED is full speed, so vel.x / PLAYER_SPEED is the stick's x (or ±1 / ±0.71 on keys); passed as a prop because the renderers importing it from here would be a circular import */}

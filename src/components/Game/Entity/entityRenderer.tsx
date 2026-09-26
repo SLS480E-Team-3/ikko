@@ -80,7 +80,7 @@ export default function EntityRenderer({
             height (-100%) plus half the body and a gap, so its bottom edge
             sits NAME_GAP above the body's top. nowrap keeps the name on one
             line (absolute + zero-width parent would wrap it) */}
-        <GustRenderer velocity={velocity} maxSpeed={maxSpeed} x={ent.x} y={ent.y} w={ent.w} h={ent.h} /> {/* render: **body only** -> **gust + body**, reason: white lines trail behind a moving entity, longer the faster it goes, mechanism: rendered as a sibling before the body so the body draws on top and the gust doesn't inherit its skew/rotate */}
+        {/* <GustRenderer velocity={velocity} maxSpeed={maxSpeed} x={ent.x} y={ent.y} w={ent.w} h={ent.h} /> render: **body only** -> **gust + body**, reason: white lines trail behind a moving entity, longer the faster it goes, mechanism: rendered as a sibling before the body so the body draws on top and the gust doesn't inherit its skew/rotate */}
         <div
             style={{
                 position: 'absolute',
