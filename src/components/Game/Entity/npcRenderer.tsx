@@ -3,8 +3,10 @@
 import { QuestsProps } from "@/utils/schema"
 import EntityRenderer, { EntityProps } from "./entityRenderer"
 import DialogBubble, { Dialog } from "./dialogBubble"
+import { NPCVoice } from "./speech"
 
 export type NPCProps = {
+    voice: NPCVoice, // voice: **'female' | 'male'** -> **NPCVoice**, reason: pick a specific voice per NPC (e.g. 'Hattori'), mechanism: 'female' / 'male' choose by gender, any other string is a voice name that falls back by its gender when not installed (see speech.ts)
     ent: EntityProps, // shape: **EntityProps & {...}** -> **{ ent, ... }**, reason: GameScene already keeps NPCs as { ent, dialog }, mechanism: the entity box stays one object, so the scene's solids / range checks read n.ent like the player's
     dialog?: Dialog[], // greeting, greetingEn, dialog, dialogEn: **four separate fields** -> **dialog: Dialog[]**, reason: an NPC says different things by condition (first talk, after talking, quest cleared), mechanism: each entry is tagged with its condition and carries its jp lines + en; pickDialog below chooses one
     quest?: { id: number, title: string, status?: 'done' | 'resume' }
@@ -77,7 +79,7 @@ export default function NPCRenderer({ npc, index, velocity, inRange, selected = 
                     }}
                 />
             )}
-            {dialogs && <DialogBubble x={ent.x} y={ent.y} h={ent.h} dialogs={dialogs} tapId={tap && index} />} {/* dialogs: **one wrapped default line** -> **the entry picked above**, mechanism: see dialogs */}
+            {dialogs && <DialogBubble x={ent.x} y={ent.y} h={ent.h} dialogs={dialogs} tapId={tap && index} speak={selected ? npc.voice : undefined} />} {/* speak: **none** -> **npc.voice while selected**, mechanism: only the NPC being talked to reads its line aloud; the in-range greeting stays silent */} {/* dialogs: **one wrapped default line** -> **the entry picked above**, mechanism: see dialogs */}
         </>
     )
 }

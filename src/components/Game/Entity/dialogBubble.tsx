@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from "react"
+import { NPCVoice, speakJa, stopSpeech } from "./speech"
 
 export type Dialog = {
     condition: 'greeting' | 'spoken' | 'questCleared' | 'default' // so on // condition: **spoken | questCleared | default** -> **+ greeting**, reason: NPC data is one Dialog[] now, mechanism: the greeting shown in range is just the entry tagged 'greeting'
@@ -12,6 +13,7 @@ type DialogBubbleProps = {
     y?: number,
     h: number, // h: **optional, default ENT_H** -> **required**, mechanism: EntityRenderer now renders the bubble and always has ent.h, so the ENT_H import is dropped; importing entityRenderer here would be a circular import (it imports this file), same reason gustRenderer takes plain x/y/w/h
     tapId?: number, // tapId: **none** -> **tapId?**, reason: NPCs are picked by tapping their bubble, mechanism: set as the data-npc attribute on the wrapper, which GameScene's stick overlay hit-tests by rect (the bubble itself stays pointerEvents none)
+    speak?: NPCVoice, // speak: **none** -> **speak?: NPCVoice**, reason: talk lines are read aloud, mechanism: the voice to read the Japanese with; left out = silent (greetings, EntityRenderer's bubbles)
     dialogs: Dialog[] // text, en: **text?, en?** -> **dialog: Dialog[]**, reason: a line's Japanese and English travel together with the condition they're said under, mechanism: each Dialog's jp lines page as before and en[i] types under jp[i]; the entries play in order, so the caller picks which ones (by condition) to pass
 }
 // the bubble takes the entity's position, not its own, so a caller passes
@@ -83,7 +85,7 @@ const toPages = (dialog: Dialog[]): Page[] => { // args: **(text, en)** -> **(di
 // line has been read, and isn't cut into pages (it wraps instead)
 
 // index show in front of name
-export default function DialogBubble({ x, y = 0, h, dialogs, tapId }: DialogBubbleProps) { // props: **text, en** -> **dialog**, mechanism: see dialog
+export default function DialogBubble({ x, y = 0, h, dialogs, tapId, speak }: DialogBubbleProps) { // props: **text, en** -> **dialog**, mechanism: see dialog
     const pages = toPages(dialogs) // pages: **toPages(text, en)** -> **toPages(dialog)**, mechanism: each page carries its English (only a line's last page has any)
     const textKey = pages.map(p => p.chars.join('') + '\t' + p.en.join('')).join('\n') // key: **Japanese only** -> **+ English**, mechanism: a changed translation also restarts the typing
     const [typing, setTyping] = useState({ key: textKey, page: 0, n: 0, e: 0 }) // state: **{ page, n }** -> **+ e**, mechanism: e = English characters typed on this page
@@ -116,6 +118,19 @@ export default function DialogBubble({ x, y = 0, h, dialogs, tapId }: DialogBubb
     // bubble unmounts (player walks away), and walking back remounts it from
     // page 0. Cleanup clears the timer on unmount / text change, and per-frame
     // re-renders don't restart it since the deps stay the same
+
+    const jaText = pages.map(p => p.chars.join('')).join('')
+    const hasText = dialogs.some(d => (typeof d.jp === 'string' ? [d.jp] : d.jp).some(l => l !== ''))
+    useEffect(() => {
+        if (!speak || !hasText) return
+        speakJa(jaText, speak)
+        return () => stopSpeech()
+    }, [speak, jaText, hasText])
+    // reads the whole Japanese text once as it starts typing (not page by
+    // page, so a long line is read smoothly). Keyed on the joined string, so
+    // GameScene's per-frame re-renders don't speak again; a new line or an
+    // unmount (talk ends, player walks away) cancels it. hasText skips the
+    // '...' placeholder
 
     return (
         <div
