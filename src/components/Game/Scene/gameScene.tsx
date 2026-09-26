@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import PlayerRenderer, { PlayerProps } from "../Entity/playerRenderer"
-import { ENT_H, ENT_W } from "../Entity/entityRenderer"
+import EntityRenderer, { ENT_H, ENT_W, EntityProps } from "../Entity/entityRenderer" // imports: **ENT_H, ENT_W** -> **+ EntityRenderer, EntityProps**, mechanism: the scene draws the npcs prop itself
 import ObjectRenderer from "../Object/ObjectRenderer"
 import { HitBox, ObjectDef, PlacedObject, applyScale } from "../Object/gameObject"
 import { OBJECTS } from "../Object/objects"
@@ -18,8 +18,8 @@ export type BGProps = {
     img?: string, // something not gameObject and no interfearance to entity: particles, leafs, grass, rain
 }
 
-const BG_H = 10_000
-const BG_W = 7_000
+export const BG_H = 10_000 // export: **local** -> **exported**, reason: MobileTester places test NPCs around the spawn point, mechanism: named export like BG_COLOR
+export const BG_W = 7_000 // export: **local** -> **exported**, reason: same as BG_H
 export const BG_COLOR = 'lightgreen' // export: **local** -> **exported**, reason: Game/layout.tsx paints the page background with it, mechanism: named export next to the default GameScene export, same as ZOOM_DEF
 
 const TEMP_BG: BGProps = {
@@ -91,6 +91,13 @@ const NO_OBJECTS: PlacedObject[] = []
 // default for the objects prop; module-level so it's the same array every
 // render and the useMemo below doesn't redo its work each frame
 
+export type SceneNPC = { ent: EntityProps, dialog?: string }
+const NO_NPCS: SceneNPC[] = []
+const STILL = { x: 0, y: 0 }
+// an entity standing in the scene with an optional speech bubble. NO_NPCS /
+// STILL are module-level so they're the same object every render; STILL is
+// the velocity for NPCs that don't move yet (no lean, no gust)
+
 const SIGN_RANGE = 16 // world px around a sign's hitBox where its text shows
 
 const overlaps = (cx: number, cy: number, w: number, h: number, box: HitBox, pad = 0) =>
@@ -106,7 +113,7 @@ const worldBox = (obj: PlacedObject, box: HitBox): HitBox =>
 // a def's hitBox is relative to the sprite's top-left; adding the
 // placement's x/y turns it into world px for the checks above
 
-export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, moveInput, zoomInput, objects = NO_OBJECTS }: { bgProps?: BGProps, player?: PlayerProps, screenSize?: { w: number, h: number }, moveInput?: { current: { x: number, y: number } }, zoomInput?: { current: number }, objects?: PlacedObject[] }) { // props: **no objects** -> **objects?**, reason: an island draws its map, mechanism: a PlacedObject list (island_N.ts) resolved against the OBJECTS catalog below; optional so a bare <GameScene /> is an empty field // props: **no zoomInput** -> **zoomInput?**, reason: lets MobileGameScene's pinch set the zoom, mechanism: a ref holding the target zoom that the wheel and the tick share; optional so a bare <GameScene /> uses its own ref // props: **no moveInput** -> **moveInput?**, reason: lets MobileGameScene's joystick steer the player, mechanism: a ref object (-1..1 per axis, length <= 1) the tick reads each frame; optional so a bare <GameScene /> stays keyboard-only
+export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, moveInput, zoomInput, objects = NO_OBJECTS, npcs = NO_NPCS }: { bgProps?: BGProps, player?: PlayerProps, screenSize?: { w: number, h: number }, moveInput?: { current: { x: number, y: number } }, zoomInput?: { current: number }, objects?: PlacedObject[], npcs?: SceneNPC[] }) { // props: **no npcs** -> **npcs?**, reason: entities with dialog in the scene, mechanism: each is drawn with EntityRenderer at its bottom-edge zIndex like the player; optional so a bare <GameScene /> has none // props: **no objects** -> **objects?**, reason: an island draws its map, mechanism: a PlacedObject list (island_N.ts) resolved against the OBJECTS catalog below; optional so a bare <GameScene /> is an empty field // props: **no zoomInput** -> **zoomInput?**, reason: lets MobileGameScene's pinch set the zoom, mechanism: a ref holding the target zoom that the wheel and the tick share; optional so a bare <GameScene /> uses its own ref // props: **no moveInput** -> **moveInput?**, reason: lets MobileGameScene's joystick steer the player, mechanism: a ref object (-1..1 per axis, length <= 1) the tick reads each frame; optional so a bare <GameScene /> stays keyboard-only
     // props are optional (?) because they have defaults -- lets a page mount
     // a bare <GameScene /> while the db-backed bg/player aren't wired yet.
     // screenSize has no default and isn't read yet, so it's undefined for now
@@ -146,7 +153,10 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, mov
         return [{ obj, def, solid: def.hitBox && worldBox(obj, def.hitBox) }]
     }), [objects])
     const solidsRef = useRef<HitBox[]>([])
-    solidsRef.current = placed.flatMap(p => p.solid ? [p.solid] : [])
+    solidsRef.current = [
+        ...placed.flatMap(p => p.solid ? [p.solid] : []),
+        ...npcs.map(n => ({ x: (n.ent.x ?? 0) - n.ent.w / 2, y: (n.ent.y ?? 0) - n.ent.h / 2, w: n.ent.w, h: n.ent.h })),
+    ] // solids: **object hitBoxes** -> **+ each NPC's body**, reason: NPCs block the player, mechanism: an NPC is center-anchored, so center - half size is its top-left; the same overlaps() check in the tick stops the player at its edge
     // each placement paired with its catalog def, plus its hitBox in world
     // px (worked out once here, not every frame). A typo'd def is skipped
     // with a warning instead of crashing the island. solidsRef hands the
@@ -328,6 +338,14 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, mov
                 <div style={{ position: 'absolute', left: 0, top: 0, zIndex: Math.round((pEnt?.y ?? 0) + (pEnt?.h ?? ENT_H) / 2) }}> {/* wrap: **none** -> **0x0 div with the player's bottom-edge zIndex**, mechanism: ent.y is the center, so + h/2 is the feet; compared with ObjectRenderer's y + sprite.h the lower one draws in front. The wrapper is its own stacking context, so the name tag's zIndex 1 still only orders it against the body */}
                 <PlayerRenderer velocity={velocityRef.current} maxSpeed={PLAYER_SPEED} player={playerRef.current} /> {/* props: **velocity, player** -> **+ maxSpeed**, reason: lean scales with how hard the stick is pushed, mechanism: PLAYER_SPEED is full speed, so vel.x / PLAYER_SPEED is the stick's x (or ±1 / ±0.71 on keys); passed as a prop because the renderers importing it from here would be a circular import */}
                 </div>
+                {npcs.map((n, i) => (
+                    <div key={`npc-${i}`} style={{ position: 'absolute', left: 0, top: 0, zIndex: Math.round((n.ent.y ?? 0) + n.ent.h / 2) }}>
+                        <EntityRenderer velocity={STILL} ent={n.ent} dialog={n.dialog} />
+                    </div>
+                ))}
+                {/* NPCs: same 0x0 bottom-edge zIndex wrapper as the player, so
+                    they sort against objects and the player by their feet. Their
+                    bodies are in solidsRef, so they block the player */}
                 {/* reads straight from the refs; force() re-renders every frame,
                     so ref mutations in the tick show up on the next frame */}
                 {signs.map(({ obj, def, solid }) => {

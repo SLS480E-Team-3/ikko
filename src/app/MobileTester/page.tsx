@@ -25,12 +25,13 @@ import {
     XIAOMI_15_PRO_SCREEN,
 } from "@/utils/mobileScreenSIze"
 import { CSSProperties, ReactNode, useState } from "react"
-import GameScene from "@/components/Game/Scene/gameScene"
+import GameScene, { BG_W, BG_H, SceneNPC } from "@/components/Game/Scene/gameScene" // imports: **default only** -> **+ BG_W, BG_H, SceneNPC**, mechanism: places the test NPCs around the player spawn (world center)
 import SignUpPage from "@/app/SignUp/page"
 import LogInPage from "@/app/LogIn/page"
 import InfoRecovery from "@/app/InfoRecovery/page"
 import EditInfo from "@/app/EditInfo/page"
 import { ISLAND_MAPS } from "@/components/Game/islands"
+import EntityRenderer, { ENT_H } from "@/components/Game/Entity/entityRenderer"
 import MobileGameScene, { SENSITIVITY_DEF } from "@/components/Game/MobileGameScene" // imports: **default only** -> **+ SENSITIVITY_DEF**, reason: seed the sensitivity input, mechanism: the input starts at the same default the scene uses
 
 const PHONES: { label: string; screen: CSSProperties }[] = [
@@ -62,10 +63,50 @@ const PAGES: { label: string; page: (sensitivity: number) => ReactNode }[] = [ /
     { label: 'log in', page: () => <LogInPage /> },
     { label: 'recovery', page: () => <InfoRecovery /> },
     { label: 'edit info', page: () => <EditInfo /> },
-    { label: 'game scene', page: () => <GameScene objects={ISLAND_MAPS[1]} /> }, // props: **none** -> **objects**, mechanism: same as above
+    { label: 'game scene', page: () => <GameScene objects={ISLAND_MAPS[1]} npcs={TEST_NPCS} /> }, // props: **objects** -> **+ npcs**, mechanism: 4 test entities saying こんにちは around the spawn
+    { label: 'dialog bubble', page: () => <BubblePreview /> },
 ]
 // mobile game scene = GameScene + the touch joystick; drag with the mouse
 // anywhere on the phone to test it on a laptop
+
+const NPC_NAMES = ['Haruto', 'Yui', 'Sota', 'Hina', 'Ren', 'Aoi', 'Yuto', 'Sakura', 'Kaito', 'Mei']
+const randomNames = (n: number) => [...NPC_NAMES].sort(() => Math.random() - 0.5).slice(0, n)
+// n different names picked at random from the pool: shuffle a copy, take the
+// first n. Runs once when the module loads, so names change per page load
+// but stay put while the scene re-renders every frame
+
+const names = randomNames(4)
+const TEST_NPCS: SceneNPC[] = [
+    { dx: -60, dy: -40, color: 'gray' },
+    { dx: 60, dy: -40, color: 'steelblue' },
+    { dx: -60, dy: 50, color: 'plum' },
+    { dx: 60, dy: 50, color: 'khaki' },
+].map((n, i) => ({
+    ent: { name: names[i], // name: **`NPC ${i + 1}`** -> **names[i]**, mechanism: random name from NPC_NAMES, no repeats
+         x: BG_W / 2 + n.dx, y: BG_H / 2 + n.dy, w: 12, h: ENT_H, color: n.color, facing: 'none' },
+    dialog: 'こんにちは',
+}))
+// four entities in a box around the player spawn (world center), far enough
+// apart that their bubbles don't overlap; module-level so the array is the
+// same every render
+
+function BubblePreview() {
+    const spots = [
+        { x: 25, y: 70, text: 'はい (hai) = yes', name: 'Sensei' },
+        { x: 25, y: 185, text: 'こんにちは (konnichiwa) = hello! はじめまして (hajimemashite) = nice to meet you' },
+    ]
+    return (
+        <div style={{ position: 'relative', width: 130, height: 205, transform: 'scale(3)', transformOrigin: 'top left' }}>
+            {spots.map((s) => (
+                <EntityRenderer key={s.text} velocity={{ x: 0, y: 0 }} ent={{ name: s.name, x: s.x, y: s.y, w: 12, h: ENT_H, color: 'gray', facing: 'none' }} dialog={s.text} /> // preview: **EntityRenderer + DialogBubble side by side** -> **EntityRenderer dialog prop**, mechanism: the bubble is wired inside EntityRenderer now, so the preview goes through the same path the game will
+            ))}
+        </div>
+    )
+}
+// dialog bubble preview: two standing entities at 3x (world px are tiny on
+// a phone), one short and one long text, to check the square border, the
+// tail tip above the entity, the shadow and the wrap at maxWidth; the
+// first one has a name so the tag can be checked against the bubble
 
 export default function MobileTester() {
 
