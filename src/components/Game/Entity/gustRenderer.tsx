@@ -4,7 +4,7 @@ import { useRef } from "react"
 
 const GUST_MIN = 0.05 // speed fraction below which no gust is drawn
 const GUST_LEN = 14 // world px, each line's length at full speed // comment: **the middle line's length** -> **each line's length**, reason: LINE_SCALE is now all 1, mechanism: same as the LINE_SCALE comment
-const GUST_GAP = 15 // world px between the body's back edge and the lines // gap: **2** -> **15**, reason: the lines sat too close to the body, mechanism: every line's right edge is back + GUST_GAP from the center, so this pushes all three further behind
+const GUST_GAP = 10 // world px between the body's back edge and the lines // gap: **2** -> **15**, reason: the lines sat too close to the body, mechanism: every line's right edge is back + GUST_GAP from the center, so this pushes all three further behind
 const GUST_SPREAD = 4 // world px between neighbouring lines
 const GUST_THICK = 2 // world px, each line's thickness // thickness: **1.5** -> **2**, reason: the three lines looked different thicknesses, mechanism: a whole-px thickness with no translateY(-50%) keeps every line's top and bottom edge on the same fraction of a pixel, so the browser blurs all three the same way (1.5 minus 0.75 left each edge on a quarter pixel, which renders unevenly as the camera moves)
 const LINE_SCALE = [1, 1, 1]
