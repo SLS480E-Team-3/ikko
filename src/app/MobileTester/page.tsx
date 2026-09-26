@@ -31,6 +31,7 @@ import LogInPage from "@/app/LogIn/page"
 import InfoRecovery from "@/app/InfoRecovery/page"
 import EditInfo from "@/app/EditInfo/page"
 import { ISLAND_MAPS } from "@/components/Game/islands"
+import { ISLAND_1_NPC } from "@/components/Game/npcs/npcs" // imports: **none** -> **ISLAND_1_NPC**, mechanism: see the game scene page
 import EntityRenderer, { ENT_H } from "@/components/Game/Entity/entityRenderer"
 
 const PHONES: { label: string; screen: CSSProperties }[] = [
@@ -57,7 +58,7 @@ const PHONES: { label: string; screen: CSSProperties }[] = [
 ]
 
 const PAGES: { label: string; page: (sensitivity: number) => ReactNode }[] = [ // type: **page: ReactNode** -> **page: (sensitivity) => ReactNode**, reason: the sensitivity input must reach GameScene, mechanism: a prebuilt element is frozen with its props, so each page is built at render time from the current input
-    { label: 'game scene', page: (s) => <GameScene sensitivity={s} objects={ISLAND_MAPS[1]} npcs={TEST_NPCS} /> }, // props: **objects** -> **+ npcs**, mechanism: 4 test entities saying こんにちは around the spawn
+    { label: 'game scene', page: (s) => <GameScene sensitivity={s} objects={ISLAND_MAPS[1]} npcs={ISLAND_1_NPC} /> }, // npcs: **TEST_NPCS** -> **ISLAND_1_NPC**, reason: test the real island 1 NPCs without logging in to /Game, mechanism: the same list IslandScene passes for island 1
     { label: 'sign up', page: () => <SignUpPage /> },
     { label: 'log in', page: () => <LogInPage /> },
     { label: 'recovery', page: () => <InfoRecovery /> },
