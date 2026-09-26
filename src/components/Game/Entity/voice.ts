@@ -3,7 +3,7 @@ export const dialogUrl = (voice: string, file: string) => `/dialog/${encodeURICo
 // encoded since file names are Japanese and may hold '？', which would
 // otherwise end the path and start a query string
 
-const VOLUME = 0.25
+const VOLUME = 0.6
 // dialog clips play 15% quieter than the recordings (0..1 scale). iOS Safari
 // ignores <audio>.volume (only the hardware buttons set it), so there they
 // stay at full volume
