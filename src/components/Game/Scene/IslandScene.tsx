@@ -7,7 +7,7 @@ import { ISLAND_MAPS } from "../islands"
 export type IslandSceneProps = {
     islandId: number
     points: number
-    quests: { id: number, title: string[], status?: 'done' | 'resume' }[]
+    quests: { id: number, title: string, status?: 'done' | 'resume' }[]
 }
 // everything the island page loaded, as plain data: the page (server) does
 // the Supabase work and hands this over, the scene (client) only renders.
