@@ -29,9 +29,24 @@ Early scaffold stage — routing/layout and a placeholder form/nav exist (`src/a
 
 Branch name is `IssueX` for issue #X (ex: issue #1 → branch name `Issue1`). This is a denotation, not an order.
 
+## Plan mode
+
+Every plan includes a parallelism section that follows the Parallelism rules below:
+- **Agent count:** how many sub-agents will run (or none, if the work is too small or too interdependent to split).
+- **Work split:** break the work into independent chunks.
+- **Assignments:** for each agent, list its task and the exact files it owns.
+- **Order:** which agents run in parallel, which must wait for another, and what the main session does itself (e.g. shared files, final integration, verification).
+
 ## Parallelism
 
-After plan-mode plan is accepted allow sub-agents
+Sub-agents are allowed once a plan-mode plan has been accepted. Before that (while exploring or planning), work inline without spawning sub-agents.
+
+Sub-agents must not step on each other's feet:
+- **File ownership:** each file is edited by at most one agent. Files touched by several tasks (shared types, index files, `CLAUDE.md`, `README`) are edited by the main session only, before or after the agents run.
+- **Stay in scope:** an agent edits only the files assigned to it. If it needs a change elsewhere, it reports that back instead of making it.
+- **No shared side effects:** agents don't run git commands (commit, checkout, stash, reset), install packages, or start/stop dev servers. The main session handles those.
+- **Dependencies:** if one task needs another's output (e.g. new types), run them in sequence, not in parallel.
+- **Integrate after:** once all agents finish, the main session reviews their changes together and runs `npx tsc --noEmit` before reporting done.
 
 ## After edit
 
