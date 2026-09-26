@@ -27,7 +27,7 @@ export type EntityProps = {
     facing: Partial<Facing>
 }
 
-const TILT_MAX = 16
+const TILT_MAX = 10
 // one constant per direction, named after it, so the ternary below reads
 // as a lookup and any single angle can change without touching the others
 
