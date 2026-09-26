@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useState } from "react"
-import { NPCVoice, speakJa, stopSpeech } from "./speech"
+import { playLine, stopLine } from "./voice" // import: **speech (speakJa / stopSpeech)** -> **voice (playLine / stopLine)**, reason: lines play recorded mp3s now
 
 export type Dialog = {
     condition: 'greeting' | 'spoken' | 'questCleared' | 'default' // so on // condition: **spoken | questCleared | default** -> **+ greeting**, reason: NPC data is one Dialog[] now, mechanism: the greeting shown in range is just the entry tagged 'greeting'
     jp: string | string[], en: string | string[]
+    audio?: string | string[] // audio: **none** -> **audio?**, reason: lines play recorded mp3s, mechanism: file name (no .mp3) per jp line, index-aligned; missing = silent. NPCRenderer turns it into a URL with the NPC's voice folder
 }
 
 type DialogBubbleProps = {
@@ -13,7 +14,7 @@ type DialogBubbleProps = {
     y?: number,
     h: number, // h: **optional, default ENT_H** -> **required**, mechanism: EntityRenderer now renders the bubble and always has ent.h, so the ENT_H import is dropped; importing entityRenderer here would be a circular import (it imports this file), same reason gustRenderer takes plain x/y/w/h
     tapId?: number, // tapId: **none** -> **tapId?**, reason: NPCs are picked by tapping their bubble, mechanism: set as the data-npc attribute on the wrapper, which GameScene's stick overlay hit-tests by rect (the bubble itself stays pointerEvents none)
-    speak?: NPCVoice, // speak: **none** -> **speak?: NPCVoice**, reason: talk lines are read aloud, mechanism: the voice to read the Japanese with; left out = silent (greetings, EntityRenderer's bubbles)
+    audio?: string, // speak: **speak?: NPCVoice** -> **audio?: string**, reason: speechSynthesis replaced by recorded mp3s, mechanism: URL of the clip played when the bubble shows; left out = silent (EntityRenderer's bubbles, lines with no recording)
     dialogs: Dialog[] // text, en: **text?, en?** -> **dialog: Dialog[]**, reason: a line's Japanese and English travel together with the condition they're said under, mechanism: each Dialog's jp lines page as before and en[i] types under jp[i]; the entries play in order, so the caller picks which ones (by condition) to pass
 }
 // the bubble takes the entity's position, not its own, so a caller passes
@@ -85,7 +86,7 @@ const toPages = (dialog: Dialog[]): Page[] => { // args: **(text, en)** -> **(di
 // line has been read, and isn't cut into pages (it wraps instead)
 
 // index show in front of name
-export default function DialogBubble({ x, y = 0, h, dialogs, tapId, speak }: DialogBubbleProps) { // props: **text, en** -> **dialog**, mechanism: see dialog
+export default function DialogBubble({ x, y = 0, h, dialogs, tapId, audio }: DialogBubbleProps) { // props: **text, en** -> **dialog**, mechanism: see dialog
     const pages = toPages(dialogs) // pages: **toPages(text, en)** -> **toPages(dialog)**, mechanism: each page carries its English (only a line's last page has any)
     const textKey = pages.map(p => p.chars.join('') + '\t' + p.en.join('')).join('\n') // key: **Japanese only** -> **+ English**, mechanism: a changed translation also restarts the typing
     const [typing, setTyping] = useState({ key: textKey, page: 0, n: 0, e: 0 }) // state: **{ page, n }** -> **+ e**, mechanism: e = English characters typed on this page
@@ -119,18 +120,11 @@ export default function DialogBubble({ x, y = 0, h, dialogs, tapId, speak }: Dia
     // page 0. Cleanup clears the timer on unmount / text change, and per-frame
     // re-renders don't restart it since the deps stay the same
 
-    const jaText = pages.map(p => p.chars.join('')).join('')
-    const hasText = dialogs.some(d => (typeof d.jp === 'string' ? [d.jp] : d.jp).some(l => l !== ''))
     useEffect(() => {
-        if (!speak || !hasText) return
-        speakJa(jaText, speak)
-        return () => stopSpeech()
-    }, [speak, jaText, hasText])
-    // reads the whole Japanese text once as it starts typing (not page by
-    // page, so a long line is read smoothly). Keyed on the joined string, so
-    // GameScene's per-frame re-renders don't speak again; a new line or an
-    // unmount (talk ends, player walks away) cancels it. hasText skips the
-    // '...' placeholder
+        if (!audio) return
+        playLine(audio)
+        return () => stopLine(audio)
+    }, [audio]) // effect: **speakJa(jaText, speak)** -> **playLine(audio)**, reason: recorded mp3s instead of speechSynthesis, mechanism: plays once as the line starts typing; keyed on the URL string, so per-frame re-renders don't replay it, and a new line or an unmount stops it
 
     return (
         <div

@@ -88,30 +88,12 @@ While a talk is on, the other NPCs hide their greetings and can't be tapped.
 - Japanese types one character at a time, 12 characters per page. A full page holds for 1.2 s, then the next page starts.
 - The English translation types under the Japanese at 0.35× the font size, after the line's last Japanese page.
 - The bubble is sized to the full page from the start, so it doesn't grow while typing.
-- **Speech.** Talk lines are read aloud in Japanese (`ja-JP`, 0.85× speed) as they start typing. The English isn't spoken, and the in-range greeting stays silent.
-  - A new line, or ending the talk, stops the one being read.
-  - Where the browser has no speech support, the bubble just works silently.
-  - On iOS the tap that starts a talk unlocks speech (iOS only speaks after a user gesture).
-  - Chrome blocks speech until the page has been clicked or tapped once. A line that starts before that (e.g. `/MobileTester` → "dialog bubble" right after a reload) waits and plays on the first click, tap or key press.
-
-#### Voices
-
-Each NPC has a `voice` (`src/components/Game/Entity/speech.ts`):
-
-- **`'female'` / `'male'`** uses the first installed voice of that gender, in the table's order below (natural voices like Kyoko before the robotic Flo / Eddy), so all NPCs of one gender share it. If none is installed, any Japanese voice is used with pitch 1.2 (female) or 0.8 (male).
-- **A voice name**, like `'Hattori'`, uses that voice if the device has it. If not, a known name falls back to its gender, and an unknown name to the default Japanese voice.
-
-The browser doesn't report a voice's gender, so it comes from this table of known names:
-
-| Voice | Gender | Ships on |
-|---|---|---|
-| Kyoko, O-ren, Flo, Grandma, Sandy, Shelley | female | macOS / iOS |
-| Hattori, Otoya, Eddy, Grandpa, Reed, Rocko | male | macOS / iOS |
-| Haruka, Ayumi, Sayaka | female | Windows |
-| Ichiro | male | Windows |
-| Nanami | female | Windows / Edge (online) |
-| Keita | male | Windows / Edge (online) |
-| Google 日本語 | female | Chrome |
+- **Audio.** Each line can play a recorded mp3 as it starts typing (`src/components/Game/Entity/voice.ts`).
+  - Files live in `public/dialog/<voice>/<file>.mp3`, where `<voice>` is the NPC's `voice` folder (e.g. `Aoi`, `Shiori`).
+  - The third item of a `say()` pair is the file name without `.mp3`. It can differ from the on-screen text (kanji, no 、).
+  - A line with no file, or an NPC with no `voice`, is silent.
+  - The in-range greeting plays too, but browsers block audio until the page has been tapped or clicked once, so the very first greeting can be silent.
+  - Only one clip plays at a time: a new line, or ending the talk, stops the one playing.
 
 ### Which lines an NPC says
 
@@ -122,6 +104,7 @@ type Dialog = {
     condition: 'greeting' | 'spoken' | 'questCleared' | 'default'
     jp: string | string[]  // one line per tap
     en: string | string[]  // en[i] is the translation of jp[i]
+    audio?: string | string[]  // audio[i] is jp[i]'s mp3 file name ('' = silent)
 }
 ```
 
@@ -139,15 +122,15 @@ On a tap, `pickDialog` goes down the list `questCleared` → `spoken` → `defau
 
 ### Adding NPCs
 
-NPCs live in `src/components/Game/npcs/npcs.ts` and are listed per island in `src/components/Game/npcs/index.ts` (`ISLAND_NPCS`, keyed by `islands.id`). Write each line as a `[Japanese, English]` pair with `say()`:
+NPCs live in `src/components/Game/npcs/npcs.ts` and are listed per island in `src/components/Game/npcs/index.ts` (`ISLAND_NPCS`, keyed by `islands.id`). Write each line as a `[Japanese, English, file?]` item with `say()`, where `file` is the line's mp3 in the NPC's voice folder:
 
 ```ts
-npc('Jordi', 'female', 3420, 5070, 'plum', [
-    say('greeting', ['こんにちは！', 'Hello!']),
+npc('Jordi', 'Aoi', 3420, 5070, 'plum', [  // 'Aoi' = public/dialog/Aoi/, undefined = silent
+    say('greeting', ['こんにちは！', 'Hello!', 'こんにちは']),
     say('default',
-        ['わたしはすしがすき！', 'I love sushi!'],
-        ['とくにサーモンがすき', 'Salmon is my favorite']),
-    say('spoken', ['また、すしのはなししよう', "Let's talk sushi again"]),
+        ['わたしはすしがすき！', 'I love sushi!', '私は寿司が好き'],
+        ['とくにサーモンがすき', 'Salmon is my favorite']),  // no file = silent
+    say('spoken', ['また、すしのはなししよ', "Let's talk sushi again", 'またすしのはなししよ']),
 ]),
 ```
 

@@ -7,7 +7,6 @@ import NPCRenderer, { NPCProps, NPC_TAP_ATTR, talkLines } from "../Entity/npcRen
 import ObjectRenderer from "../Object/ObjectRenderer"
 import { HitBox, ObjectDef, PlacedObject, applyScale } from "../Object/gameObject"
 import { OBJECTS } from "../Object/objects"
-import { unlockSpeech } from "../Entity/speech"
 
 
 export type BGProps = {
@@ -426,7 +425,6 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
         }
         if (hit === null) return false
         talkRef.current = { i: hit, line: 0, savedZoom: zoomTarget.current }
-        unlockSpeech() // speech: **none** -> **unlock on the talk-starting tap**, reason: iOS Safari only speaks after a speak() inside a user gesture, mechanism: this runs in the pointerdown handler, while the lines speak later from DialogBubble's effect
         release()
         return true
     }

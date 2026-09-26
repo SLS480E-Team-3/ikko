@@ -104,7 +104,6 @@ while (npcSpots.length < NPC_COLORS.length) {
 // spawn body (the origin) or an NPC already placed, so nobody starts stuck
 // inside someone else. Module-level, so it runs once per page load
 const TEST_NPCS: SceneNPC[] = npcSpots.map((n, i) => ({ // spots: **fixed ±60 / -40,+50 box** -> **random npcSpots 20..120 px away**, mechanism: see npcSpots
-    voice: i % 2 === 0 ? 'female' : 'male', // voice: **none** -> **alternating female / male**, mechanism: NPCProps requires a voice now
     ent: { name: names[i], // name: **`NPC ${i + 1}`** -> **names[i]**, mechanism: random name from NPC_NAMES, no repeats
          x: BG_W / 2 + n.dx, y: BG_H / 2 + n.dy, w: 12, h: ENT_H, color: NPC_COLORS[i], facing: 'none' },
     dialog: i % 2 === 0 ? [{ condition: 'default', jp: ['おい', '頼みがあるんだが', '聞いてくれるか？'], en: [] }] : undefined, // dialog: **greeting + string[]** -> **Dialog[]**, mechanism: no greeting entry = GREETING_DEF; every other NPC has no dialog, so tapping it just repeats the greeting (pickDialog fallback) and zooms back out

@@ -3,10 +3,10 @@
 import { QuestsProps } from "@/utils/schema"
 import EntityRenderer, { EntityProps } from "./entityRenderer"
 import DialogBubble, { Dialog } from "./dialogBubble"
-import { NPCVoice } from "./speech"
+import { dialogUrl } from "./voice" // import: **NPCVoice from speech** -> **dialogUrl from voice**, reason: speechSynthesis removed
 
 export type NPCProps = {
-    voice: NPCVoice, // voice: **'female' | 'male'** -> **NPCVoice**, reason: pick a specific voice per NPC (e.g. 'Hattori'), mechanism: 'female' / 'male' choose by gender, any other string is a voice name that falls back by its gender when not installed (see speech.ts)
+    voice?: string, // voice: **NPCVoice (speech voice)** -> **voice?: string (mp3 folder)**, reason: lines play recorded mp3s, mechanism: the folder under public/dialog/ (e.g. 'Aoi'); left out = the NPC is silent
     ent: EntityProps, // shape: **EntityProps & {...}** -> **{ ent, ... }**, reason: GameScene already keeps NPCs as { ent, dialog }, mechanism: the entity box stays one object, so the scene's solids / range checks read n.ent like the player's
     dialog?: Dialog[], // greeting, greetingEn, dialog, dialogEn: **four separate fields** -> **dialog: Dialog[]**, reason: an NPC says different things by condition (first talk, after talking, quest cleared), mechanism: each entry is tagged with its condition and carries its jp lines + en; pickDialog below chooses one
     quest?: { id: number, title: string, status?: 'done' | 'resume' }
@@ -35,7 +35,8 @@ export const pickDialog = (npc: NPCProps, spoken: boolean): Dialog =>
 export const talkLines = (npc: NPCProps, spoken: boolean) => {
     const d = pickDialog(npc, spoken)
     const en = toList(d.en)
-    return toList(d.jp).map((jp, i) => ({ jp, en: en[i] ?? '' }))
+    const audio = toList(d.audio ?? [])
+    return toList(d.jp).map((jp, i) => ({ jp, en: en[i] ?? '', audio: audio[i] })) // lines: **{ jp, en }** -> **+ audio**, mechanism: the line's mp3 file name, index-aligned like en
 }
 // the lines a talk steps through, one per tap, each paired with its English
 // (index-aligned; a missing one is '' = no English line)
@@ -60,6 +61,11 @@ export default function NPCRenderer({ npc, index, velocity, inRange, selected = 
     // dialogs: **text + en** -> **Dialog[]**, mechanism: talking = just the
     // current line of the picked entry (one line per tap); in range = the
     // whole greeting entry; otherwise no bubble
+    const file = selected ? cur?.audio : inRange ? toList(greeting(npc).audio ?? [])[0] : undefined
+    const audio = npc.voice && file ? dialogUrl(npc.voice, file) : undefined
+    // the clip for what the bubble shows: the current talk line, or the
+    // greeting's (first) recording while in range. Silent when the NPC has no
+    // voice folder or the line has no file
     const tap = inRange || selected ? { [NPC_TAP_ATTR]: index } : undefined
 
     return (
@@ -79,7 +85,7 @@ export default function NPCRenderer({ npc, index, velocity, inRange, selected = 
                     }}
                 />
             )}
-            {dialogs && <DialogBubble x={ent.x} y={ent.y} h={ent.h} dialogs={dialogs} tapId={tap && index} speak={selected ? npc.voice : undefined} />} {/* speak: **none** -> **npc.voice while selected**, mechanism: only the NPC being talked to reads its line aloud; the in-range greeting stays silent */} {/* dialogs: **one wrapped default line** -> **the entry picked above**, mechanism: see dialogs */}
+            {dialogs && <DialogBubble x={ent.x} y={ent.y} h={ent.h} dialogs={dialogs} tapId={tap && index} audio={audio} />} {/* speak: **npc.voice while selected** -> **audio URL**, reason: mp3s replace speechSynthesis and the greeting plays too, mechanism: see audio above */} {/* dialogs: **one wrapped default line** -> **the entry picked above**, mechanism: see dialogs */}
         </>
     )
 }
