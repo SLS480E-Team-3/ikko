@@ -2,7 +2,8 @@
 
 import { PointerEvent, useEffect, useMemo, useRef, useState } from "react" // imports: **no PointerEvent** -> **+ PointerEvent**, reason: MobileGameScene merged in, mechanism: types the joystick/pinch handlers that moved here
 import PlayerRenderer, { PlayerProps } from "../Entity/playerRenderer"
-import EntityRenderer, { ENT_H, ENT_W, EntityProps } from "../Entity/entityRenderer" // imports: **ENT_H, ENT_W** -> **+ EntityRenderer, EntityProps**, mechanism: the scene draws the npcs prop itself
+import { ENT_H, ENT_W } from "../Entity/entityRenderer" // imports: **ENT_H, ENT_W, EntityRenderer, EntityProps** -> **ENT_H, ENT_W**, reason: NPCs draw through NPCRenderer now, mechanism: NPCProps carries the EntityProps, so neither is used here
+import NPCRenderer, { NPCProps, NPC_TAP_ATTR, talkLines } from "../Entity/npcRenderer"
 import ObjectRenderer from "../Object/ObjectRenderer"
 import { HitBox, ObjectDef, PlacedObject, applyScale } from "../Object/gameObject"
 import { OBJECTS } from "../Object/objects"
@@ -104,7 +105,7 @@ const NO_OBJECTS: PlacedObject[] = []
 // default for the objects prop; module-level so it's the same array every
 // render and the useMemo below doesn't redo its work each frame
 
-export type SceneNPC = { ent: EntityProps, dialog?: string }
+export type SceneNPC = NPCProps // type: **{ ent, dialog?: string }** -> **NPCProps**, reason: NPCs talk in several lines now, mechanism: NPCProps is { ent, greeting?, dialog?: string[], quest? }, defined next to NPCRenderer that draws it
 const NO_NPCS: SceneNPC[] = []
 const STILL = { x: 0, y: 0 }
 // an entity standing in the scene with an optional speech bubble. NO_NPCS /
@@ -115,6 +116,17 @@ const SIGN_RANGE = 16 // world px around a sign's hitBox where its text shows
 const TALK_RANGE = 24 // world px around an NPC's body where its dialog shows
 // NPCs are solid, so the closest the player gets is flush (gap 0); 24 px is
 // about two body widths, near enough to read as "next to" them
+
+const TALK_ZOOM = 3 // zoom while talking to an NPC
+const TALK_SETTLE_ZOOM = 0.05 // how close to TALK_ZOOM counts as zoomed in
+const TALK_SETTLE_DIST = 2 // world px: how close the camera must be to the NPC
+// a talk shows its first line only once the zoom and camera have (nearly)
+// arrived, so the lines start after the zoom-in like the spec says. The
+// ease never quite reaches its target, hence the tolerances
+
+type Talk = { i: number, line: number, savedZoom: number }
+// i = index of the NPC being talked to, line = the talk line shown,
+// savedZoom = the zoom target before the talk, restored when it ends
 
 const overlaps = (cx: number, cy: number, w: number, h: number, box: HitBox, pad = 0) =>
     cx - w / 2 < box.x + box.w + pad && cx + w / 2 > box.x - pad &&
@@ -197,7 +209,12 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
     // with a warning instead of crashing the island. solidsRef hands the
     // blocking boxes to the mount-time tick closure, same pattern as the
     // other refs
-    // const npcRef = useRef()
+    const talkRef = useRef<Talk | null>(null)
+    const npcsRef = useRef<SceneNPC[]>(npcs)
+    npcsRef.current = npcs
+    // talkRef: null = not talking. A ref, like the other scene state, so the
+    // mount-time tick reads it; the per-frame render shows its changes.
+    // npcsRef hands the latest npcs prop to the tick for the camera target
     // positions live in refs so the loop mutates them without a render per
     // change; force() below does one render per frame instead. bgRef takes
     // the prop only on mount -- later changes go through bgRef.current
@@ -221,6 +238,16 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
             const useStick = stick.x !== 0 || stick.y !== 0
             vel.x = (useStick ? stick.x : dx / len) * PLAYER_SPEED // input: **keys only** -> **stick while pushed, else keys**, reason: phones have no keyboard, mechanism: stick length <= 1 so a half push walks at half speed (analog); stickRef is a stable ref so reading it from this mount-time closure stays current
             vel.y = (useStick ? stick.y : dy / len) * PLAYER_SPEED // input: **keys only** -> **stick while pushed, else keys**, reason: same as vel.x, mechanism: same as vel.x
+            const talk = talkRef.current
+            const talkEnt = talk && npcsRef.current[talk.i]?.ent
+            if (talk) {
+                vel.x = 0
+                vel.y = 0
+                zoomTarget.current = TALK_ZOOM
+            }
+            // talking freezes the player: vel 0 ignores both the stick and the
+            // keys (and stops the lean/gust), and the zoom target is pinned
+            // to TALK_ZOOM each frame so a wheel/pinch can't pull it away
             // each axis is -1/0/1 (opposite keys cancel). Dividing by the
             // length makes diagonals the same speed as straight moves instead
             // of ~1.41x; `|| 1` avoids 0/0 when nothing is held. vel is
@@ -246,8 +273,9 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
 
             const view = viewPortRef.current
             const follow = 1 - Math.pow(1 - VIEWPORT_FOLLOW_RATE, dt * 60)
-            view.x += ((ent?.x ?? view.x) - view.x) * follow
-            view.y += ((ent?.y ?? view.y) - view.y) * follow
+            const focus = talkEnt ? { x: talkEnt.x ?? 0, y: (talkEnt.y ?? 0) - talkEnt.h } : ent // target: **player** -> **talking NPC, else player**, reason: a selected NPC zooms in on it, mechanism: same easing, only the point it eases to changes; one body height up so the bubble above the head fits in the zoomed view too
+            view.x += ((focus?.x ?? view.x) - view.x) * follow
+            view.y += ((focus?.y ?? view.y) - view.y) * follow
             // the camera closes a fraction of the gap to the player each frame,
             // so it eases in behind them instead of being locked on.
             // VIEWPORT_FOLLOW_RATE is the fraction per 60fps frame; the pow
@@ -354,8 +382,58 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
     // walking after the thumb lifts or iOS cancels the touch (e.g. a
     // notification or system swipe)
 
+    const talkReady = () => {
+        const talk = talkRef.current
+        const n = talk && npcs[talk.i]
+        if (!n) return false
+        const view = viewPortRef.current
+        return Math.abs(zoomRef.current - TALK_ZOOM) < TALK_SETTLE_ZOOM &&
+            Math.hypot(view.x - (n.ent.x ?? 0), view.y - ((n.ent.y ?? 0) - n.ent.h)) < TALK_SETTLE_DIST
+    }
+    // true once the talk zoom-in has arrived: the zoom is at TALK_ZOOM and the
+    // camera on the same focus point the tick eases to. The camera clamp can
+    // hold the view off an NPC standing at the world edge, but the test spots
+    // are all near the center
+
+    const tappedNpc = (clientX: number, clientY: number) => {
+        const hit = Array.from(sceneRef.current?.querySelectorAll(`[${NPC_TAP_ATTR}]`) ?? []).find(el => {
+            const r = el.getBoundingClientRect()
+            return clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom
+        })
+        return hit ? Number(hit.getAttribute(NPC_TAP_ATTR)) : null
+    }
+    // index of the NPC whose body or bubble is under the tap, or null. The
+    // overlay covers the world, so this checks the tagged elements' on-screen
+    // rects (already scaled by the zoom) instead of waiting for their events
+
+    const tapNpc = (clientX: number, clientY: number) => {
+        const hit = tappedNpc(clientX, clientY)
+        const talk = talkRef.current
+        if (talk) {
+            if (hit === talk.i && talkReady()) {
+                if (talk.line + 1 < talkLines(npcs[talk.i]).length) talkRef.current = { ...talk, line: talk.line + 1 }
+                else {
+                    zoomTarget.current = talk.savedZoom
+                    talkRef.current = null
+                }
+            }
+            return true
+        }
+        if (hit === null) return false
+        talkRef.current = { i: hit, line: 0, savedZoom: zoomTarget.current }
+        release()
+        return true
+    }
+    // true = the tap belonged to the talk and must not start the stick.
+    // Not talking: a tap on a nearby NPC starts a talk and saves the zoom
+    // target to return to. Talking: a tap on that NPC's bubble/body shows
+    // the next line, and after the last one restores the saved zoom (the
+    // camera goes back to following the player on its own). Taps anywhere
+    // else, or before the zoom-in settles, do nothing -- movement is frozen
+
     const handleDown = (e: PointerEvent<HTMLDivElement>) => {
         if (activeIdRef.current !== null || pinchRef.current) return
+        if (tapNpc(e.clientX, e.clientY)) return // down: **always starts the stick** -> **NPC tap first**, reason: NPCs are tapped through the stick overlay, mechanism: tapNpc handles talk taps and a consumed tap returns before the pointer is captured, so no stick appears
         activeIdRef.current = e.pointerId
         e.currentTarget.setPointerCapture(e.pointerId)
         const rect = e.currentTarget.getBoundingClientRect()
@@ -461,11 +539,15 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
                 <div style={{ position: 'absolute', left: 0, top: 0, zIndex: Math.round((pEnt?.y ?? 0) + (pEnt?.h ?? ENT_H) / 2) }}> {/* wrap: **none** -> **0x0 div with the player's bottom-edge zIndex**, mechanism: ent.y is the center, so + h/2 is the feet; compared with ObjectRenderer's y + sprite.h the lower one draws in front. The wrapper is its own stacking context, so the name tag's zIndex 1 still only orders it against the body */}
                 <PlayerRenderer velocity={velocityRef.current} maxSpeed={PLAYER_SPEED} player={playerRef.current} /> {/* props: **velocity, player** -> **+ maxSpeed**, reason: lean scales with how hard the stick is pushed, mechanism: PLAYER_SPEED is full speed, so vel.x / PLAYER_SPEED is the stick's x (or ±1 / ±0.71 on keys); passed as a prop because the renderers importing it from here would be a circular import */}
                 </div>
-                {npcs.map((n, i) => (
-                    <div key={`npc-${i}`} style={{ position: 'absolute', left: 0, top: 0, zIndex: Math.round((n.ent.y ?? 0) + n.ent.h / 2) }}>
-                        <EntityRenderer velocity={STILL} ent={n.ent} dialog={pEnt && overlaps(pEnt.x ?? 0, pEnt.y ?? 0, pEnt.w, pEnt.h, { x: (n.ent.x ?? 0) - n.ent.w / 2, y: (n.ent.y ?? 0) - n.ent.h / 2, w: n.ent.w, h: n.ent.h }, TALK_RANGE) ? n.dialog : undefined} /> {/* dialog: **always n.dialog** -> **n.dialog only near the player**, mechanism: same overlaps check as signs, on the NPC's body box grown by TALK_RANGE; out of range passes undefined, which EntityRenderer draws as no bubble. Re-checked every frame since force() re-renders each tick */}
-                    </div>
-                ))}
+                {npcs.map((n, i) => {
+                    const talk = talkRef.current
+                    const near = !!pEnt && overlaps(pEnt.x ?? 0, pEnt.y ?? 0, pEnt.w, pEnt.h, { x: (n.ent.x ?? 0) - n.ent.w / 2, y: (n.ent.y ?? 0) - n.ent.h / 2, w: n.ent.w, h: n.ent.h }, TALK_RANGE)
+                    return (
+                        <div key={`npc-${i}`} style={{ position: 'absolute', left: 0, top: 0, zIndex: Math.round((n.ent.y ?? 0) + n.ent.h / 2) }}>
+                            <NPCRenderer npc={n} index={i} velocity={STILL} inRange={!talk && near} selected={talk?.i === i} line={talk?.i === i && talkReady() ? talk.line : undefined} /> {/* render: **EntityRenderer, dialog only near the player** -> **NPCRenderer**, reason: NPCs are tapped to talk, mechanism: inRange is the same TALK_RANGE overlaps check (greeting bubble + tap target), off for everyone during a talk; the selected NPC gets its line once talkReady() */}
+                        </div>
+                    )
+                })}
                 {/* NPCs: same 0x0 bottom-edge zIndex wrapper as the player, so
                     they sort against objects and the player by their feet. Their
                     bodies are in solidsRef, so they block the player */}

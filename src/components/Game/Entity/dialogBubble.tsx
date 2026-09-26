@@ -6,6 +6,7 @@ type DialogBubbleProps = {
     x?: number, // entity CENTER in world px, same anchor EntityRenderer / the name tag use
     y?: number,
     h: number, // h: **optional, default ENT_H** -> **required**, mechanism: EntityRenderer now renders the bubble and always has ent.h, so the ENT_H import is dropped; importing entityRenderer here would be a circular import (it imports this file), same reason gustRenderer takes plain x/y/w/h
+    tapId?: number, // tapId: **none** -> **tapId?**, reason: NPCs are picked by tapping their bubble, mechanism: set as the data-npc attribute on the wrapper, which GameScene's stick overlay hit-tests by rect (the bubble itself stays pointerEvents none)
     text?: string | string[], // text: **string[]** -> **string | string[]**, reason: EntityRenderer still passes its dialog as one string, mechanism: a string is treated as a one-line list, so both shapes page the same way
 }
 // the bubble takes the entity's position, not its own, so a caller passes
@@ -60,7 +61,7 @@ const toPages = (text?: string | string[]): string[][] => {
 // No text (undefined, '', []) becomes one '...' page, as before
 
 // index show in front of name
-export default function DialogBubble({ x, y = 0, h, text }: DialogBubbleProps) {
+export default function DialogBubble({ x, y = 0, h, text, tapId }: DialogBubbleProps) { // props: **x, y, h, text** -> **+ tapId**, mechanism: see tapId
     const pages = toPages(text)
     const textKey = pages.map(p => p.join('')).join('\n')
     const [typing, setTyping] = useState({ key: textKey, page: 0, n: 0 })
@@ -92,6 +93,7 @@ export default function DialogBubble({ x, y = 0, h, text }: DialogBubbleProps) {
 
     return (
         <div
+            data-npc={tapId} // attr: **none** -> **data-npc={tapId}**, mechanism: React drops an undefined attribute, so only tappable bubbles get it
             style={{
                 position: 'absolute',
                 left: x,

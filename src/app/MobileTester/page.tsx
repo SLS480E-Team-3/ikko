@@ -68,7 +68,7 @@ const PAGES: { label: string; page: (sensitivity: number) => ReactNode }[] = [ /
 // with the mouse anywhere on the phone to test it on a laptop. mobile game
 // scene = the map alone, game scene = the map + test NPCs
 
-const NPC_NAMES = ['Gon', 'Killua', 'Kurapika', 'Ren', 'Aoi', 'Yuto', 'Sakura', 'Kaito', 'Mei']
+const NPC_NAMES = ['Gon', 'Killua', 'Kurapika', 'Ren', 'Shuto', 'Genki', 'Leorio', 'Kaito']
 const randomNames = (n: number) => [...NPC_NAMES].sort(() => Math.random() - 0.5).slice(0, n)
 // n different names picked at random from the pool: shuffle a copy, take the
 // first n. Runs once when the module loads, so names change per page load
@@ -104,7 +104,8 @@ while (npcSpots.length < NPC_COLORS.length) {
 const TEST_NPCS: SceneNPC[] = npcSpots.map((n, i) => ({ // spots: **fixed ±60 / -40,+50 box** -> **random npcSpots 20..120 px away**, mechanism: see npcSpots
     ent: { name: names[i], // name: **`NPC ${i + 1}`** -> **names[i]**, mechanism: random name from NPC_NAMES, no repeats
          x: BG_W / 2 + n.dx, y: BG_H / 2 + n.dy, w: 12, h: ENT_H, color: NPC_COLORS[i], facing: 'none' },
-    dialog: 'こんにちは',
+    greeting: 'こんにちは', // dialog: **'こんにちは'** -> **greeting 'こんにちは' + dialog lines**, reason: tapping an NPC talks through several lines, mechanism: the greeting shows in range; the dialog plays one line per tap after the zoom-in
+    dialog: i % 2 === 0 ? ['おい', '頼みがあるんだが', '聞いてくれるか？'] : undefined, // every other NPC has no dialog, so tapping it just repeats the greeting (talkLines fallback) and zooms back out
 }))
 // four entities at random spots near the player spawn (world center);
 // module-level so the array is the same every render. Bubbles can overlap
