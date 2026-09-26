@@ -61,6 +61,17 @@ flowchart TD
 
 See [page-relations.md](page-relations.md) for the full list of redirects.
 
+## World View
+
+The world is drawn at a **10 : 7** aspect ratio: a square patch of ground shows up 10 wide and 7 tall. That makes the camera look diagonally down at the ground.
+
+- **Angle:** about **44.4° below the horizon**, or about **45.6° tilted from straight down**.
+- **Where it comes from:** a slanted view keeps width but squashes depth by sin θ, where θ is the angle between the line of sight and the ground. So sin θ = 7 / 10 = 0.7, and θ = arcsin(0.7) ≈ 44.43°.
+- **For art:** draw sprites and tiles as seen from about 45° above. Ground-level shapes (tiles, shadows, hitboxes) are 0.7× as tall as they are wide.
+- **Hitbox `h` is depth.** A game object's `hitBox` (`src/components/Game/Object/gameObject.ts`) lies flat on the ground. Its `h` is how deep the object's footprint reaches along y (into the screen), not how tall the object stands. Size it to the sprite's base, not the whole sprite.
+  - **Tall sprites.** For a tall sprite like the tower, the hitbox sits at the bottom. The player can walk behind the upper part and is only stopped at the base.
+  - **Square footprints.** A footprint that is square on the ground has `h ≈ w × 0.7`. For example, a base 110 wide and 110 deep uses `h: 77`.
+
 ## NPCs and Dialog
 
 ### Talking to an NPC
