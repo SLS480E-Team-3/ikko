@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import PlayerRenderer, { PlayerProps } from "../Entity/playerRenderer"
 import { ENT_H, ENT_W } from "../Entity/entityRenderer"
 import ObjectRenderer from "../Object/ObjectRenderer"
-import { HitBox, ObjectDef, PlacedObject } from "../Object/gameObject"
+import { HitBox, ObjectDef, PlacedObject, applyScale } from "../Object/gameObject"
 import { OBJECTS } from "../Object/objects"
 
 
@@ -137,11 +137,12 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, mov
     // on-screen size of the scene box in css px, measured below -- the
     // camera clamp needs it to know how much world is visible
     const placed = useMemo(() => objects.flatMap(obj => {
-        const def: ObjectDef | undefined = OBJECTS[obj.def]
-        if (!def) {
+        const base: ObjectDef | undefined = OBJECTS[obj.def] // name: **def** -> **base**, mechanism: the catalog def before scaling, so `def` below is always the per-placement size
+        if (!base) {
             console.warn(`object ${obj.id}: no '${obj.def}' in OBJECTS, skipped`)
             return []
         }
+        const def = applyScale(base, obj.scale) // def: **catalog def** -> **applyScale(catalog def, obj.scale)**, mechanism: every later use (renderer size, zIndex, solids, sign range) reads this scaled copy, so they all agree on the drawn size
         return [{ obj, def, solid: def.hitBox && worldBox(obj, def.hitBox) }]
     }), [objects])
     const solidsRef = useRef<HitBox[]>([])

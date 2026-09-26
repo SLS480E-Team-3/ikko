@@ -2,7 +2,7 @@
 
 import { BGProps } from "./gameScene"
 import ObjectRenderer from "../Object/ObjectRenderer"
-import { PlacedObject } from "../Object/gameObject"
+import { PlacedObject, applyScale } from "../Object/gameObject"
 import { OBJECTS } from "../Object/objects"
 
 type SceneProps = BGProps & {
@@ -13,7 +13,7 @@ type SceneProps = BGProps & {
 export default function Scene({objpool}: {objpool: PlacedObject[]}) { // type: **GameObjectProps[]** -> **PlacedObject[]**, mechanism: same split as above
     return (
         <div>
-            {objpool.map((obj) => OBJECTS[obj.def] && <ObjectRenderer key={obj.id} obj={obj} def={OBJECTS[obj.def]}/>)} {/* def: **{}** -> **OBJECTS[obj.def]**, mechanism: looks the placement's kind up in the catalog; an unknown kind renders nothing. key: **none** -> **obj.id** */}
+            {objpool.map((obj) => OBJECTS[obj.def] && <ObjectRenderer key={obj.id} obj={obj} def={applyScale(OBJECTS[obj.def], obj.scale)}/>)} {/* def: **OBJECTS[obj.def]** -> **applyScale(OBJECTS[obj.def], obj.scale)**, mechanism: draws the placement at its own scale without touching the catalog */} {/* def: **{}** -> **OBJECTS[obj.def]**, mechanism: looks the placement's kind up in the catalog; an unknown kind renders nothing. key: **none** -> **obj.id** */}
         </div>
     )
 }
