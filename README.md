@@ -1,13 +1,19 @@
 # Ikko!! (いっこ〜！！)
 SLS480E Team 3 Japanese learning App for Beginners
 
+## VER
+
 ## Target
+
+[TBD]
 
 ## Story Line
 
+[TBD]
 
 ## Lessons format
 
+[TBD]
 
 ## App Flow
 
