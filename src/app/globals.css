@@ -52,3 +52,10 @@ body {
    to fill the viewport hits the same wall otherwise. */
 
    
+html,
+body {
+  height: 100%;
+}
+/* Gives body a definite height, so a page root with min-height: 100% (the
+   auth pages) fills the whole screen and can center its content vertically.
+   Taller pages still grow past it and scroll as before. */
