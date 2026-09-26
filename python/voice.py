@@ -7,7 +7,14 @@ from pathlib import Path
 
 import gemini_tts as g
 
-TEST_LINE = ["こんにちは！","今日もいっしょに","がんばろうね!"]
+SAMPLE_LINE_PROPMT = "Hello, my name is {name}. I'm {age} years old. よろしく!"
+SAMPLE_SYSTEM = ("You write one short spoken self-introduction in natural Japanese for a game "
+                 "character. Stay in character: match the accent, register and personality in the "
+                 "profile. Output only the Japanese line, no romaji, translation or quotes.")
+# SAMPLE_LINE_PROPMT is a prompt, not the spoken text: gemini-3.8-flash turns
+# it into a Japanese introduction in the voice's own register (e.g. Kansai-ben
+# for shuto), and that line is what _sample.mp3 says
+
 
 def read_profile_file(path: str, name: str) -> dict:
     data = json.loads(Path(path).read_text(encoding="utf-8"))
@@ -51,7 +58,7 @@ def create(args) -> None:
     description = g.build_description(profile)
     print(f"description: {description}")
 
-    voice_id, sample = g.design_voice(args.name, profile, description, args.model)
+    voice_id, _ = g.design_voice(args.name, profile, description, args.model)  # sample: **kept the API preview** -> **dropped**, mechanism: Voice design's preview has a fixed script, so _sample.mp3 is rendered below from SAMPLE_LINE instead
     print(f"created voice {voice_id}")
 
     if not entry:
@@ -61,18 +68,19 @@ def create(args) -> None:
                  model=args.model, created=datetime.now(timezone.utc).isoformat(timespec="seconds"))
     g.save_voices(data)
     print(f"saved to {g.VOICES_FILE.name}")
-    # saved before the test render, so a failed render doesn't lose the voice
+    # saved before the sample render, so a failed render doesn't lose the voice
 
-    if sample:
-        g.join_to_mp3([sample], g.DIALOG_DIR / args.name / "_sample.mp3")  # sample: **output/<name>_sample.mp3** -> **public/dialog/<name>/_sample.mp3**, mechanism: the voice's folder under the game's audio root; the _ prefix marks it as a preview, not a line
-    for strip in TEST_LINE:  # test: **one mp3 of the whole sentence** -> **one request + mp3 per strip**, mechanism: the game plays each strip as its own bubble page, so each gets its own file; the cache (same key as dialog.py) skips strips already rendered for this voice
-        f = g.cached(g.cache_key(voice_id, strip, None, args.model))
-        if not f.exists():
-            f.write_bytes(g.tts(voice_id, strip, model=args.model))
-        out = g.line_mp3(args.name, strip)
-        g.join_to_mp3([f.read_bytes()], out)
-        print(f"test line -> {out.relative_to(g.ROOT.parent)}")
-# profile -> description -> Voice design -> voices.json -> test strip mp3s.
+    prompt = SAMPLE_LINE_PROPMT.format(name=args.name, age=profile["age"])
+    text = g.generate_text(SAMPLE_SYSTEM, f"Profile: {json.dumps(profile, ensure_ascii=False)}\n"
+                           f"Say this in Japanese: {prompt}").strip()  # text: **SAMPLE_LINE spoken as-is (English)** -> **Japanese line written from SAMPLE_LINE_PROPMT**, mechanism: the text model gets the filled prompt plus the profile and returns one Japanese line, which the new voice then speaks
+    print(f"sample line: {text}")
+    f = g.cached(g.cache_key(voice_id, text, None, args.model))
+    if not f.exists():
+        f.write_bytes(g.tts(voice_id, text, model=args.model))
+    out = g.DIALOG_DIR / args.name / "_sample.mp3"
+    g.join_to_mp3([f.read_bytes()], out)
+    print(f"sample -> {out.relative_to(g.ROOT.parent)}")
+# profile -> description -> Voice design -> voices.json -> _sample.mp3 intro.
 # ffmpeg is checked up front so a missing install fails before spending a
 # voice slot (200 per project)
 

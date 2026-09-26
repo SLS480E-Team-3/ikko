@@ -24,7 +24,7 @@ Then open `.env` in an editor and paste your key as `GEMINI_API_KEY=...`.
 
 | Command | What it does |
 |---|---|
-| `python voice.py create <name>` | Asks for the 15 profile fields, designs the voice, saves it to `voices.json`, and renders the test strips (`TEST_LINE` in `voice.py`), one request and one file each, to `public/dialog/<name>/` (`こんにちは.mp3`, `今日もいっしょに.mp3`, `がんばろうね.mp3`) (plus the API preview `public/dialog/<name>/_sample.mp3`). |
+| `python voice.py create <name>` | Asks for the 15 profile fields, designs the voice, saves it to `voices.json`, and has `gemini-3.8-flash` turn the prompt `SAMPLE_LINE_PROPMT` in `voice.py` ("Hello, my name is {name}. I'm {age} years old. よろしく!") into a Japanese self-introduction that fits the profile, and renders it in the new voice to `public/dialog/<name>/_sample.mp3`. The Japanese line is printed. |
 | `python voice.py create jordi --from voices.json` | Same, but reads the profile from a file instead of asking. The file can be `voices.json` (the entry is picked by name) or a flat profile JSON. |
 | `python voice.py list` | Shows every voice and its `voice_id`, or "not created". |
 | `python dialog.py write "ordering ramen" --speakers jordi,kaito` | Drafts `dialogs/ordering_ramen.yaml` with `gemini-3.8-flash`. Options: `--lines N`, `--out`, `--force`. |

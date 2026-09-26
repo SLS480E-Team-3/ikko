@@ -20,9 +20,9 @@
         "use_case": "game character"
       },
       "description": "A 20-year-old female game character voice speaking Japanese with a Tokyo standard accent; energetic, friendly, a bit playful. Timbre: bright and slightly airy; energy: high and cheerful; pitch: slightly high; pitch range: wide with rising endings; speed: slightly fast; volume: medium-loud; articulation: clear but relaxed; register: casual, with light desu/masu when polite; pauses: short.",
-      "voice_id": "voice_a0s8i7nt12ek",
+      "voice_id": "voice_oupywe2eapf7",
       "model": "gemini-3.8-flash-tts",
-      "created": "2026-09-26T14:24:53+00:00"
+      "created": "2026-09-26T14:52:25+00:00"
     },
     {
       "name": "shuto",
@@ -44,9 +44,9 @@
         "use_case": "game character"
       },
       "description": "A 22-year-old male game character voice speaking Japanese with a Kansai dialect accent; unenergetic, calm, laid-back. Timbre: soft, slightly husky; energy: low and friendly; pitch: low; pitch range: narrow, flat and even; speed: slightly slow; volume: medium-soft; articulation: relaxed, a little lazy on sentence endings; register: casual Kansai-ben; pauses: medium, unhurried.",
-      "voice_id": "voice_wu5hi7h2rj4o",
+      "voice_id": "voice_ufvdan8ddlht",
       "model": "gemini-3.8-flash-tts",
-      "created": "2026-09-26T14:42:23+00:00"
+      "created": "2026-09-26T14:51:20+00:00"
     }
   ]
 }

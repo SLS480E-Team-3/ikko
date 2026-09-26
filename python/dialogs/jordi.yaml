@@ -17,4 +17,4 @@ lines:
 # Jordi's island-1 lines from src/components/Game/npcs/npcs.ts, in kanji
 # form. line_mp3 drops ！ 、 and keeps ？, so each file lands on the third
 # item of its say() line (こんにちは, 私はお寿司が大好き, ...). The greeting
-# has no style, so it reuses voice.py's cached test strip (no API call)
+# has no style; it hits the cache only if it was rendered before // cache: **reuses voice.py's test strip** -> **own render or cache**, mechanism: voice.py no longer renders TEST_LINE strips
