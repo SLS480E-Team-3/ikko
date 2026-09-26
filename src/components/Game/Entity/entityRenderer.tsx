@@ -116,7 +116,7 @@ export default function EntityRenderer({
             {/* absolute children ignore justifyContent (that's a flex-container
                 prop), so left/right pin each eye to its own side of the body */}
         </div>
-        {dialog !== undefined && <DialogBubble x={ent.x} y={ent.y} h={ent.h} text={dialog} />}
+        {dialog !== undefined && <DialogBubble x={ent.x} y={ent.y} h={ent.h} dialogs={[{ condition: 'default', jp: dialog, en: [] }]} />} {/* props: **text={dialog}** -> **dialog={[Dialog]}**, mechanism: DialogBubble takes Dialog[] now; the string becomes one default entry with no English, '' still pages as '...' */}
         {/* after the body so it draws on top; a sibling, not a child, so the
             lean skew doesn't reach it. It anchors on the same center x/y and
             height the body uses, so it follows the entity as it moves */}

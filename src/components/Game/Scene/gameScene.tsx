@@ -105,7 +105,7 @@ const NO_OBJECTS: PlacedObject[] = []
 // default for the objects prop; module-level so it's the same array every
 // render and the useMemo below doesn't redo its work each frame
 
-export type SceneNPC = NPCProps // type: **{ ent, dialog?: string }** -> **NPCProps**, reason: NPCs talk in several lines now, mechanism: NPCProps is { ent, greeting?, dialog?: string[], quest? }, defined next to NPCRenderer that draws it
+export type SceneNPC = NPCProps // type: **{ ent, dialog?: string }** -> **NPCProps**, reason: NPCs talk in several lines now, mechanism: NPCProps is { ent, dialog?: Dialog[], quest? }, defined next to NPCRenderer that draws it
 const NO_NPCS: SceneNPC[] = []
 const STILL = { x: 0, y: 0 }
 // an entity standing in the scene with an optional speech bubble. NO_NPCS /
@@ -212,6 +212,9 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
     const talkRef = useRef<Talk | null>(null)
     const npcsRef = useRef<SceneNPC[]>(npcs)
     npcsRef.current = npcs
+    const spokenRef = useRef(new Set<number>())
+    // spokenRef: indexes of NPCs talked to (to the end) in this scene, so
+    // their 'spoken' Dialog plays next time. Per-scene memory only, not saved
     // talkRef: null = not talking. A ref, like the other scene state, so the
     // mount-time tick reads it; the per-frame render shows its changes.
     // npcsRef hands the latest npcs prop to the tick for the camera target
@@ -411,10 +414,11 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
         const talk = talkRef.current
         if (talk) {
             if (hit === talk.i && talkReady()) {
-                if (talk.line + 1 < talkLines(npcs[talk.i]).length) talkRef.current = { ...talk, line: talk.line + 1 }
+                if (talk.line + 1 < talkLines(npcs[talk.i], spokenRef.current.has(talk.i)).length) talkRef.current = { ...talk, line: talk.line + 1 } // talkLines: **(npc)** -> **(npc, spoken)**, mechanism: picks the same Dialog entry NPCRenderer shows
                 else {
                     zoomTarget.current = talk.savedZoom
                     talkRef.current = null
+                    spokenRef.current.add(talk.i) // spoken: **none** -> **marked when a talk ends**, mechanism: added after the last line, not at the start, so the picked entry doesn't switch mid-talk
                 }
             }
             return true
@@ -544,7 +548,7 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
                     const near = !!pEnt && overlaps(pEnt.x ?? 0, pEnt.y ?? 0, pEnt.w, pEnt.h, { x: (n.ent.x ?? 0) - n.ent.w / 2, y: (n.ent.y ?? 0) - n.ent.h / 2, w: n.ent.w, h: n.ent.h }, TALK_RANGE)
                     return (
                         <div key={`npc-${i}`} style={{ position: 'absolute', left: 0, top: 0, zIndex: Math.round((n.ent.y ?? 0) + n.ent.h / 2) }}>
-                            <NPCRenderer npc={n} index={i} velocity={STILL} inRange={!talk && near} selected={talk?.i === i} line={talk?.i === i && talkReady() ? talk.line : undefined} /> {/* render: **EntityRenderer, dialog only near the player** -> **NPCRenderer**, reason: NPCs are tapped to talk, mechanism: inRange is the same TALK_RANGE overlaps check (greeting bubble + tap target), off for everyone during a talk; the selected NPC gets its line once talkReady() */}
+                            <NPCRenderer npc={n} index={i} velocity={STILL} inRange={!talk && near} selected={talk?.i === i} spoken={spokenRef.current.has(i)} line={talk?.i === i && talkReady() ? talk.line : undefined} /> {/* render: **EntityRenderer, dialog only near the player** -> **NPCRenderer**, reason: NPCs are tapped to talk, mechanism: inRange is the same TALK_RANGE overlaps check (greeting bubble + tap target), off for everyone during a talk; the selected NPC gets its line once talkReady() */}
                         </div>
                     )
                 })}

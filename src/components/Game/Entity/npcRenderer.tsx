@@ -2,39 +2,62 @@
 
 import { QuestsProps } from "@/utils/schema"
 import EntityRenderer, { EntityProps } from "./entityRenderer"
-import DialogBubble from "./dialogBubble"
+import DialogBubble, { Dialog } from "./dialogBubble"
 
 export type NPCProps = {
     ent: EntityProps, // shape: **EntityProps & {...}** -> **{ ent, ... }**, reason: GameScene already keeps NPCs as { ent, dialog }, mechanism: the entity box stays one object, so the scene's solids / range checks read n.ent like the player's
-    greeting?: string // short greeting default こんにちは // greeting: **required** -> **optional**, mechanism: GREETING_DEF fills it in below, so test / db NPCs can leave it out
-    dialog?: string[],
+    dialog?: Dialog[], // greeting, greetingEn, dialog, dialogEn: **four separate fields** -> **dialog: Dialog[]**, reason: an NPC says different things by condition (first talk, after talking, quest cleared), mechanism: each entry is tagged with its condition and carries its jp lines + en; pickDialog below chooses one
     quest?: { id: number, title: string, status?: 'done' | 'resume' }
 }
 // selected: **in NPCProps** -> **NPCRenderer prop**, reason: which NPC is
 // talking is scene state, not NPC data, mechanism: GameScene passes
 // selected / line per NPC each frame, so the NPC list stays static
 
-export const GREETING_DEF = 'こんにちは'
+export const GREETING_DEF: Dialog = { condition: 'greeting', jp: 'こんにちは', en: 'Hello' } // GREETING_DEF: **'こんにちは'** -> **a greeting Dialog**, mechanism: carries its English, used when an NPC has no 'greeting' entry
 
-export const talkLines = (npc: NPCProps) => npc.dialog?.length ? npc.dialog : [npc.greeting ?? GREETING_DEF]
-// the lines a talk steps through: the dialog, or just the greeting for an
-// NPC with nothing more to say, so tapping it still zooms in and back out
+const toList = (s: string | string[]) => typeof s === 'string' ? [s] : s
+
+const find = (npc: NPCProps, condition: Dialog['condition']) => npc.dialog?.find(d => d.condition === condition && toList(d.jp).length > 0)
+export const greeting = (npc: NPCProps) => find(npc, 'greeting') ?? GREETING_DEF
+// the entry shown above an NPC while the player is in range
+
+export const pickDialog = (npc: NPCProps, spoken: boolean): Dialog =>
+    (npc.quest?.status === 'done' ? find(npc, 'questCleared') : undefined) ??
+    (spoken ? find(npc, 'spoken') : undefined) ??
+    find(npc, 'default') ??
+    greeting(npc)
+// the entry a talk plays, most specific condition first: quest cleared,
+// then already spoken to (this scene), then default. An NPC with none of
+// those repeats its greeting, so tapping it still zooms in and back out
+
+export const talkLines = (npc: NPCProps, spoken: boolean) => {
+    const d = pickDialog(npc, spoken)
+    const en = toList(d.en)
+    return toList(d.jp).map((jp, i) => ({ jp, en: en[i] ?? '' }))
+}
+// the lines a talk steps through, one per tap, each paired with its English
+// (index-aligned; a missing one is '' = no English line)
 
 export const NPC_TAP_ATTR = 'data-npc'
 // GameScene's stick overlay sits above the whole world, so taps never reach
 // the NPC itself; the overlay hit-tests the elements carrying this attribute
 // (value = the NPC's index) with getBoundingClientRect instead
 
-export default function NPCRenderer({ npc, index, velocity, inRange, selected = false, line }: {
+export default function NPCRenderer({ npc, index, velocity, inRange, selected = false, spoken = false, line }: { // props: **+ spoken**, mechanism: GameScene knows who was talked to; passed so the bubble shows the same entry the scene steps through
     npc: NPCProps,
     index: number,
     velocity: { x: number, y: number },
     inRange: boolean,
     selected?: boolean,
+    spoken?: boolean,
     line?: number,
 }) {
     const ent = npc.ent
-    const text = selected ? (line === undefined ? undefined : talkLines(npc)[line]) : inRange ? npc.greeting ?? GREETING_DEF : undefined
+    const cur = line === undefined ? undefined : talkLines(npc, spoken)[line]
+    const dialogs: Dialog[] | undefined = selected ? (cur && [{ condition: pickDialog(npc, spoken).condition, jp: cur.jp, en: cur.en }]) : inRange ? [greeting(npc)] : undefined
+    // dialogs: **text + en** -> **Dialog[]**, mechanism: talking = just the
+    // current line of the picked entry (one line per tap); in range = the
+    // whole greeting entry; otherwise no bubble
     const tap = inRange || selected ? { [NPC_TAP_ATTR]: index } : undefined
 
     return (
@@ -54,7 +77,7 @@ export default function NPCRenderer({ npc, index, velocity, inRange, selected = 
                     }}
                 />
             )}
-            {text !== undefined && <DialogBubble x={ent.x} y={ent.y} h={ent.h} text={text} tapId={tap && index} />}
+            {dialogs && <DialogBubble x={ent.x} y={ent.y} h={ent.h} dialogs={dialogs} tapId={tap && index} />} {/* dialogs: **one wrapped default line** -> **the entry picked above**, mechanism: see dialogs */}
         </>
     )
 }

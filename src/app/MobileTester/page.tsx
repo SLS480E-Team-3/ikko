@@ -31,6 +31,7 @@ import LogInPage from "@/app/LogIn/page"
 import InfoRecovery from "@/app/InfoRecovery/page"
 import EditInfo from "@/app/EditInfo/page"
 import { ISLAND_MAPS } from "@/components/Game/islands"
+import NPCRenderer from "@/components/Game/Entity/npcRenderer"
 import { ISLAND_1_NPC } from "@/components/Game/npcs/npcs" // imports: **none** -> **ISLAND_1_NPC**, mechanism: see the game scene page
 import EntityRenderer, { ENT_H } from "@/components/Game/Entity/entityRenderer"
 
@@ -105,8 +106,7 @@ while (npcSpots.length < NPC_COLORS.length) {
 const TEST_NPCS: SceneNPC[] = npcSpots.map((n, i) => ({ // spots: **fixed ±60 / -40,+50 box** -> **random npcSpots 20..120 px away**, mechanism: see npcSpots
     ent: { name: names[i], // name: **`NPC ${i + 1}`** -> **names[i]**, mechanism: random name from NPC_NAMES, no repeats
          x: BG_W / 2 + n.dx, y: BG_H / 2 + n.dy, w: 12, h: ENT_H, color: NPC_COLORS[i], facing: 'none' },
-    greeting: 'こんにちは', // dialog: **'こんにちは'** -> **greeting 'こんにちは' + dialog lines**, reason: tapping an NPC talks through several lines, mechanism: the greeting shows in range; the dialog plays one line per tap after the zoom-in
-    dialog: i % 2 === 0 ? ['おい', '頼みがあるんだが', '聞いてくれるか？'] : undefined, // every other NPC has no dialog, so tapping it just repeats the greeting (talkLines fallback) and zooms back out
+    dialog: i % 2 === 0 ? [{ condition: 'default', jp: ['おい', '頼みがあるんだが', '聞いてくれるか？'], en: [] }] : undefined, // dialog: **greeting + string[]** -> **Dialog[]**, mechanism: no greeting entry = GREETING_DEF; every other NPC has no dialog, so tapping it just repeats the greeting (pickDialog fallback) and zooms back out
 }))
 // four entities at random spots near the player spawn (world center);
 // module-level so the array is the same every render. Bubbles can overlap
@@ -118,10 +118,13 @@ function BubblePreview() {
         { x: 25, y: 185, text: 'こんにちは (konnichiwa) = hello! はじめまして (hajimemashite) = nice to meet you' },
     ]
     return (
-        <div style={{ position: 'relative', width: 130, height: 205, transform: 'scale(3)', transformOrigin: 'top left' }}>
+        <div style={{ position: 'relative', width: 130, height: 265, transform: 'scale(3)', transformOrigin: 'top left' }}> {/* height: **205** -> **265**, mechanism: room for the translated NPC below */}
             {spots.map((s) => (
                 <EntityRenderer key={s.text} velocity={{ x: 0, y: 0 }} ent={{ name: s.name, x: s.x, y: s.y, w: 12, h: ENT_H, color: 'gray', facing: 'none' }} dialog={s.text} /> // preview: **EntityRenderer + DialogBubble side by side** -> **EntityRenderer dialog prop**, mechanism: the bubble is wired inside EntityRenderer now, so the preview goes through the same path the game will
             ))}
+            <NPCRenderer npc={{ ...ISLAND_1_NPC[0], ent: { ...ISLAND_1_NPC[0].ent, x: 25, y: 245 } }} index={0} velocity={{ x: 0, y: 0 }} inRange selected line={0} />
+            {/* translated NPC: Hana's first talk line with its English
+                typing underneath, through NPCRenderer like the game */}
         </div>
     )
 }

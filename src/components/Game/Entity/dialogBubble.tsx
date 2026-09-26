@@ -2,12 +2,17 @@
 
 import { useEffect, useState } from "react"
 
+export type Dialog = {
+    condition: 'greeting' | 'spoken' | 'questCleared' | 'default' // so on // condition: **spoken | questCleared | default** -> **+ greeting**, reason: NPC data is one Dialog[] now, mechanism: the greeting shown in range is just the entry tagged 'greeting'
+    jp: string | string[], en: string | string[]
+}
+
 type DialogBubbleProps = {
     x?: number, // entity CENTER in world px, same anchor EntityRenderer / the name tag use
     y?: number,
     h: number, // h: **optional, default ENT_H** -> **required**, mechanism: EntityRenderer now renders the bubble and always has ent.h, so the ENT_H import is dropped; importing entityRenderer here would be a circular import (it imports this file), same reason gustRenderer takes plain x/y/w/h
     tapId?: number, // tapId: **none** -> **tapId?**, reason: NPCs are picked by tapping their bubble, mechanism: set as the data-npc attribute on the wrapper, which GameScene's stick overlay hit-tests by rect (the bubble itself stays pointerEvents none)
-    text?: string | string[], // text: **string[]** -> **string | string[]**, reason: EntityRenderer still passes its dialog as one string, mechanism: a string is treated as a one-line list, so both shapes page the same way
+    dialogs: Dialog[] // text, en: **text?, en?** -> **dialog: Dialog[]**, reason: a line's Japanese and English travel together with the condition they're said under, mechanism: each Dialog's jp lines page as before and en[i] types under jp[i]; the entries play in order, so the caller picks which ones (by condition) to pass
 }
 // the bubble takes the entity's position, not its own, so a caller passes
 // the same x/y/h it gives EntityRenderer and the bubble finds the top itself
@@ -21,7 +26,7 @@ const BUBBLE_BORDER_W = 2
 const TAIL = 6 // tail height = half its width, so the slanted sides are 45°
 const BUBBLE_SHADOW = 'rgba(0,0,0,0.18)'
 const SEAM = 1 // SEAM: **none** -> **1**, mechanism: how far (world px) the fill triangle reaches up into the body fill, so the anti-aliased seam between them is hidden
-const TAIL_INNER =Math.round(TAIL + BUBBLE_BORDER_W - BUBBLE_BORDER_W * Math.SQRT2)
+const TAIL_INNER = Math.round(TAIL + BUBBLE_BORDER_W - BUBBLE_BORDER_W * Math.SQRT2)
 // world px. TAIL_INNER is the fill triangle: it starts BUBBLE_BORDER_W higher
 // (over the body's bottom border) and a 45° side's border measured
 // sideways is B·√2, so this size leaves a ~BUBBLE_BORDER_W black edge on
@@ -47,25 +52,42 @@ const PAGE_HOLD_MS = 1200 // how long a full page stays before the next one type
 // a page is at most PAGE_CHARS characters; 12 at fontSize 8 fits inside
 // maxWidth 120, so a page is always one line
 
-const toPages = (text?: string | string[]): string[][] => {
-    const lines = (typeof text === 'string' ? [text] : text ?? []).filter(l => l !== '')
-    const pages = lines.flatMap(line => {
+const JA_FONT = 8
+const EN_FONT = JA_FONT * 0.35
+const EN_TYPE_MS = 30 // English runs ~2x longer than its kana, so it types faster
+// the English sits under the Japanese at 0.35 of its size: small enough to
+// stay secondary, readable once a talk zooms the scene in
+
+const toList = (text?: string | string[]) => typeof text === 'string' ? [text] : text ?? []
+
+type Page = { chars: string[], en: string[] }
+
+const toPages = (dialog: Dialog[]): Page[] => { // args: **(text, en)** -> **(dialog)**, mechanism: each entry's jp / en lists are paired up first, then paged the same way
+    const lines = dialog.flatMap(d => { const ens = toList(d.en); return toList(d.jp).map((ja, i) => ({ ja, en: ens[i] })) })
+    const pages = lines.flatMap(({ ja: line, en }) => {
+        if (line === '') return []
         const chars = Array.from(line)
-        return Array.from({ length: Math.ceil(chars.length / PAGE_CHARS) }, (_, i) => chars.slice(i * PAGE_CHARS, (i + 1) * PAGE_CHARS))
+        const n = Math.ceil(chars.length / PAGE_CHARS)
+        return Array.from({ length: n }, (_, i) => ({
+            chars: chars.slice(i * PAGE_CHARS, (i + 1) * PAGE_CHARS),
+            en: i === n - 1 ? Array.from(en ?? '') : [], // en: **ens[li]** -> **the line's own en**, mechanism: paired with its jp line above
+        }))
     })
-    return pages.length ? pages : [Array.from('...')]
+    return pages.length ? pages : [{ chars: Array.from('...'), en: [] }]
 }
 // each line is split into PAGE_CHARS chunks and the lines play in order, so
 // a new line always starts on a fresh page. Array.from splits by code point,
 // so a kana, kanji or emoji counts as one character, not two UTF-16 units.
-// No text (undefined, '', []) becomes one '...' page, as before
+// No text (undefined, '', []) becomes one '...' page, as before. A line's
+// English rides on its LAST page only, so it types once the whole Japanese
+// line has been read, and isn't cut into pages (it wraps instead)
 
 // index show in front of name
-export default function DialogBubble({ x, y = 0, h, text, tapId }: DialogBubbleProps) { // props: **x, y, h, text** -> **+ tapId**, mechanism: see tapId
-    const pages = toPages(text)
-    const textKey = pages.map(p => p.join('')).join('\n')
-    const [typing, setTyping] = useState({ key: textKey, page: 0, n: 0 })
-    const cur = typing.key === textKey ? typing : { key: textKey, page: 0, n: 0 }
+export default function DialogBubble({ x, y = 0, h, dialogs, tapId }: DialogBubbleProps) { // props: **text, en** -> **dialog**, mechanism: see dialog
+    const pages = toPages(dialogs) // pages: **toPages(text, en)** -> **toPages(dialog)**, mechanism: each page carries its English (only a line's last page has any)
+    const textKey = pages.map(p => p.chars.join('') + '\t' + p.en.join('')).join('\n') // key: **Japanese only** -> **+ English**, mechanism: a changed translation also restarts the typing
+    const [typing, setTyping] = useState({ key: textKey, page: 0, n: 0, e: 0 }) // state: **{ page, n }** -> **+ e**, mechanism: e = English characters typed on this page
+    const cur = typing.key === textKey ? typing : { key: textKey, page: 0, n: 0, e: 0 }
     if (cur !== typing) setTyping(cur)
     // typing: which page and how many of its characters are shown. key is the
     // text it's typing; when the text prop changes, it resets to the first
@@ -76,15 +98,19 @@ export default function DialogBubble({ x, y = 0, h, text, tapId }: DialogBubbleP
 
     const page = pages[Math.min(cur.page, pages.length - 1)]
     useEffect(() => {
-        if (cur.n < page.length) {
+        if (cur.n < page.chars.length) {
             const t = setTimeout(() => setTyping(s => ({ ...s, n: s.n + 1 })), TYPE_MS)
             return () => clearTimeout(t)
         }
-        if (cur.page < pages.length - 1) {
-            const t = setTimeout(() => setTyping(s => ({ ...s, page: s.page + 1, n: 0 })), PAGE_HOLD_MS)
+        if (cur.e < page.en.length) { // step: **none** -> **type English**, mechanism: runs only after the page's Japanese is fully typed, so the reader sees Japanese first, then its meaning
+            const t = setTimeout(() => setTyping(s => ({ ...s, e: s.e + 1 })), EN_TYPE_MS)
             return () => clearTimeout(t)
         }
-    }, [cur.page, cur.n, page.length, pages.length])
+        if (cur.page < pages.length - 1) {
+            const t = setTimeout(() => setTyping(s => ({ ...s, page: s.page + 1, n: 0, e: 0 })), PAGE_HOLD_MS) // next page: **n: 0** -> **n: 0, e: 0**, mechanism: the hold starts after the English is done, and the next page clears both
+            return () => clearTimeout(t)
+        }
+    }, [cur.page, cur.n, cur.e, page.chars.length, page.en.length, pages.length])
     // one timer at a time: type the next character, or after a full page
     // holds, clear and start the next page. The last page stays until the
     // bubble unmounts (player walks away), and walking back remounts it from
@@ -113,15 +139,25 @@ export default function DialogBubble({ x, y = 0, h, text, tapId }: DialogBubbleP
                     background: BUBBLE_BG,
                     color: BUBBLE_TEXT,
                     padding: '2px 6px',
-                    fontSize: 8,
+                    fontSize: JA_FONT, // fontSize: **8** -> **JA_FONT**, mechanism: EN_FONT is derived from it
                     lineHeight: 1.3,
                     width: 'max-content',
                     maxWidth: 120,
                     overflowWrap: 'anywhere',
                 }}
             >
-                {page.slice(0, cur.n).join('')}
-                <span style={{ visibility: 'hidden' }}>{page.slice(cur.n).join('')}</span> {/* text: **text?.map((l,i) => l[i])** -> **typed part + hidden rest of the page**, reason: show 12 characters at a time, typed one by one, mechanism: the untyped rest still takes up space but isn't painted, so the bubble is sized to the whole page from the first character and doesn't grow or shift the tail while typing */}
+                {page.chars.slice(0, cur.n).join('')}
+                <span style={{ visibility: 'hidden' }}>{page.chars.slice(cur.n).join('')}</span> {/* text: **text?.map((l,i) => l[i])** -> **typed part + hidden rest of the page**, reason: show 12 characters at a time, typed one by one, mechanism: the untyped rest still takes up space but isn't painted, so the bubble is sized to the whole page from the first character and doesn't grow or shift the tail while typing */}
+                {page.en.length > 0 && (
+                    <div style={{ fontSize: EN_FONT, lineHeight: 1.3 }}>
+                        {page.en.slice(0, cur.e).join('')}
+                        <span style={{ visibility: 'hidden' }}>{page.en.slice(cur.e).join('')}</span>
+                    </div>
+                )}
+                {/* English: a block under the Japanese at EN_FONT, typed the
+                    same way (typed part + hidden rest), so the bubble is sized
+                    for both lines from the start and never grows mid-talk. It
+                    wraps inside the same maxWidth 120 */}
             </div>
             <div style={triangle(TAIL, BUBBLE_BOARDER, `calc(100% - ${TAIL}px)`)} />
             <div style={triangle(TAIL_INNER + SEAM, BUBBLE_BG, `calc(100% - ${TAIL + BUBBLE_BORDER_W + SEAM}px)`)} /> {/* fill triangle: **top at the border's top edge, size TAIL_INNER** -> **SEAM px higher and SEAM px bigger**, mechanism: its top edge used to land exactly on the body fill's bottom edge, and the anti-aliased edges of the two boxes left a thin line at the scene zoom; now it overlaps the body fill by SEAM px, so no edge meets there. At 45° a triangle SEAM higher and SEAM bigger has the same slanted sides, so the black outline of the tail doesn't change */}
