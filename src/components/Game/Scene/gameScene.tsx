@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { PointerEvent, useEffect, useMemo, useRef, useState } from "react" // imports: **no PointerEvent** -> **+ PointerEvent**, reason: MobileGameScene merged in, mechanism: types the joystick/pinch handlers that moved here
 import PlayerRenderer, { PlayerProps } from "../Entity/playerRenderer"
 import EntityRenderer, { ENT_H, ENT_W, EntityProps } from "../Entity/entityRenderer" // imports: **ENT_H, ENT_W** -> **+ EntityRenderer, EntityProps**, mechanism: the scene draws the npcs prop itself
 import ObjectRenderer from "../Object/ObjectRenderer"
@@ -40,13 +40,13 @@ type SceneProps = {
 
 }
 
-export const ZOOM_DEF = 1 // export: **local** -> **exported**, reason: MobileGameScene's pinch starts its zoom ref here, mechanism: named export next to the default GameScene export
+export const ZOOM_DEF = 1 // export: **local** -> **exported**, reason: the pinch starts its zoom ref here, mechanism: named export next to the default GameScene export
 const ZOOM_MIN = 0.2
 const ZOOM_MAX = 4
 
 export const clampZoom = (z: number) => Math.min(Math.max(z, ZOOM_MIN), ZOOM_MAX)
-// one place for the zoom limits, shared by the wheel here and the pinch in
-// MobileGameScene so both stop at the same min/max
+// one place for the zoom limits, shared by the wheel and the pinch so both
+// stop at the same min/max
 
 const WHEEL_ZOOM_RATE = 0.0015 // zoom per wheel delta px: a 100px mouse notch is exp(-0.15), about 14%
 const PINCH_WHEEL_RATE = 0.01 // trackpad pinch arrives as ctrl+wheel with small deltas, so it needs a bigger rate
@@ -60,12 +60,25 @@ export const wheelZoom = (e: WheelEvent, target: { current: number }) => {
     const rate = e.ctrlKey ? PINCH_WHEEL_RATE : WHEEL_ZOOM_RATE
     target.current = clampZoom(target.current * Math.exp(-delta * rate))
 }
-// one wheel -> target zoom step, shared by GameScene's own listener and
-// MobileGameScene's stick overlay (a sibling of the scene, so its wheel
-// events never reach GameScene). preventDefault stops ctrl+wheel /
+// one wheel -> target zoom step for the scene's wheel listener (the stick
+// overlay is inside the scene div now, so its wheel events bubble up to that
+// one listener). preventDefault stops ctrl+wheel /
 // trackpad pinch from zooming the page. deltaMode 1 (Firefox) reports
 // lines, ~16px each. exp(-delta * rate) zooms by the same ratio per notch
 // at any zoom level; wheel up (negative delta) zooms in
+
+const RADIUS = 50 // css px the knob can travel from the base center
+const DEADZONE = 0.15 // fraction of RADIUS treated as "not pushed"
+const KNOB_SIZE = 44 // css px
+// RADIUS sets both the drawn ring and how far a full push is; DEADZONE keeps
+// a resting thumb's jitter from flipping the player's skew/rotate
+export const SENSITIVITY_DEF = 1.3
+// default stick sensitivity: a full push takes RADIUS / 1.3 ~= 42px of drag
+// instead of 50, so the stick reaches full speed slightly sooner
+
+type Stick = { base: { x: number, y: number }, knob: { x: number, y: number } }
+// joystick constants/type: moved unchanged from MobileGameScene when it was
+// merged in, so the touch controls are edited here with the rest of the scene
 
 const VIEWPORT_FOLLOW_RATE = 0.1
 
@@ -125,7 +138,7 @@ export const objectHitBoxes = (objects: PlacedObject[]): HitBox[] => objects.fla
 // the scene's own solids use; unknown kinds and walk-through objects give
 // none. Exported so callers (MobileTester's NPC spots) can keep clear of them
 
-export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, moveInput, zoomInput, objects = NO_OBJECTS, npcs = NO_NPCS }: { bgProps?: BGProps, player?: PlayerProps, screenSize?: { w: number, h: number }, moveInput?: { current: { x: number, y: number } }, zoomInput?: { current: number }, objects?: PlacedObject[], npcs?: SceneNPC[] }) { // props: **no npcs** -> **npcs?**, reason: entities with dialog in the scene, mechanism: each is drawn with EntityRenderer at its bottom-edge zIndex like the player; optional so a bare <GameScene /> has none // props: **no objects** -> **objects?**, reason: an island draws its map, mechanism: a PlacedObject list (island_N.ts) resolved against the OBJECTS catalog below; optional so a bare <GameScene /> is an empty field // props: **no zoomInput** -> **zoomInput?**, reason: lets MobileGameScene's pinch set the zoom, mechanism: a ref holding the target zoom that the wheel and the tick share; optional so a bare <GameScene /> uses its own ref // props: **no moveInput** -> **moveInput?**, reason: lets MobileGameScene's joystick steer the player, mechanism: a ref object (-1..1 per axis, length <= 1) the tick reads each frame; optional so a bare <GameScene /> stays keyboard-only
+export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sensitivity = SENSITIVITY_DEF, objects = NO_OBJECTS, npcs = NO_NPCS }: { bgProps?: BGProps, player?: PlayerProps, screenSize?: { w: number, h: number }, sensitivity?: number, objects?: PlacedObject[], npcs?: SceneNPC[] }) { // props: **moveInput?, zoomInput?** -> **sensitivity?**, reason: MobileGameScene merged into GameScene so edits happen in one place, mechanism: the joystick and pinch live here now and write to the scene's own stickRef / zoomTarget, so no caller passes refs in; sensitivity is the one knob MobileGameScene had on top // props: **no npcs** -> **npcs?**, reason: entities with dialog in the scene, mechanism: each is drawn with EntityRenderer at its bottom-edge zIndex like the player; optional so a bare <GameScene /> has none // props: **no objects** -> **objects?**, reason: an island draws its map, mechanism: a PlacedObject list (island_N.ts) resolved against the OBJECTS catalog below; optional so a bare <GameScene /> is an empty field
     // props are optional (?) because they have defaults -- lets a page mount
     // a bare <GameScene /> while the db-backed bg/player aren't wired yet.
     // screenSize has no default and isn't read yet, so it's undefined for now
@@ -146,11 +159,21 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, mov
     // through ent?. and fall back to the bg center (where the camera already
     // looks) -- keeps the ref typed as plain numbers
     const zoomRef = useRef<number>(ZOOM_DEF)
-    const ownZoomTarget = useRef<number>(ZOOM_DEF)
-    const zoomTarget = zoomInput ?? ownZoomTarget
+    const zoomTarget = useRef<number>(ZOOM_DEF) // target: **zoomInput ?? own ref** -> **own ref**, reason: the pinch moved in here, mechanism: wheel and pinch both write this one ref
     // zoomRef = the zoom drawn this frame; zoomTarget = where the wheel/pinch
-    // wants it. Uses the parent's ref when given (pinch), else its own. Both
-    // are stable ref objects, so the mount-time tick/wheel closures stay current
+    // wants it. Both are stable ref objects, so the mount-time tick/wheel
+    // closures stay current
+    const stickRef = useRef<{ x: number, y: number }>({ x: 0, y: 0 })
+    const activeIdRef = useRef<number | null>(null)
+    const [stick, setStick] = useState<Stick | null>(null)
+    const pointersRef = useRef<Map<number, { x: number, y: number }>>(new Map())
+    const pinchRef = useRef<{ dist0: number, zoom0: number } | null>(null)
+    // stickRef is what the rAF tick reads (-1..1 per axis, length <= 1) -- a
+    // ref so a move doesn't need a render to reach the loop. activeIdRef = the
+    // one pointer driving the stick. stick is only for drawing the ring/knob;
+    // null = nothing on screen. pointersRef = every finger currently down on
+    // the scene, by pointerId. pinchRef = the finger distance and zoom when
+    // the pinch started; null = not pinching
     const sceneRef = useRef<HTMLDivElement>(null)
     const sceneSizeRef = useRef<{ w: number, h: number }>({ w: 0, h: 0 })
     // on-screen size of the scene box in css px, measured below -- the
@@ -194,9 +217,9 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, mov
             const dy = (keys.has('KeyS') ? 1 : 0) - (keys.has('KeyW') ? 1 : 0)
             const len = Math.hypot(dx, dy) || 1
             const vel = velocityRef.current
-            const stick = moveInput?.current
-            const useStick = !!stick && (stick.x !== 0 || stick.y !== 0)
-            vel.x = (useStick ? stick.x : dx / len) * PLAYER_SPEED // input: **keys only** -> **stick while pushed, else keys**, reason: phones have no keyboard, mechanism: stick length <= 1 so a half push walks at half speed (analog); moveInput is a stable ref so reading it from this mount-time closure stays current
+            const stick = stickRef.current // source: **moveInput?.current** -> **stickRef.current**, reason: the joystick moved in here, mechanism: same -1..1 vector, now from the scene's own ref
+            const useStick = stick.x !== 0 || stick.y !== 0
+            vel.x = (useStick ? stick.x : dx / len) * PLAYER_SPEED // input: **keys only** -> **stick while pushed, else keys**, reason: phones have no keyboard, mechanism: stick length <= 1 so a half push walks at half speed (analog); stickRef is a stable ref so reading it from this mount-time closure stays current
             vel.y = (useStick ? stick.y : dy / len) * PLAYER_SPEED // input: **keys only** -> **stick while pushed, else keys**, reason: same as vel.x, mechanism: same as vel.x
             // each axis is -1/0/1 (opposite keys cancel). Dividing by the
             // length makes diagonals the same speed as straight moves instead
@@ -280,7 +303,7 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, mov
     useEffect(() => {
         const el = sceneRef.current
         if (!el) return
-        const handleWheel = (e: WheelEvent) => wheelZoom(e, zoomTarget) // body: **inline wheel math** -> **wheelZoom helper**, reason: MobileGameScene's stick overlay needs the same step, mechanism: the math moved into the exported wheelZoom above, unchanged
+        const handleWheel = (e: WheelEvent) => wheelZoom(e, zoomTarget) // body: **inline wheel math** -> **wheelZoom helper**, mechanism: the math moved into wheelZoom above, unchanged
         el.addEventListener('wheel', handleWheel, { passive: false })
         return (() => {
             el.removeEventListener('wheel', handleWheel)
@@ -317,6 +340,87 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, mov
     // every render, i.e. every frame. e.code ('KeyW') is the physical key, so
     // WASD works on any keyboard layout
 
+    const reach = RADIUS / Math.max(sensitivity, 0.1)
+    // css px of drag for a full push, also the drawn ring's radius so the
+    // knob still stops on the ring's edge. Max(0.1) guards a 0 / empty input
+    // from dividing by zero
+
+    const release = () => {
+        activeIdRef.current = null
+        stickRef.current = { x: 0, y: 0 }
+        setStick(null)
+    }
+    // shared by up / cancel / lost capture: without it the player would keep
+    // walking after the thumb lifts or iOS cancels the touch (e.g. a
+    // notification or system swipe)
+
+    const handleDown = (e: PointerEvent<HTMLDivElement>) => {
+        if (activeIdRef.current !== null || pinchRef.current) return
+        activeIdRef.current = e.pointerId
+        e.currentTarget.setPointerCapture(e.pointerId)
+        const rect = e.currentTarget.getBoundingClientRect()
+        const base = { x: e.clientX - rect.left, y: e.clientY - rect.top }
+        setStick({ base, knob: base })
+    }
+    // floating stick: the base appears wherever the thumb lands. A second
+    // finger (or one landing mid-pinch) is ignored so it can't hijack the
+    // stick. Pointer capture keeps move/up events coming to the overlay even
+    // after the finger slides past its edge. Positions are overlay-local px
+    // so they match the drawing below
+
+    const handleMove = (e: PointerEvent<HTMLDivElement>) => {
+        if (e.pointerId !== activeIdRef.current || !stick || pinchRef.current) return
+        const rect = e.currentTarget.getBoundingClientRect()
+        const dx = e.clientX - rect.left - stick.base.x
+        const dy = e.clientY - rect.top - stick.base.y
+        const dist = Math.hypot(dx, dy)
+        const scale = dist > reach ? reach / dist : 1
+        const cx = dx * scale
+        const cy = dy * scale
+        const push = Math.min(dist, reach) / reach
+        stickRef.current = push < DEADZONE ? { x: 0, y: 0 } : { x: cx / reach, y: cy / reach }
+        setStick({ base: stick.base, knob: { x: stick.base.x + cx, y: stick.base.y + cy } })
+    }
+    // the offset from the base is shrunk onto the ring when the thumb goes
+    // past reach, so the knob stays on the edge and the vector's length
+    // tops out at 1 (full speed). Inside the deadzone the output is 0, so
+    // the tick falls back to the keyboard
+
+    const fingerDist = () => {
+        const [a, b] = [...pointersRef.current.values()]
+        return Math.hypot(a.x - b.x, a.y - b.y)
+    }
+
+    const handlePinchDown = (e: PointerEvent<HTMLDivElement>) => {
+        pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+        if (pointersRef.current.size === 2) {
+            pinchRef.current = { dist0: fingerDist() || 1, zoom0: zoomTarget.current }
+            release()
+        }
+    }
+
+    const handlePinchMove = (e: PointerEvent<HTMLDivElement>) => {
+        if (!pointersRef.current.has(e.pointerId)) return
+        pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+        const pinch = pinchRef.current
+        if (pinch && pointersRef.current.size >= 2) {
+            zoomTarget.current = clampZoom(pinch.zoom0 * fingerDist() / pinch.dist0)
+        }
+    }
+
+    const handlePinchUp = (e: PointerEvent<HTMLDivElement>) => {
+        pointersRef.current.delete(e.pointerId)
+        if (pointersRef.current.size < 2) pinchRef.current = null
+    }
+    // these sit on the scene div, so pointer events from the stick overlay
+    // bubble up to them and a pinch works anywhere. The second finger down
+    // starts the pinch and releases the stick so the player stops. The zoom
+    // target is the start zoom times how much the finger distance grew
+    // (spread = in, pinch = out), in client px so it doesn't matter which
+    // element each finger is over. || 1 avoids /0 if both land on one point.
+    // Below two fingers the pinch ends and the leftover finger does nothing
+    // until it lifts
+
     const bg = bgRef.current
     const pEnt = playerRef.current.ent
     const signs = pEnt ? placed.filter(p =>
@@ -328,7 +432,14 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, mov
     // (once per frame, force() in the tick) from the refs, so no extra state
 
     return (
-        <div ref={sceneRef} style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+        <div
+            ref={sceneRef}
+            onPointerDown={handlePinchDown}
+            onPointerMove={handlePinchMove}
+            onPointerUp={handlePinchUp}
+            onPointerCancel={handlePinchUp}
+            style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden', touchAction: 'none' }} // scene div: **no pointer handlers, no touchAction** -> **pinch handlers + touchAction none**, reason: MobileGameScene's wrapper merged in, mechanism: the stick overlay is a child now, so its pointer events bubble here for the pinch, and touch-action none stops the browser's own pan/zoom on any touch starting in the scene
+        >
             {/* sceneRef: the box whose size the camera clamp measures */}
             <div
                 style={{
@@ -393,6 +504,61 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, mov
                     zIndex, since those are all <= bg.h. World px like the rest,
                     so it scales with the zoom */}
             </div>
+            <div
+                onPointerDown={handleDown}
+                onPointerMove={handleMove}
+                onPointerUp={release}
+                onPointerCancel={release}
+                onLostPointerCapture={release}
+                style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: 0,
+                    width: '100%',
+                    height: '100%',
+                    zIndex: 1,
+                    touchAction: 'none',
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none'
+                }}
+            >
+                {stick && (
+                    <>
+                        <div style={{
+                            position: 'absolute',
+                            left: stick.base.x - reach,
+                            top: stick.base.y - reach,
+                            width: reach * 2,
+                            height: reach * 2,
+                            borderRadius: '50%',
+                            background: 'rgba(255, 255, 255, 0.25)',
+                            border: '2px solid rgba(255, 255, 255, 0.6)',
+                            boxSizing: 'border-box',
+                            pointerEvents: 'none'
+                        }} />
+                        <div style={{
+                            position: 'absolute',
+                            left: stick.knob.x - KNOB_SIZE / 2,
+                            top: stick.knob.y - KNOB_SIZE / 2,
+                            width: KNOB_SIZE,
+                            height: KNOB_SIZE,
+                            borderRadius: '50%',
+                            background: 'rgba(255, 255, 255, 0.8)',
+                            pointerEvents: 'none'
+                        }} />
+                    </>
+                )}
+            </div>
+            {/* stick overlay: moved in from MobileGameScene. It covers the
+                whole scene above the world (zIndex 1; the world's transform
+                gives it its own stacking context, so nothing inside can poke
+                through), so the stick can start anywhere; future on-screen
+                buttons need a higher zIndex to get taps. Being inside the
+                scene div, its wheel events bubble to the one wheel listener
+                above and its pointer events to the pinch handlers. userSelect
+                none stops a long press from selecting text. Ring and knob are
+                centered on their points and have pointerEvents none so they
+                never steal the drag */}
         </div>
     )
     // zoom is applied once, here: everything inside this div is in world px

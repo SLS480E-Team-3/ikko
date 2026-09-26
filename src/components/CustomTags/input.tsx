@@ -255,7 +255,7 @@ export default function Input({ text: textProp, onChange, onSubmit, limit, place
         <div
             ref={boxRef}
             onClick={handleClick} // handler: **none** -> **onClick**, reason: touch focus moved here, mechanism: see handleClick
-            onPointerDown={handlePointerDown} // handler: **onMouseDown** -> **onPointerDown**, reason: see handlePointerDown, mechanism: stopPropagation there now also keeps the tap from reaching MobileGameScene's pinch/joystick handlers
+            onPointerDown={handlePointerDown} // handler: **onMouseDown** -> **onPointerDown**, reason: see handlePointerDown, mechanism: stopPropagation there now also keeps the tap from reaching GameScene's pinch/joystick handlers
             style={{ ...INPUT_STYLE, ...DEFAULT_INPUT_STYLE, ...(disabled && { cursor: 'default' }), ...(error && { borderBottomColor: ERROR_COLOR }), ...style }} // style: **no error look** -> **+ red underline on error**, reason: auth pages mark bad fields, mechanism: overrides only the color of DEFAULT_INPUT_STYLE's border, before `style` so a caller can still restyle it
         >
             <input

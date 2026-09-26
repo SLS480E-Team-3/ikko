@@ -24,15 +24,14 @@ import {
     PIXEL_10_PRO_SCREEN,
     XIAOMI_15_PRO_SCREEN,
 } from "@/utils/mobileScreenSIze"
-import { CSSProperties, ReactNode, useState } from "react"
-import GameScene, { BG_W, BG_H, SceneNPC, objectHitBoxes } from "@/components/Game/Scene/gameScene" // imports: **default only** -> **+ BG_W, BG_H, SceneNPC, objectHitBoxes**, mechanism: places the test NPCs around the player spawn (world center), clear of the map's object hitBoxes
+import { CSSProperties, ReactNode, useState, useSyncExternalStore } from "react" // imports: **useState** -> **+ useSyncExternalStore**, mechanism: see mounted
+import GameScene, { BG_W, BG_H, SceneNPC, objectHitBoxes, SENSITIVITY_DEF } from "@/components/Game/Scene/gameScene" // imports: **default only** -> **+ BG_W, BG_H, SceneNPC, objectHitBoxes, SENSITIVITY_DEF**, mechanism: places the test NPCs around the player spawn (world center), clear of the map's object hitBoxes; SENSITIVITY_DEF seeds the sensitivity input (moved here with the MobileGameScene merge)
 import SignUpPage from "@/app/SignUp/page"
 import LogInPage from "@/app/LogIn/page"
 import InfoRecovery from "@/app/InfoRecovery/page"
 import EditInfo from "@/app/EditInfo/page"
 import { ISLAND_MAPS } from "@/components/Game/islands"
 import EntityRenderer, { ENT_H } from "@/components/Game/Entity/entityRenderer"
-import MobileGameScene, { SENSITIVITY_DEF } from "@/components/Game/MobileGameScene" // imports: **default only** -> **+ SENSITIVITY_DEF**, reason: seed the sensitivity input, mechanism: the input starts at the same default the scene uses
 
 const PHONES: { label: string; screen: CSSProperties }[] = [
     { label: 'IPHONE17', screen: IPHONE17_SCREEN },
@@ -57,17 +56,17 @@ const PHONES: { label: string; screen: CSSProperties }[] = [
     { label: 'XIAOMI_15_PRO', screen: XIAOMI_15_PRO_SCREEN },
 ]
 
-const PAGES: { label: string; page: (sensitivity: number) => ReactNode }[] = [ // type: **page: ReactNode** -> **page: (sensitivity) => ReactNode**, reason: the sensitivity input must reach MobileGameScene, mechanism: a prebuilt element is frozen with its props, so each page is built at render time from the current input
-    { label: 'mobile game scene', page: (s) => <MobileGameScene sensitivity={s} objects={ISLAND_MAPS[1]} /> }, // props: **sensitivity** -> **+ objects**, mechanism: shows island 1's map (the tower) without logging in to /Game/1
+const PAGES: { label: string; page: (sensitivity: number) => ReactNode }[] = [ // type: **page: ReactNode** -> **page: (sensitivity) => ReactNode**, reason: the sensitivity input must reach GameScene, mechanism: a prebuilt element is frozen with its props, so each page is built at render time from the current input
+    { label: 'game scene', page: (s) => <GameScene sensitivity={s} objects={ISLAND_MAPS[1]} npcs={TEST_NPCS} /> }, // props: **objects** -> **+ npcs**, mechanism: 4 test entities saying こんにちは around the spawn
     { label: 'sign up', page: () => <SignUpPage /> },
     { label: 'log in', page: () => <LogInPage /> },
     { label: 'recovery', page: () => <InfoRecovery /> },
     { label: 'edit info', page: () => <EditInfo /> },
-    { label: 'game scene', page: () => <GameScene objects={ISLAND_MAPS[1]} npcs={TEST_NPCS} /> }, // props: **objects** -> **+ npcs**, mechanism: 4 test entities saying こんにちは around the spawn
     { label: 'dialog bubble', page: () => <BubblePreview /> },
 ]
-// mobile game scene = GameScene + the touch joystick; drag with the mouse
-// anywhere on the phone to test it on a laptop
+// both scenes are GameScene, which has the touch joystick built in; drag
+// with the mouse anywhere on the phone to test it on a laptop. mobile game
+// scene = the map alone, game scene = the map + test NPCs
 
 const NPC_NAMES = ['Gon', 'Killua', 'Kurapika', 'Ren', 'Aoi', 'Yuto', 'Sakura', 'Kaito', 'Mei']
 const randomNames = (n: number) => [...NPC_NAMES].sort(() => Math.random() - 0.5).slice(0, n)
@@ -134,6 +133,11 @@ export default function MobileTester() {
     const [phone, setPhone] = useState<CSSProperties>(PHONES[0].screen)
     const [page, setPage] = useState<(sensitivity: number) => ReactNode>(() => PAGES[0].page) // state: **the element** -> **its builder**, reason: see PAGES, mechanism: the useState initializer and setPage(() => fn) wrap it because React would call a bare function as an updater
     const [sensitivity, setSensitivity] = useState<number>(SENSITIVITY_DEF)
+    const mounted = useSyncExternalStore(() => () => {}, () => true, () => false)
+    // false on the server and during hydration, true after. The test NPCs
+    // (names + spots) come from Math.random at module load, which runs once on
+    // the server and again in the browser with different results, so the
+    // pages are only rendered client-side. An empty subscribe = never changes
 
     return (
         <div style={{
@@ -191,13 +195,13 @@ export default function MobileTester() {
             </label>
             {/* joystick sensitivity for 'mobile game scene': full push =
             50px / sensitivity of drag. A number input with 0.1 steps; an
-            empty box becomes 0, which MobileGameScene floors at 0.1 */}
+            empty box becomes 0, which GameScene floors at 0.1 */}
             <div style={{
                 flex: 1,
                 display: 'flex',
                 overflow: 'auto'
             }}>
-                <MobileView size={phone} page={page(sensitivity)} />
+                <MobileView size={phone} page={mounted ? page(sensitivity) : null} /> {/* page: **always page(sensitivity)** -> **null until mounted**, reason: hydration error on the NPC name tag, mechanism: the server rendered its own random NPCs, the browser different ones; now the server sends an empty phone and the browser draws the page after hydrating, so there is nothing to compare */}
             </div>
         </div>
     )
