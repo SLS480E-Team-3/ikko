@@ -1,0 +1,20 @@
+scene: sarah
+lines:
+  - speaker: sarah
+    text: こんにちは〜
+  - speaker: sarah
+    text: 私はおにぎりが好き
+    style: cheerful, easygoing
+  - speaker: sarah
+    text: 梅干しが酸っぱい！
+    style: puckered, playful
+  - speaker: sarah
+    text: でも、美味しいよ
+    style: warm, reassuring
+  - speaker: sarah
+    text: またね〜
+    style: bright, sing-song goodbye
+# Sarah's island-1 lines from src/components/Game/npcs/npcs.ts, in kanji
+# form. line_mp3 drops ！ 、 〜 and keeps ？, so each file lands on the third
+# item of its say() line (こんにちは, 私はおにぎりが好き, ...). Styles follow
+# her cheerful, easygoing profile in voices.json

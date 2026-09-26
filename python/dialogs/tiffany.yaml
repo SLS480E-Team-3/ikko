@@ -1,0 +1,20 @@
+scene: tiffany
+lines:
+  - speaker: tiffany
+    text: おはよう！
+  - speaker: tiffany
+    text: 私は甘い物が好き
+    style: soft, content
+  - speaker: tiffany
+    text: お餅が一番好き！
+    style: happy, a little shy
+  - speaker: tiffany
+    text: 柔らかくて美味しいよね！
+    style: dreamy, savoring
+  - speaker: tiffany
+    text: 餅、食べたいな〜
+    style: wistful, trailing off
+# Tiffany's island-1 lines from src/components/Game/npcs/npcs.ts, in kanji
+# form. line_mp3 drops ！ 、 〜 and keeps ？, so each file lands on the third
+# item of its say() line (おはよう, 私は甘い物が好き, ...). Styles follow her
+# sweet, dreamy profile in voices.json

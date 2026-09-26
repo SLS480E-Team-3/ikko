@@ -71,6 +71,54 @@
       "voice_id": "voice_mc2658bkjzpm",
       "model": "gemini-3.8-flash-tts",
       "created": "2026-09-26T15:01:48+00:00"
+    },
+    {
+      "name": "tiffany",
+      "profile": {
+        "language": "Japanese",
+        "accent": "Tokyo standard",
+        "gender": "female",
+        "age": "20",
+        "personality": "sweet, gentle, a little dreamy",
+        "timbre": "soft and light, slightly breathy",
+        "energy": "mellow and content",
+        "pitch": "medium-high",
+        "pitch_range": "moderate, soft floating endings",
+        "speed": "slightly slow",
+        "volume": "medium-soft",
+        "articulation": "clear and gentle",
+        "register": "casual, soft feminine plain form",
+        "pauses": "medium, lingering",
+        "use_case": "game character"
+      },
+      "description": "A 20-year-old female game character voice speaking Japanese with a Tokyo standard accent; sweet, gentle, a little dreamy. Timbre: soft and light, slightly breathy; energy: mellow and content; pitch: medium-high; pitch range: moderate, soft floating endings; speed: slightly slow; volume: medium-soft; articulation: clear and gentle; register: casual, soft feminine plain form; pauses: medium, lingering.",
+      "voice_id": "voice_wi50ms90yce5",
+      "model": "gemini-3.8-flash-tts",
+      "created": "2026-09-26T15:18:20+00:00"
+    },
+    {
+      "name": "sarah",
+      "profile": {
+        "language": "Japanese",
+        "accent": "Tokyo standard",
+        "gender": "female",
+        "age": "21",
+        "personality": "cheerful, easygoing, friendly",
+        "timbre": "clear and bright, rounded",
+        "energy": "light and upbeat",
+        "pitch": "medium",
+        "pitch_range": "moderate with drawn-out, sing-song endings",
+        "speed": "moderate",
+        "volume": "medium",
+        "articulation": "clear and natural",
+        "register": "casual, friendly plain form",
+        "pauses": "short to medium",
+        "use_case": "game character"
+      },
+      "description": "A 21-year-old female game character voice speaking Japanese with a Tokyo standard accent; cheerful, easygoing, friendly. Timbre: clear and bright, rounded; energy: light and upbeat; pitch: medium; pitch range: moderate with drawn-out, sing-song endings; speed: moderate; volume: medium; articulation: clear and natural; register: casual, friendly plain form; pauses: short to medium.",
+      "voice_id": "voice_8yv9ay2ts1t0",
+      "model": "gemini-3.8-flash-tts",
+      "created": "2026-09-26T15:17:06+00:00"
     }
   ]
 }
