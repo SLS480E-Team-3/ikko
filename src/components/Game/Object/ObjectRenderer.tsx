@@ -23,6 +23,7 @@ export default function ObjectRenderer({ obj, def }: { obj: PlacedObject, def: O
                 unoptimized // serve the original file: the optimizer resizes to the on-screen width with smoothing, which blurs pixel art, and the scene zoom (up to 4x) would ask for a bigger copy than the png anyway
                 style={{ imageRendering: 'pixelated' }} // style: **smooth scaling** -> **pixelated**, mechanism: keeps pixel-art edges sharp when the scene zoom scales it up
                 draggable={false}
+                loading="eager" // loading: **lazy (next/image default)** -> **eager**, mechanism: the sprite is fetched on mount instead of when it scrolls into view, so a big on-screen object (the tower is the page's LCP) isn't delayed and an object doesn't pop in late as the camera pans to it; the catalog is a handful of shared pngs, so eager costs little
             />
         </div>
     )
