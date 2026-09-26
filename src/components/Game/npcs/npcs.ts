@@ -25,13 +25,13 @@ export const ISLAND_1_NPC: NPCProps[] = [
             ['あなたもおすしすき？', 'Are you also a sushi muncher?', 'あなたもお寿司好き？']), // file: **'あなたもすしずき？'** -> **'あなたもお寿司好き？'**, mechanism: matches the new line おすしすき, which python/dialogs/jordi.yaml renders to this name
         say('spoken', ['またおすしのはなししよ！', "Let's talk sushi again", 'またお寿司の話しよ']), // file: **'またすしのはなししよ'** -> **'またお寿司の話しよ'**, mechanism: matches the new line おすしのはなし, rendered by python/dialogs/jordi.yaml
     ]),
-    npc('Shuto', 'Keita', 3590, 5060, 'steelblue', [
-        say('greeting', ['やあ！', 'Hey!', 'やあ']),
+    npc('Shuto', 'shuto', 3590, 5060, 'steelblue', [
+        say('greeting', ['やあ', 'Hey', 'やあ']),
         say('default',
-            ['ラーメンがだいすきだ', 'I really love ramen', 'ラーメンが大好きだ'],
-            ['とんこつラーメンがいちばん', 'Tonkotsu ramen is the best', '豚骨ラーメンが一番'],
-            ['いっしょにたべよう！', "Let's eat together!", '一緒に食べよう']),
-        say('spoken', ['おなかすいたなあ', "I'm getting hungry", 'お腹空いたなあ']),
+            ['おれはラーメンがすきやで', 'I really love ramen', '俺はラーメンが好きやで'], // file: **'ラーメンが大好きだ'** -> **'俺はラーメンが好きやで'**, mechanism: the kanji form of the new Kansai line, rendered by python/dialogs/shuto.yaml
+            ['いちばんはとんこつやな', 'Tonkotsu ramen is the best', '一番は豚骨やな'], // file: **'豚骨ラーメンが一番'** -> **'一番は豚骨やな'**, mechanism: same, kanji form of the new line
+            ['いっしょにたべいこうぜ！', "Let's eat together!", '一緒に食べ行こうぜ']), // file: **'一緒に食べよう'** -> **'一緒に食べ行こうぜ'**, mechanism: kanji form with ！ dropped, as dialog.py names the mp3
+        say('spoken', ['はらへったなあ', "I'm getting hungry", '腹減ったなあ']), // file: **'お腹空いたなあ'** -> **'腹減ったなあ'**, mechanism: kanji form of はらへった (was お腹空いた)
     ]),
     npc('Tiffany', 'Shiori', 3500, 5150, 'khaki', [
         say('greeting', ['おはよう！', 'Good morning!', 'おはよう']),
@@ -41,12 +41,12 @@ export const ISLAND_1_NPC: NPCProps[] = [
             ['やわらかくておいしい', "It's soft and tasty", '柔らかくて美味しい']),
         say('spoken', ['もち、たべたいな', 'I want some mochi', '餅食べたいな']),
     ]),
-    npc('Genki', undefined, 3300, 5110, 'gray', [
+    npc('Genki', 'genki', 3300, 5110, 'gray', [
         say('greeting', ['よう！', 'Yo!', 'よう']),
         say('default',
             ['おれはカレーがすきだ', 'I like curry', '俺はカレーが好きだ'],
             ['からいカレーがいい', 'Spicy curry is good', '辛いカレーがいい'],
-            ['まいにちたべたい！', 'I want it every day!', '毎日食べたい']),
+            ['やっぱまいにちたべたいよね！', 'I want it every day!', 'やっぱ毎日食べたいよね']), // file: **'毎日食べたい'** -> **'やっぱ毎日食べたいよね'**, mechanism: kanji form of the new line with ！ dropped, rendered by python/dialogs/genki.yaml
         say('spoken', ['カレー、たべたか？', 'Did you eat curry?', 'カレー食べたか？']),
     ]),
     npc('Sarah', undefined, 3710, 5130, 'lightpink', [
@@ -68,8 +68,8 @@ export const ISLAND_1_NPC: NPCProps[] = [
 // greeting (in range), a default talk (first time) and a shorter spoken
 // talk (after that, this scene); lines are [Japanese, English] pairs
 // voices (mp3 folders in public/dialog/): Jordi = jordi (Gemini voice; lines
-// not rendered yet stay silent), Shuto = Keita, Tiffany = Shiori;
-// Genki and Sarah have no folder yet, so they're silent. A third item
+// not rendered yet stay silent), Shuto = shuto (Gemini voice), Tiffany = Shiori; // Shuto: **Keita** -> **shuto**, mechanism: matches npc('Shuto', 'shuto', ...)
+// Genki = genki (Gemini voice), Sarah has no folder yet, so she's silent. A third item // Genki: **no folder** -> **genki**, mechanism: matches npc('Genki', 'genki', ...) and public/dialog/genki/
 // in a say() pair is the recording's file name (no .mp3): the line in kanji
 // with ！ 、 〜 dropped and ？ kept. A line whose file is missing just fails
 // to load and stays silent

@@ -1,0 +1,20 @@
+scene: shuto
+lines:
+  - speaker: shuto
+    text: やあ
+  - speaker: shuto
+    text: 俺はラーメンが好きやで
+    style: fond, relaxed
+  - speaker: shuto
+    text: 一番は豚骨やな
+    style: matter-of-fact, a little proud
+  - speaker: shuto
+    text: 一緒に食べ行こうぜ！
+    style: lazy but friendly invitation
+  - speaker: shuto
+    text: 腹減ったなあ
+    style: sleepy, sighing
+# Shuto's island-1 lines from src/components/Game/npcs/npcs.ts, in kanji
+# form. line_mp3 drops ！ 、 and keeps ？, so each file lands on the third
+# item of its say() line (やあ, 俺はラーメンが好きやで, ...). Styles stay
+# low-key to fit his calm, laid-back Kansai profile in voices.json

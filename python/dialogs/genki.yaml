@@ -1,0 +1,20 @@
+scene: genki
+lines:
+  - speaker: genki
+    text: よう！
+  - speaker: genki
+    text: 俺はカレーが好きだ
+    style: warm, relaxed
+  - speaker: genki
+    text: 辛いカレーがいい
+    style: confident, a little grin
+  - speaker: genki
+    text: やっぱ毎日食べたいよね！
+    style: cheerful, like sharing a secret
+  - speaker: genki
+    text: カレー、食べたか？
+    style: caring older-brother check-in
+# Genki's island-1 lines from src/components/Game/npcs/npcs.ts, in kanji
+# form. line_mp3 drops ！ 、 and keeps ？, so each file lands on the third
+# item of its say() line (よう, 俺はカレーが好きだ, ...). Styles follow his
+# calm, warm older-brother profile in voices.json
