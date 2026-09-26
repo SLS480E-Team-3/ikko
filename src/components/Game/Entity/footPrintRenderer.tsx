@@ -3,10 +3,10 @@
 import { useRef } from "react"
 
 const STEP = 10 // world px walked between two prints
-const FOOT_SPREAD = 3 // world px each foot sits to the side of the travel line
+const FOOT_SPREAD = 2.5 // world px each foot sits to the side of the travel line
 const PRINT_W = 3 // world px, along the travel direction
 const PRINT_H = 2 // world px, across the travel direction
-const FADE = 1.5 // seconds from a print being dropped to it being gone
+const FADE = 3 // seconds from a print being dropped to it being gone
 const START_OPACITY = 0.35 // opacity of a fresh print
 const MIN = 0.05 // speed fraction below which the player counts as standing, same as GUST_MIN
 // Everything is world px, so the scene zoom scales the prints like the body
