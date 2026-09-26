@@ -63,7 +63,7 @@ export const ISLAND_1_NPC: NPCProps[] = [
 // the same places (no hydration mismatch), and all sit below y 5000, clear of
 // the tower's hitBox (its sprite ends there) and 60+ px from the spawn so no
 // one starts overlapping the player. Lines are short hiragana/katakana
-// (≤ 12 characters where possible) so each fits one DialogBubble page for
+// (≤ 15 characters where possible) so each fits one DialogBubble page for // limit: **≤ 12** -> **≤ 15**, mechanism: DialogBubble PAGE_CHARS is 15 now
 // beginners; kanji is avoided since there's no furigana yet. Each NPC has a
 // greeting (in range), a default talk (first time) and a shorter spoken
 // talk (after that, this scene); lines are [Japanese, English] pairs

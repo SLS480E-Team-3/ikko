@@ -49,11 +49,12 @@ const triangle = (half: number, color: string, top: string) => ({
 // a 0x0 box with only a colored top border draws a down-pointing triangle
 // (half wide on each side, half tall); left 50% + translateX centers it
 
-const PAGE_CHARS = 12 // characters shown at once
+const PAGE_CHARS = 15 // characters shown at once // PAGE_CHARS: **12** -> **15**, mechanism: lines up to 15 characters now fit one page instead of spilling a few characters onto a second
 const TYPE_MS = 70 // delay between typed characters
 const PAGE_HOLD_MS = 1200 // how long a full page stays before the next one types
-// a page is at most PAGE_CHARS characters; 12 at fontSize 8 fits inside
-// maxWidth 120, so a page is always one line
+// a page is at most PAGE_CHARS characters; 15 at fontSize 8 (120px) fits inside
+// BUBBLE_MAX_W 128, so a page is always one line
+const BUBBLE_MAX_W = 128 // BUBBLE_MAX_W: **maxWidth 120** -> **128**, mechanism: 15 full-width characters are exactly 120px, so 8px of slack keeps sub-pixel rounding from wrapping the last one
 
 const JA_FONT = 8
 const EN_FONT = JA_FONT * 0.35
@@ -151,12 +152,12 @@ export default function DialogBubble({ x, y = 0, h, dialogs, tapId, audio }: Dia
                     fontSize: JA_FONT, // fontSize: **8** -> **JA_FONT**, mechanism: EN_FONT is derived from it
                     lineHeight: 1.3,
                     width: 'max-content',
-                    maxWidth: 120,
+                    maxWidth: BUBBLE_MAX_W, // maxWidth: **120** -> **BUBBLE_MAX_W**, mechanism: see BUBBLE_MAX_W
                     overflowWrap: 'anywhere',
                 }}
             >
                 {page.chars.slice(0, cur.n).join('')}
-                <span style={{ visibility: 'hidden' }}>{page.chars.slice(cur.n).join('')}</span> {/* text: **text?.map((l,i) => l[i])** -> **typed part + hidden rest of the page**, reason: show 12 characters at a time, typed one by one, mechanism: the untyped rest still takes up space but isn't painted, so the bubble is sized to the whole page from the first character and doesn't grow or shift the tail while typing */}
+                <span style={{ visibility: 'hidden' }}>{page.chars.slice(cur.n).join('')}</span> {/* text: **text?.map((l,i) => l[i])** -> **typed part + hidden rest of the page**, reason: show PAGE_CHARS characters at a time, typed one by one, mechanism: the untyped rest still takes up space but isn't painted, so the bubble is sized to the whole page from the first character and doesn't grow or shift the tail while typing */}
                 {page.en.length > 0 && (
                     <div style={{ fontSize: EN_FONT, lineHeight: 1.3 }}>
                         {page.en.slice(0, cur.e).join('')}
@@ -166,7 +167,7 @@ export default function DialogBubble({ x, y = 0, h, dialogs, tapId, audio }: Dia
                 {/* English: a block under the Japanese at EN_FONT, typed the
                     same way (typed part + hidden rest), so the bubble is sized
                     for both lines from the start and never grows mid-talk. It
-                    wraps inside the same maxWidth 120 */}
+                    wraps inside the same BUBBLE_MAX_W */}
             </div>
             <div style={triangle(TAIL, BUBBLE_BOARDER, `calc(100% - ${TAIL}px)`)} />
             <div style={triangle(TAIL_INNER + SEAM, BUBBLE_BG, `calc(100% - ${TAIL + BUBBLE_BORDER_W + SEAM}px)`)} /> {/* fill triangle: **top at the border's top edge, size TAIL_INNER** -> **SEAM px higher and SEAM px bigger**, mechanism: its top edge used to land exactly on the body fill's bottom edge, and the anti-aliased edges of the two boxes left a thin line at the scene zoom; now it overlaps the body fill by SEAM px, so no edge meets there. At 45° a triangle SEAM higher and SEAM bigger has the same slanted sides, so the black outline of the tail doesn't change */}
@@ -180,7 +181,7 @@ export default function DialogBubble({ x, y = 0, h, dialogs, tapId, audio }: Dia
 // square body and the triangle share one flat bottom-right shadow like the
 // reference. Rendered as a sibling of the body, so the lean skew doesn't
 // reach it; zIndex 2 keeps it above the name tag (1)
-// body: square border (radius 0), max-content width that wraps at 120px;
+// body: square border (radius 0), max-content width that wraps at BUBBLE_MAX_W;
 // overflowWrap anywhere lets long romaji/kana without spaces break too
 // tail: the black triangle hangs flush under the body; the fill triangle
 // sits BUBBLE_BORDER_W higher, painting over the bottom border where they
