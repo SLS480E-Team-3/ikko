@@ -29,6 +29,10 @@ Early scaffold stage — routing/layout and a placeholder form/nav exist (`src/a
 
 Branch name is `IssueX` for issue #X (ex: issue #1 → branch name `Issue1`). This is a denotation, not an order.
 
+## Parallelism
+
+After plan-mode plan is accepted allow sub-agents
+
 ## After edit
 
 if completely new code

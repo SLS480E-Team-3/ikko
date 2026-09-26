@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import GameScene from "./gameScene"
+import { ISLAND_MAPS } from "../islands"
 
 export type IslandSceneProps = {
     islandId: number
@@ -15,7 +16,7 @@ export type IslandSceneProps = {
 export default function IslandScene({ islandId, points, quests }: IslandSceneProps) { // props: **{ islandId: number }** -> **IslandSceneProps**, mechanism: the page passes points and the quest list along with the id, so the scene can draw them without its own queries
     return (
         <div style={{ position: 'relative', width: '100%', height: '100lvh' }} data-island={islandId}> {/* wrapper: **<div>** -> **relative 100lvh div**, mechanism: GameScene fills 100% of its parent, so this box gives it the full screen height (lvh reaches under the mobile browser's floating URL bar), and position relative anchors the absolute quest list below */}
-            <GameScene />
+            <GameScene objects={ISLAND_MAPS[islandId] ?? []} /> {/* props: **none** -> **objects**, mechanism: looks the island's map file up by id; an island without one gets an empty field */}
             <div style={{ position: 'absolute', top: 16, left: 16, zIndex: 2, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div>points: {points}</div>
                 {quests.map(q => (

@@ -30,6 +30,7 @@ import SignUpPage from "@/app/SignUp/page"
 import LogInPage from "@/app/LogIn/page"
 import InfoRecovery from "@/app/InfoRecovery/page"
 import EditInfo from "@/app/EditInfo/page"
+import { ISLAND_MAPS } from "@/components/Game/islands"
 import MobileGameScene, { SENSITIVITY_DEF } from "@/components/Game/MobileGameScene" // imports: **default only** -> **+ SENSITIVITY_DEF**, reason: seed the sensitivity input, mechanism: the input starts at the same default the scene uses
 
 const PHONES: { label: string; screen: CSSProperties }[] = [
@@ -56,12 +57,12 @@ const PHONES: { label: string; screen: CSSProperties }[] = [
 ]
 
 const PAGES: { label: string; page: (sensitivity: number) => ReactNode }[] = [ // type: **page: ReactNode** -> **page: (sensitivity) => ReactNode**, reason: the sensitivity input must reach MobileGameScene, mechanism: a prebuilt element is frozen with its props, so each page is built at render time from the current input
-    { label: 'mobile game scene', page: (s) => <MobileGameScene sensitivity={s} /> },
+    { label: 'mobile game scene', page: (s) => <MobileGameScene sensitivity={s} objects={ISLAND_MAPS[1]} /> }, // props: **sensitivity** -> **+ objects**, mechanism: shows island 1's map (the tower) without logging in to /Game/1
     { label: 'sign up', page: () => <SignUpPage /> },
     { label: 'log in', page: () => <LogInPage /> },
     { label: 'recovery', page: () => <InfoRecovery /> },
     { label: 'edit info', page: () => <EditInfo /> },
-    { label: 'game scene', page: () => <GameScene /> },
+    { label: 'game scene', page: () => <GameScene objects={ISLAND_MAPS[1]} /> }, // props: **none** -> **objects**, mechanism: same as above
 ]
 // mobile game scene = GameScene + the touch joystick; drag with the mouse
 // anywhere on the phone to test it on a laptop

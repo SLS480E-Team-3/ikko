@@ -1,8 +1,11 @@
 'use client'
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import PlayerRenderer, { PlayerProps } from "../Entity/playerRenderer"
 import { ENT_H, ENT_W } from "../Entity/entityRenderer"
+import ObjectRenderer from "../Object/ObjectRenderer"
+import { HitBox, ObjectDef, PlacedObject } from "../Object/gameObject"
+import { OBJECTS } from "../Object/objects"
 
 
 export type BGProps = {
@@ -11,7 +14,8 @@ export type BGProps = {
     w: number,
     h: number,
 
-    color: string
+    color: string,
+    img?: string, // something not gameObject and no interfearance to entity: particles, leafs, grass, rain
 }
 
 const BG_H = 10_000
@@ -83,7 +87,26 @@ const TEST_PLAYER: PlayerProps = { // in final will be made from db User info
 
 const SCENE_PADDING = 50
 
-export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, moveInput, zoomInput }: { bgProps?: BGProps, player?: PlayerProps, screenSize?: { w: number, h: number }, moveInput?: { current: { x: number, y: number } }, zoomInput?: { current: number } }) { // props: **no zoomInput** -> **zoomInput?**, reason: lets MobileGameScene's pinch set the zoom, mechanism: a ref holding the target zoom that the wheel and the tick share; optional so a bare <GameScene /> uses its own ref // props: **no moveInput** -> **moveInput?**, reason: lets MobileGameScene's joystick steer the player, mechanism: a ref object (-1..1 per axis, length <= 1) the tick reads each frame; optional so a bare <GameScene /> stays keyboard-only
+const NO_OBJECTS: PlacedObject[] = []
+// default for the objects prop; module-level so it's the same array every
+// render and the useMemo below doesn't redo its work each frame
+
+const SIGN_RANGE = 16 // world px around a sign's hitBox where its text shows
+
+const overlaps = (cx: number, cy: number, w: number, h: number, box: HitBox, pad = 0) =>
+    cx - w / 2 < box.x + box.w + pad && cx + w / 2 > box.x - pad &&
+    cy - h / 2 < box.y + box.h + pad && cy + h / 2 > box.y - pad
+// entities are center-anchored (EntityRenderer's translate(-50%,-50%)) and
+// solids are top-left world boxes, so the entity's edges are center ± half
+// its size. Strict < / > lets the player stand flush against an edge
+// without counting as inside it. pad grows the box (sign range)
+
+const worldBox = (obj: PlacedObject, box: HitBox): HitBox =>
+    ({ x: obj.x + box.x, y: obj.y + box.y, w: box.w, h: box.h })
+// a def's hitBox is relative to the sprite's top-left; adding the
+// placement's x/y turns it into world px for the checks above
+
+export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, moveInput, zoomInput, objects = NO_OBJECTS }: { bgProps?: BGProps, player?: PlayerProps, screenSize?: { w: number, h: number }, moveInput?: { current: { x: number, y: number } }, zoomInput?: { current: number }, objects?: PlacedObject[] }) { // props: **no objects** -> **objects?**, reason: an island draws its map, mechanism: a PlacedObject list (island_N.ts) resolved against the OBJECTS catalog below; optional so a bare <GameScene /> is an empty field // props: **no zoomInput** -> **zoomInput?**, reason: lets MobileGameScene's pinch set the zoom, mechanism: a ref holding the target zoom that the wheel and the tick share; optional so a bare <GameScene /> uses its own ref // props: **no moveInput** -> **moveInput?**, reason: lets MobileGameScene's joystick steer the player, mechanism: a ref object (-1..1 per axis, length <= 1) the tick reads each frame; optional so a bare <GameScene /> stays keyboard-only
     // props are optional (?) because they have defaults -- lets a page mount
     // a bare <GameScene /> while the db-backed bg/player aren't wired yet.
     // screenSize has no default and isn't read yet, so it's undefined for now
@@ -113,6 +136,21 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, mov
     const sceneSizeRef = useRef<{ w: number, h: number }>({ w: 0, h: 0 })
     // on-screen size of the scene box in css px, measured below -- the
     // camera clamp needs it to know how much world is visible
+    const placed = useMemo(() => objects.flatMap(obj => {
+        const def: ObjectDef | undefined = OBJECTS[obj.def]
+        if (!def) {
+            console.warn(`object ${obj.id}: no '${obj.def}' in OBJECTS, skipped`)
+            return []
+        }
+        return [{ obj, def, solid: def.hitBox && worldBox(obj, def.hitBox) }]
+    }), [objects])
+    const solidsRef = useRef<HitBox[]>([])
+    solidsRef.current = placed.flatMap(p => p.solid ? [p.solid] : [])
+    // each placement paired with its catalog def, plus its hitBox in world
+    // px (worked out once here, not every frame). A typo'd def is skipped
+    // with a warning instead of crashing the island. solidsRef hands the
+    // blocking boxes to the mount-time tick closure, same pattern as the
+    // other refs
     // const npcRef = useRef()
     // positions live in refs so the loop mutates them without a render per
     // change; force() below does one render per frame instead. bgRef takes
@@ -146,9 +184,17 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, mov
             const ent = playerRef.current.ent
             const bg = bgRef.current
             if (ent) {
-                ent.x = Math.min(Math.max((ent.x ?? 0) + vel.x * dt, ent.w / 2), bg.w - ent.w / 2)
-                ent.y = Math.min(Math.max((ent.y ?? 0) + vel.y * dt, ent.h / 2), bg.h - ent.h / 2)
+                const x = ent.x ?? 0
+                const y = ent.y ?? 0
+                const nx = Math.min(Math.max(x + vel.x * dt, ent.w / 2), bg.w - ent.w / 2)
+                if (!solidsRef.current.some(s => overlaps(nx, y, ent.w, ent.h, s))) ent.x = nx // move: **always** -> **only if the new x hits no hitBox**, mechanism: a blocked step is dropped, so the player stops at the object's edge
+                const ny = Math.min(Math.max(y + vel.y * dt, ent.h / 2), bg.h - ent.h / 2)
+                if (!solidsRef.current.some(s => overlaps(ent.x ?? x, ny, ent.w, ent.h, s))) ent.y = ny // move: **always** -> **only if the new y hits no hitBox**, mechanism: same as x
             }
+            // x and y are tried separately, so pushing diagonally into a wall
+            // still slides along it on the free axis. A step is at most
+            // PLAYER_SPEED * MAX_DT = 12px, less than any hitBox, so the
+            // player can't skip through one in a single frame
             // position += velocity * dt keeps speed the same at any frame
             // rate; clamped to 0..bg.w/h so the player can't leave the world
 
@@ -249,6 +295,14 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, mov
     // WASD works on any keyboard layout
 
     const bg = bgRef.current
+    const pEnt = playerRef.current.ent
+    const signs = pEnt ? placed.filter(p =>
+        p.obj.interaction?.kind === 'sign' &&
+        overlaps(pEnt.x ?? 0, pEnt.y ?? 0, pEnt.w, pEnt.h, p.solid ?? { x: p.obj.x, y: p.obj.y, w: p.def.sprite.w, h: p.def.sprite.h }, SIGN_RANGE)
+    ) : []
+    // signs the player is standing next to: within SIGN_RANGE of the hitBox,
+    // or of the whole sprite for a walk-through sign. Worked out each render
+    // (once per frame, force() in the tick) from the refs, so no extra state
 
     return (
         <div ref={sceneRef} style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
@@ -267,10 +321,46 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, mov
                     backgroundColor: bg.color
                 }}
             >
+                {placed.map(({ obj, def }) => <ObjectRenderer key={obj.id} obj={obj} def={def} />)}
+                {/* objects, each with a zIndex of its bottom edge */}
                 {/* entities go here, sized/positioned in world px (no zoom) */}
+                <div style={{ position: 'absolute', left: 0, top: 0, zIndex: Math.round((pEnt?.y ?? 0) + (pEnt?.h ?? ENT_H) / 2) }}> {/* wrap: **none** -> **0x0 div with the player's bottom-edge zIndex**, mechanism: ent.y is the center, so + h/2 is the feet; compared with ObjectRenderer's y + sprite.h the lower one draws in front. The wrapper is its own stacking context, so the name tag's zIndex 1 still only orders it against the body */}
                 <PlayerRenderer velocity={velocityRef.current} maxSpeed={PLAYER_SPEED} player={playerRef.current} /> {/* props: **velocity, player** -> **+ maxSpeed**, reason: lean scales with how hard the stick is pushed, mechanism: PLAYER_SPEED is full speed, so vel.x / PLAYER_SPEED is the stick's x (or ±1 / ±0.71 on keys); passed as a prop because the renderers importing it from here would be a circular import */}
+                </div>
                 {/* reads straight from the refs; force() re-renders every frame,
                     so ref mutations in the tick show up on the next frame */}
+                {signs.map(({ obj, def, solid }) => {
+                    const box = solid ?? { x: obj.x, y: obj.y, w: def.sprite.w, h: def.sprite.h }
+                    return obj.interaction?.kind === 'sign' && (
+                        <div
+                            key={`sign-${obj.id}`}
+                            style={{
+                                position: 'absolute',
+                                left: box.x + box.w / 2,
+                                top: box.y - 4,
+                                transform: 'translate(-50%, -100%)',
+                                zIndex: bg.h + 1,
+                                padding: '2px 6px',
+                                maxWidth: 160,
+                                width: 'max-content',
+                                fontSize: 10,
+                                lineHeight: 1.3,
+                                color: '#222',
+                                background: 'rgba(255, 255, 255, 0.92)',
+                                border: '1px solid #222',
+                                borderRadius: 4,
+                                pointerEvents: 'none',
+                            }}
+                        >
+                            {obj.interaction.text}
+                        </div>
+                    )
+                })}
+                {/* sign bubble: centered just above the hitBox (the tower's
+                    foot, where the player is standing), bottom-anchored by
+                    translate -100%. zIndex bg.h + 1 is above every bottom-edge
+                    zIndex, since those are all <= bg.h. World px like the rest,
+                    so it scales with the zoom */}
             </div>
         </div>
     )

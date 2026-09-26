@@ -86,9 +86,9 @@ export type IslandProps = {
 // island definition, same for every user -> one row in `islands`.
 // quests is filled by joining `quests` on island_id, not stored here.
 // Size and world objects (trees, rocks, quest NPC spots) are NOT in the
-// db: they live in map files under public/gameAssets/ (e.g.
-// public/gameAssets/islands/island1.json), matched to this row by
-// islandId. Layout is the same for everyone and rarely changes, so files
+// db: they live in map files under src/components/Game/islands/ (e.g.
+// island_1.ts, a PlacedObject[] resolved against the catalog in
+// Object/objects.ts), matched to this row by islandId via ISLAND_MAPS. Layout is the same for everyone and rarely changes, so files
 // keep it versioned in git and editable without SQL; quest spots in the
 // map reference questId instead of copying quest data
 
