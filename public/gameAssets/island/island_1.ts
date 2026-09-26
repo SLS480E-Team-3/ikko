@@ -1,3 +1,0 @@
-//temp
-
-// const island: IslandProps = {}
