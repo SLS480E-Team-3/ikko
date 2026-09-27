@@ -44,6 +44,7 @@ PREBUILT = {
 }
 # the 30 prebuilt voices and their one-word character from the docs. Only
 # these can go in a multi-speaker request
+## FLAG AS POTENTIAL RESONING FOR UTTERANCE FAILIURE: THE VOICES BEING YOUNGER THAT INTENDED AGE
 
 PROFILE_FIELDS = [
     "language", "accent", "gender", "age", "personality", "timbre", "energy",
