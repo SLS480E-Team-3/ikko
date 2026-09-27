@@ -298,7 +298,7 @@ def join_to_mp3(wavs: list[bytes], out: Path, pause_ms: int = 0) -> None:
         chain += "".join(f"[a{n}]" for n in labels) + f"concat=n={len(labels)}:v=0:a=1[out]"
         cmd = ["ffmpeg", "-y", "-loglevel", "error", *args,
                "-filter_complex", chain, "-map", "[out]", "-codec:a", "libmp3lame", "-q:a", "2", str(out)]
-        r = subprocess.run(cmd, capture_output=True, text=True)
+        r = subprocess.run(cmd, capture_output=True, text=True, check=False)  # check: **implicit** -> **check=False**, mechanism: same behavior (no CalledProcessError); returncode is handled below so die() prints ffmpeg's stderr
         if r.returncode:
             die(f"ffmpeg failed: {r.stderr.strip()}")
 # wav clips (with a generated silence input between each pair) are
