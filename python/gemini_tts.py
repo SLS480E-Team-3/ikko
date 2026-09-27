@@ -25,6 +25,8 @@ DIALOG_DIR = ROOT.parent / "public" / "dialog"
 TTS_MODEL = "gemini-3.8-flash-tts"
 TEXT_MODEL = "gemini-3.8-flash"
 SAMPLE_RATE = 24000
+TTS_TIMEOUT = 30  # seconds one TTS request may take before it is retried
+TTS_TRIES = 3  # attempts per line before render gives up
 # model names from the speech-generation / text-generation docs. TTS returns
 # 24 kHz mono 16-bit WAV for unary requests
 
@@ -71,7 +73,13 @@ def client():
     key = os.environ.get("GEMINI_API_KEY", "").strip()
     if not key or key == "your-key-here":
         die("GEMINI_API_KEY not set — copy .env.example to .env and paste your key")
-    return genai.Client(api_key=key)
+    c = genai.Client(api_key=key)
+    cfg = getattr(c.interactions, "sdk_configuration", None)
+    if cfg is not None:
+        from google.genai._gaos import utils
+        cfg.retry_config = utils.RetryConfig("none", None, False)
+    return c
+    # retries: **SDK default (4 retries on 408/429/5XX, honoring Retry-After)** -> **none**, mechanism: on the daily TTS quota the API answers 429 "retry in 20h", and the SDK slept on that Retry-After, so render looked hung; with retries off the 429 reaches api_errors at once as "quota or rate limit hit"
 # imports are lazy so `voice.py list` works before pip install. The key is
 # read from python/.env and handed straight to the SDK; it's never printed
 
@@ -138,13 +146,22 @@ def tts(voice: str, text: str, style: str | None = None, model: str = TTS_MODEL)
     if style:
         part["annotations"] = [{"type": "speech_metadata", "style": style}]
     with api_errors(f"TTS ({voice})"):
-        it = client().interactions.create(
-            model=model,
-            input=[{"type": "user_input", "content": [part]}],
-            response_format={"type": "audio"},
-            generation_config={"speech_config": [{"voice": voice}]},
-        )
+        for attempt in range(1, TTS_TRIES + 1):
+            try:
+                it = client().interactions.create(
+                    model=model,
+                    input=[{"type": "user_input", "content": [part]}],
+                    response_format={"type": "audio"},
+                    generation_config={"speech_config": [{"voice": voice}]},
+                    timeout=TTS_TIMEOUT,
+                )
+                break
+            except Exception as e:
+                if "timeout" not in type(e).__name__.lower() or attempt == TTS_TRIES:
+                    raise
+                print(f"    timed out after {TTS_TIMEOUT}s, retrying ({attempt}/{TTS_TRIES - 1})", flush=True)
     return _audio(it)
+    # request: **no timeout, waits forever** -> **TTS_TIMEOUT s, up to TTS_TRIES tries**, mechanism: with the SDK's own retries off (see client), a stalled request raises APITimeoutError, which is retried here inside api_errors and only reaches it (die) on the last try
 # one line, one voice (prebuilt name or voice_...). The shape is the docs'
 # single-speaker example; style rides in speech_metadata, never in the text
 
