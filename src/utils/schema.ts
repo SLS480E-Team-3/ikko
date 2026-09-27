@@ -3,11 +3,32 @@ export type QuestsProps = {
     islandId?: number,
     title?: string,
     rewardPoints?: number,
+
+    type?: 'A' | 'B',
+    rounds?: QuestRound[],
 }
 // quest definition, same for every user -> one row in `quests`.
 // questLogic removed: a column holds data, not functions. Clear checking
 // runs server-side (Server Action keyed by questId) so answers never
 // reach the browser
+
+export type QuestChoice = {
+    label: string,
+    reveal: string,
+}
+
+export type QuestRound = {
+    prompt: string,
+    choices: QuestChoice[],
+    answer: number,
+}
+// quest content for the multiple-choice rounds in docs/quests-and-levelup.md.
+// type A = one round per hiragana, choices are romaji; type B = one round
+// for the whole word, choices are English meanings. label is the choice
+// text, reveal is the kana/Japanese shown next to it after a correct answer
+// (e.g. `ku: く`); answer is the index into choices. type and rounds are
+// TS-only fields written in src/components/Game/islands/quests/ files, not
+// db columns, so QUESTS_SQL is unchanged
 
 export type UserQuestProps = {
     userId?: string,
