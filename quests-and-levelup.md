@@ -1,24 +1,31 @@
 # Quests (Lessons)
 
-## Caricullum
+## Lesson 
+
+[Curriculum](curriculum.md)
 
 ### Syllabus
 
-what i have now
-vocab
-hiragana/katakana/kannji/
-names: places, things, foods
-easy verbs: go, eat
-sentence
-questions: where is {place}?, how do i get to {place}
-ordering: can i have {number}{unit}{food},  
+[Conditional-Syllabus](curriculum.md/#structure)
 
-### Lesson Types
+- [Basic](curriculum.md/#1-basics)
+- [Airport & Arrival](curriculum.md/#2-airport--arrival)
+- [Basic](curriculum.md/#1-basics)
+- [Basic](curriculum.md/#1-basics)
+- [Basic](curriculum.md/#1-basics)
+- [Basic](curriculum.md/#1-basics)
+- [Basic](curriculum.md/#1-basics)
+- 
 
+## Island Level
 
+**1: Basic** -> 
+
+## Reward Points
 
 ## Player Status
 
-**CURRENT**
-- island
-- rewarded points
+
+
+
+
