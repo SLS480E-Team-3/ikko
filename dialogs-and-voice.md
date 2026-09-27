@@ -50,6 +50,30 @@ python voice.py list
 
 shows every voice and whether it has been created.
 
+### What decides the voice
+
+The profile in `voices.json` is the only per-voice input you control. `create` sends ([`design_voice`](python/gemini_tts.py)):
+
+| Sent | Comes from |
+|---|---|
+| `prompted.input` (the main prompt) | all 15 profile fields, filled into the fixed sentence template in `build_description` |
+| `gender` | profile `gender`, also sent as its own field |
+| `language_code` | profile `language`, turned into a code such as `ja-JP` |
+| `model` | the `--model` flag, default `gemini-3.8-flash-tts` |
+| `display_name` | the name passed to `create` |
+
+Outside `voices.json`:
+
+- **Template wording.** Changing `build_description` changes the prompt for every voice created after that.
+- **Randomness.** No seed is sent, so creating the same profile twice probably gives two slightly different voices. Re-creating a voice you like is a gamble.
+- **`description` isn't an input.** `create` rebuilds it from the profile and overwrites it, so editing it by hand does nothing.
+
+After creation:
+
+- The voice is fixed to its `voice_id`. Editing the profile does nothing until you run `create` again.
+- A line's `style` in the yaml changes that one line's delivery (mood), not the voice itself.
+- The `_sample.mp3` text is written by a text model from the profile. It changes what the sample says, not how the voice sounds.
+
 ### 3. Use it
 
 1. `npc('Jordi', 'jordi', ...)` in `npcs.ts` → [Scripting](#scripting)

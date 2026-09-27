@@ -119,6 +119,54 @@
       "voice_id": "voice_8yv9ay2ts1t0",
       "model": "gemini-3.8-flash-tts",
       "created": "2026-09-26T15:17:06+00:00"
+    },
+    {
+      "name": "hiroko",
+      "profile": {
+        "language": "Japanese",
+        "accent": "Tokyo standard",
+        "gender": "female",
+        "age": "52",
+        "personality": "a mature, middle-aged mother figure, calm and warm; she reassures quietly rather than cheering",
+        "timbre": "deep, warm and full, low alto with a rich chest voice and mature weight, still clear",
+        "energy": "calm, steady warmth, softly encouraging",
+        "pitch": "low for a woman, alto range",
+        "pitch_range": "narrow to moderate, settled and grounded; phrases fall gently to a low, calm ending, no rising or sing-song endings except on real questions",
+        "speed": "slightly fast, brisk but never rushed",
+        "volume": "medium",
+        "articulation": "very clear and precise, every mora distinct, model pronunciation",
+        "register": "standard Japanese, kind polite desu/masu",
+        "pauses": "short, clean breaks between phrases",
+        "use_case": "game character, Japanese teacher reading example sentences"
+      },
+      "description": "A 52-year-old female game character, Japanese teacher reading example sentences voice speaking Japanese with a Tokyo standard accent; a mature, middle-aged mother figure, calm and warm; she reassures quietly rather than cheering. Timbre: deep, warm and full, low alto with a rich chest voice and mature weight, still clear; energy: calm, steady warmth, softly encouraging; pitch: low for a woman, alto range; pitch range: narrow to moderate, settled and grounded; phrases fall gently to a low, calm ending, no rising or sing-song endings except on real questions; speed: slightly fast, brisk but never rushed; volume: medium; articulation: very clear and precise, every mora distinct, model pronunciation; register: standard Japanese, kind polite desu/masu; pauses: short, clean breaks between phrases.",
+      "voice_id": "voice_jra8wo4l88a4",
+      "model": "gemini-3.8-flash-tts",
+      "created": "2026-09-27T01:39:36+00:00"
+    },
+    {
+      "name": "ryuuko",
+      "profile": {
+        "language": "Japanese",
+        "accent": "Tokyo standard",
+        "gender": "female",
+        "age": "78",
+        "personality": "an elderly grandmother figure, calm and warm; she reassures quietly rather than cheering",
+        "timbre": "deep, warm and full, low alto with a rich chest voice and mature weight, still clear",
+        "energy": "calm, steady warmth, softly encouraging",
+        "pitch": "low for a woman, alto range",
+        "pitch_range": "narrow to moderate, settled and grounded; phrases fall gently to a low, calm ending, no rising or sing-song endings except on real questions",
+        "speed": "fast but smooth, lively and brisk, never rushed or clipped",
+        "volume": "medium",
+        "articulation": "very clear and precise, every mora distinct, model pronunciation",
+        "register": "standard Japanese, kind polite desu/masu",
+        "pauses": "short, clean breaks between phrases",
+        "use_case": "game character, Japanese teacher reading example sentences"
+      },
+      "description": "A 78-year-old female game character, Japanese teacher reading example sentences voice speaking Japanese with a Tokyo standard accent; an elderly grandmother figure, calm and warm; she reassures quietly rather than cheering. Timbre: deep, warm and full, low alto with a rich chest voice and mature weight, still clear; energy: calm, steady warmth, softly encouraging; pitch: low for a woman, alto range; pitch range: narrow to moderate, settled and grounded; phrases fall gently to a low, calm ending, no rising or sing-song endings except on real questions; speed: fast but smooth, lively and brisk, never rushed or clipped; volume: medium; articulation: very clear and precise, every mora distinct, model pronunciation; register: standard Japanese, kind polite desu/masu; pauses: short, clean breaks between phrases.",
+      "voice_id": "voice_4zbouxyvxg5o",
+      "model": "gemini-3.8-flash-tts",
+      "created": "2026-09-27T02:15:22+00:00"
     }
   ]
 }

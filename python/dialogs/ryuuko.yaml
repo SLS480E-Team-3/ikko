@@ -1,0 +1,144 @@
+scene: ryuuko
+lines:
+  - speaker: ryuuko
+    text: あ
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: い
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: う
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: え
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: お
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: か
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: き
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: く
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: け
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: こ
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: さ
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: し
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: す
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: せ
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: そ
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: た
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: ち
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: つ
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: て
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: と
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: な
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: に
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: ぬ
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: ね
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: の
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: は
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: ひ
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: ふ
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: へ
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: ほ
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: ま
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: み
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: む
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: め
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: も
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: や
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: ゆ
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: よ
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: ら
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: り
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: る
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: れ
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: ろ
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: わ
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: を
+    style: read just this one kana, clear model pronunciation
+  - speaker: ryuuko
+    text: ん
+    style: read just this one kana, clear model pronunciation
+# the 46 basic hiragana, あ to ん, one line each in gojūon order, for
+# pronunciation clips. Each renders to public/dialog/ryuuko/<kana>.mp3
+# (a single kana has nothing for line_mp3 to drop). The shared style keeps
+# the TTS from adding words around a lone character
