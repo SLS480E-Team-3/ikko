@@ -1,145 +1,6 @@
 scene: ryuuko
 lines:
-  # basic
-  - speaker: ryuuko
-    text: あ
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: い
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: う
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: え
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: お
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: か
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: き
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: く
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: け
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: こ
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: さ
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: し
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: す
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: せ
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: そ
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: た
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: ち
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: つ
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: て
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: と
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: な
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: に
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: ぬ
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: ね
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: の
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: は
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: ひ
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: ふ
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: へ
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: ほ
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: ま
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: み
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: む
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: め
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: も
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: や
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: ゆ
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: よ
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: ら
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: り
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: る
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: れ
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: ろ
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: わ
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: を
-    style: read just this one kana, clear model pronunciation
-  - speaker: ryuuko
-    text: ん
-    style: read just this one kana, clear model pronunciation
-  # dakuten
+    # dakuten
   - speaker: ryuuko
     text: が
     style: read just this one kana, clear model pronunciation
@@ -219,40 +80,108 @@ lines:
   - speaker: ryuuko
     text: ぽ
     style: read just this one kana, clear model pronunciation
-  # small
+  # youon (kana + small ゃ ゅ ょ)
   - speaker: ryuuko
-    text: ぁ
-    style: read just this one kana, clear model pronunciation
+    text: きゃ
+    style: read just this one syllable, clear model pronunciation
   - speaker: ryuuko
-    text: ぃ
-    style: read just this one kana, clear model pronunciation
+    text: きゅ
+    style: read just this one syllable, clear model pronunciation
   - speaker: ryuuko
-    text: ぅ
-    style: read just this one kana, clear model pronunciation
+    text: きょ
+    style: read just this one syllable, clear model pronunciation
   - speaker: ryuuko
-    text: ぇ
-    style: read just this one kana, clear model pronunciation
+    text: しゃ
+    style: read just this one syllable, clear model pronunciation
   - speaker: ryuuko
-    text: ぉ
-    style: read just this one kana, clear model pronunciation
+    text: しゅ
+    style: read just this one syllable, clear model pronunciation
   - speaker: ryuuko
-    text: ゃ
-    style: read just this one kana, clear model pronunciation
+    text: しょ
+    style: read just this one syllable, clear model pronunciation
   - speaker: ryuuko
-    text: ゅ
-    style: read just this one kana, clear model pronunciation
+    text: ちゃ
+    style: read just this one syllable, clear model pronunciation
   - speaker: ryuuko
-    text: ょ
-    style: read just this one kana, clear model pronunciation
+    text: ちゅ
+    style: read just this one syllable, clear model pronunciation
   - speaker: ryuuko
-    text: っ
-    style: read just this one kana, clear model pronunciation
+    text: ちょ
+    style: read just this one syllable, clear model pronunciation
   - speaker: ryuuko
-    text: ゎ
-    style: read just this one kana, clear model pronunciation
-# every hiragana for pronunciation clips, one line each: the 46 basic kana
-# (あ to ん), dakuten (が to ぼ, plus ゔ), handakuten (ぱ to ぽ) and small kana
-# (ぁ ぃ ぅ ぇ ぉ ゃ ゅ ょ っ ゎ). Each renders to public/dialog/ryuuko/<kana>.mp3.
-# The basic 46 keep the exact text and style they were rendered with, so
-# they hit the .cache and only the new kana call the API. The shared style
-# keeps the TTS from adding words around a lone character
+    text: にゃ
+    style: read just this one syllable, clear model pronunciation
+  - speaker: ryuuko
+    text: にゅ
+    style: read just this one syllable, clear model pronunciation
+  - speaker: ryuuko
+    text: にょ
+    style: read just this one syllable, clear model pronunciation
+  - speaker: ryuuko
+    text: ひゃ
+    style: read just this one syllable, clear model pronunciation
+  - speaker: ryuuko
+    text: ひゅ
+    style: read just this one syllable, clear model pronunciation
+  - speaker: ryuuko
+    text: ひょ
+    style: read just this one syllable, clear model pronunciation
+  - speaker: ryuuko
+    text: みゃ
+    style: read just this one syllable, clear model pronunciation
+  - speaker: ryuuko
+    text: みゅ
+    style: read just this one syllable, clear model pronunciation
+  - speaker: ryuuko
+    text: みょ
+    style: read just this one syllable, clear model pronunciation
+  - speaker: ryuuko
+    text: りゃ
+    style: read just this one syllable, clear model pronunciation
+  - speaker: ryuuko
+    text: りゅ
+    style: read just this one syllable, clear model pronunciation
+  - speaker: ryuuko
+    text: りょ
+    style: read just this one syllable, clear model pronunciation
+  - speaker: ryuuko
+    text: ぎゃ
+    style: read just this one syllable, clear model pronunciation
+  - speaker: ryuuko
+    text: ぎゅ
+    style: read just this one syllable, clear model pronunciation
+  - speaker: ryuuko
+    text: ぎょ
+    style: read just this one syllable, clear model pronunciation
+  - speaker: ryuuko
+    text: じゃ
+    style: read just this one syllable, clear model pronunciation
+  - speaker: ryuuko
+    text: じゅ
+    style: read just this one syllable, clear model pronunciation
+  - speaker: ryuuko
+    text: じょ
+    style: read just this one syllable, clear model pronunciation
+  - speaker: ryuuko
+    text: びゃ
+    style: read just this one syllable, clear model pronunciation
+  - speaker: ryuuko
+    text: びゅ
+    style: read just this one syllable, clear model pronunciation
+  - speaker: ryuuko
+    text: びょ
+    style: read just this one syllable, clear model pronunciation
+  - speaker: ryuuko
+    text: ぴゃ
+    style: read just this one syllable, clear model pronunciation
+  - speaker: ryuuko
+    text: ぴゅ
+    style: read just this one syllable, clear model pronunciation
+  - speaker: ryuuko
+    text: ぴょ
+    style: read just this one syllable, clear model pronunciation
+# pronunciation clips, one line each: dakuten (が to ぼ, plus ゔ), handakuten
+# (ぱ to ぽ) and youon (きゃ to ぴょ, a kana + small ゃ ゅ ょ read as one
+# syllable). Each renders to public/dialog/ryuuko/<kana>.mp3. The basic 46
+# (あ to ん) were rendered earlier and are left out. The shared style keeps
+# the TTS from adding words around a lone syllable
