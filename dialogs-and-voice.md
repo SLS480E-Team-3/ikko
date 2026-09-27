@@ -2,6 +2,64 @@
 
 saved in /public/dialog/`<character>`
 
+## Creating New Voice
+
+### 1. Add a profile
+
+Add an entry to `python/voices.json` with all 15 profile fields (see the Voice profile table in `python/README.md`). Leave `description`, `voice_id`, `model` and `created` out; `create` fills them.
+
+```json
+{
+    "name": "jordi",
+    "profile": {
+    　"language": "Japanese",
+    　"accent": "Tokyo standard",
+    　"gender": "female",
+    　"age": "20",
+    　"personality": "energetic, friendly, a bit playful",
+    　"timbre": "bright and slightly airy",
+    　"energy": "high and cheerful",
+    　"pitch": "slightly high",
+    　"pitch_range": "wide with rising endings",
+    　"speed": "slightly fast",
+    　"volume": "medium-loud",
+    　"articulation": "clear but relaxed",
+    　"register": "casual, with light desu/masu when polite",
+    　"pauses": "short",
+    　"use_case": "game character"
+    }
+}
+```
+
+- `name` is lowercase. It becomes the `voice` in `npc()`, the `speaker` in the yaml and the folder in `public/dialog/`.
+- Keep the fields consistent with each other (e.g. a `calm` personality with `low` energy).
+
+### 2. Create it
+
+```bash
+python voice.py create tiffany --from voices.json
+```
+
+- Designs the voice and saves its `voice_id` to `voices.json`.
+- Renders a self-introduction to `public/dialog/<name>/_sample.mp3`. Listen to it; if it's off, edit the profile and run `create` again (it replaces the `voice_id`).
+- Leave out `--from voices.json` to type the fields in one by one instead.
+
+```bash
+python voice.py list
+```
+
+shows every voice and whether it has been created.
+
+### 3. Use it
+
+1. `npc('Jordi', 'jordi', ...)` in `npcs.ts` → [Scripting](#scripting)
+2. `python/dialogs/jordi.yaml` → [Speech Generation](#speech-generation)
+
+### Limits
+
+- 200 custom voices per Google Cloud project.
+- A voice expires 1 year after `created`.
+
 ## Scripting
 
 at src/components/Game/npcs/npcs.ts
@@ -119,61 +177,3 @@ python dialog.py render dialogs/jordi.yaml
 
 1. The printed `-> public/dialog/...` file names match the `file_name`s in `npcs.ts`.
 2. Play the game and talk to the NPC.
-
-## Creating New Voice
-
-### 1. Add a profile
-
-Add an entry to `python/voices.json` with all 15 profile fields (see the Voice profile table in `python/README.md`). Leave `description`, `voice_id`, `model` and `created` out; `create` fills them.
-
-```json
-{
-    "name": "jordi",
-    "profile": {
-    　"language": "Japanese",
-    　"accent": "Tokyo standard",
-    　"gender": "female",
-    　"age": "20",
-    　"personality": "energetic, friendly, a bit playful",
-    　"timbre": "bright and slightly airy",
-    　"energy": "high and cheerful",
-    　"pitch": "slightly high",
-    　"pitch_range": "wide with rising endings",
-    　"speed": "slightly fast",
-    　"volume": "medium-loud",
-    　"articulation": "clear but relaxed",
-    　"register": "casual, with light desu/masu when polite",
-    　"pauses": "short",
-    　"use_case": "game character"
-    }
-}
-```
-
-- `name` is lowercase. It becomes the `voice` in `npc()`, the `speaker` in the yaml and the folder in `public/dialog/`.
-- Keep the fields consistent with each other (e.g. a `calm` personality with `low` energy).
-
-### 2. Create it
-
-```bash
-python voice.py create tiffany --from voices.json
-```
-
-- Designs the voice and saves its `voice_id` to `voices.json`.
-- Renders a self-introduction to `public/dialog/<name>/_sample.mp3`. Listen to it; if it's off, edit the profile and run `create` again (it replaces the `voice_id`).
-- Leave out `--from voices.json` to type the fields in one by one instead.
-
-```bash
-python voice.py list
-```
-
-shows every voice and whether it has been created.
-
-### 3. Use it
-
-1. `npc('Jordi', 'jordi', ...)` in `npcs.ts` → [Scripting](#scripting)
-2. `python/dialogs/jordi.yaml` → [Speech Generation](#speech-generation)
-
-### Limits
-
-- 200 custom voices per Google Cloud project.
-- A voice expires 1 year after `created`.
