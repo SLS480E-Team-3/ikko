@@ -59,7 +59,7 @@ flowchart TD
   - `src/proxy.ts` sends logged-out visitors to `/LogIn`.
   - The pages do the rest of the checks (locked island, quest under the wrong island).
 
-See [page-relations.md](page-relations.md) for the full list of redirects.
+See [page-relations.md](docs/page-relations.md) for the full list of redirects.
 
 ## World View
 

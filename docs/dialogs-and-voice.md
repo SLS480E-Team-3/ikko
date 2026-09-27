@@ -52,7 +52,7 @@ shows every voice and whether it has been created.
 
 ### What decides the voice
 
-The profile in `voices.json` is the only per-voice input you control. `create` sends ([`design_voice`](python/gemini_tts.py)):
+The profile in `voices.json` is the only per-voice input you control. `create` sends ([`design_voice`](../python/gemini_tts.py)):
 
 | Sent | Comes from |
 |---|---|

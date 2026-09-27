@@ -77,12 +77,12 @@ files that are development purposes should have 'DEV' in the first line
 
 ## Dialog Generation
 
-For NPC dialog or voice work, read `dialogs-and-voice.md` first, then follow the section that matches the request:
+For NPC dialog or voice work, read `docs/dialogs-and-voice.md` first, then follow the section that matches the request:
 
 | Request | Section |
 |---|---|
-| New character voice | [Creating New Voice](dialogs-and-voice.md#creating-new-voice) |
-| New or edited NPC lines | [Scripting](dialogs-and-voice.md#scripting) |
-| Generate audio for lines | [Speech Generation](dialogs-and-voice.md#speech-generation) |
+| New character voice | [Creating New Voice](docs/dialogs-and-voice.md#creating-new-voice) |
+| New or edited NPC lines | [Scripting](docs/dialogs-and-voice.md#scripting) |
+| Generate audio for lines | [Speech Generation](docs/dialogs-and-voice.md#speech-generation) |
 
 A new NPC usually needs all three, in the order: voice → scripting → speech generation.
