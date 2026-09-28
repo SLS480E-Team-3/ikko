@@ -8,39 +8,39 @@
 
 [Conditional-Syllabus](curriculum.md#structure)
 
-- [1. Basics](curriculum.md#1-basics)
-- [2. Airport & Arrival](curriculum.md#2-airport--arrival)
-- [3. Trains & Transit](curriculum.md#3-trains--transit)
-- [4. Directions](curriculum.md#4-directions)
-- [5. Accommodation](curriculum.md#5-accommodation)
-- [6. Restaurants](curriculum.md#6-restaurants)
-- [7. Konbini & Shopping](curriculum.md#7-konbini--shopping)
-- [8. Sightseeing](curriculum.md#8-sightseeing)
-- [9. Money](curriculum.md#9-money)
-- [10. Emergencies & Health](curriculum.md#10-emergencies--health)
-- [11. Small Talk](curriculum.md#11-small-talk)
+- [1. Characters / Useful Kanji](curriculum.md#1-characters--useful-kanji)
+- [2. Vocabulary / Phrases](curriculum.md#2-vocabulary--phrases)
+- [3. Airport / Directions](curriculum.md#3-airport--directions)
+- [4. Restaurants](curriculum.md#4-restaurants)
+- [5. Small Talk](curriculum.md#5-small-talk)
 
 ## Island Level
 
 **5 islands**
 
-**1. Basics** -> **2. Airport & Arrival**
-**3. Trains & Transit** -> **4. Directions**
-**5. Accommodation** -> **6. Restaurants**
-**7. Konbini & Shopping** -> **8. Sightseeing**
-**9. Money** -> **10. Emergencies & Health** -> **11. Small Talk**
+1. **Characters / Useful Kanji**
+2. **Vocabulary / Phrases**
+3. **Airport / Directions**
+4. **Restaurants**
+5. **Small Talk**
 
 **COMPLETE**
 
-### Island 1
+### Island 1: Characters / Useful Kanji
 
-#### 1. Basics
+Topics: hiragana あ to ん, then easy verbs ([list](curriculum.md#1-characters--useful-kanji))
+
+Each kana is taught with a picture word: 「あ」, 朝のあ, with a photo of the sun rising. Easy verbs follow the same way: 食べる with a photo of someone eating.
+
+Quest format: TBD.
+
+### Island 2: Vocabulary / Phrases
 
 Topics: greetings, thanks, apologies
 
 Example: learning the word こんにちは takes two quests. The player learns its hiragana first, then the word.
 
-##### Quest A: Hiragana (こ, ん, に, ち, は)
+#### Quest A: Hiragana (こ, ん, に, ち, は)
 
 One multiple-choice round per character.
 
@@ -51,7 +51,7 @@ One multiple-choice round per character.
 
 The quest ends after the player answers every character.
 
-##### Quest B: Word (こんにちは)
+#### Quest B: Word (こんにちは)
 
 Same format as Quest A, but the player chooses meanings instead of romaji.
 
@@ -62,7 +62,11 @@ Same format as Quest A, but the player chooses meanings instead of romaji.
 
 > **Audio (later):** play the character or word on a correct answer. Not in the first version.
 
-#### 2. Airport & Arrival
+### Island 3: Airport / Directions
+
+### Island 4: Restaurants
+
+### Island 5: Small Talk
 
 ## Reward Points
 

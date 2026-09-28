@@ -9,48 +9,110 @@
 
 ## Structure
 
-Content is organized by **situation**. Each unit covers one real travel situation, with its vocabulary, phrases, and listening practice nested inside it.
+Content is organized into **5 islands**. Island 1 teaches the characters. Island 2 teaches the core phrases. Islands 3–5 each cover real travel situations, with their vocabulary, phrases, and listening practice nested inside them.
 
-Each unit should define:
+Each island should define:
 
-- **Can-do goals:** what the learner can do after the unit
+- **Can-do goals:** what the learner can do after the island
 - **Vocabulary:** words for the situation
 - **Phrases:** what the learner says
 - **Listening:** what the learner will hear from staff or locals
 - **Culture notes:** relevant etiquette
 
-## Units
+## Islands
 
-### 1. Basics
+### 1. Characters / Useful Kanji
+
+#### Hiragana (あ to ん)
+
+Each kana is taught with a picture word: 「あ」, 朝のあ, shown with a photo of the sun rising.
+
+| Kana | Word | Meaning | Photo |
+|---|---|---|---|
+| あ | 朝 (あさ) | morning | sun rising |
+| い | 犬 (いぬ) | dog | dog |
+| う | 海 (うみ) | sea | ocean |
+| え | 駅 (えき) | station | train station |
+| お | お茶 (おちゃ) | green tea | cup of tea |
+| か | 傘 (かさ) | umbrella | open umbrella |
+| き | 木 (き) | tree | tree |
+| く | 靴 (くつ) | shoes | pair of shoes |
+| け | 消しゴム (けしゴム) | eraser | eraser |
+| こ | 子供 (こども) | child | child |
+| さ | 魚 (さかな) | fish | fish |
+| し | 島 (しま) | island | small island |
+| す | 寿司 (すし) | sushi | sushi |
+| せ | 先生 (せんせい) | teacher | teacher at a blackboard |
+| そ | 空 (そら) | sky | blue sky |
+| た | 卵 (たまご) | egg | egg |
+| ち | 地図 (ちず) | map | map |
+| つ | 月 (つき) | moon | moon |
+| て | 手 (て) | hand | hand |
+| と | 鳥 (とり) | bird | bird |
+| な | 鍋 (なべ) | pot | cooking pot |
+| に | 肉 (にく) | meat | meat |
+| ぬ | ぬいぐるみ | stuffed toy | teddy bear |
+| ね | 猫 (ねこ) | cat | cat |
+| の | のり | seaweed | sheet of nori |
+| は | 花 (はな) | flower | flower |
+| ひ | 火 (ひ) | fire | campfire |
+| ふ | 船 (ふね) | ship | ship |
+| へ | 部屋 (へや) | room | room |
+| ほ | 本 (ほん) | book | book |
+| ま | 窓 (まど) | window | window |
+| み | 水 (みず) | water | glass of water |
+| む | 虫 (むし) | bug | beetle |
+| め | 目 (め) | eye | eye |
+| も | 桃 (もも) | peach | peach |
+| や | 山 (やま) | mountain | Mt. Fuji |
+| ゆ | 雪 (ゆき) | snow | snow |
+| よ | 夜 (よる) | night | night sky |
+| ら | らくだ | camel | camel |
+| り | りんご | apple | apple |
+| る | 春 (はる) | spring | cherry blossoms |
+| れ | 冷蔵庫 (れいぞうこ) | fridge | fridge |
+| ろ | ろうそく | candle | candle |
+| わ | わに | crocodile | crocodile |
+| を | 本を読む (ほんをよむ) | read a book | someone reading |
+| ん | みかん | mandarin orange | mandarin orange |
+
+Almost no words start with る, and none start with を or ん, so those rows use a word that ends in the kana (春, みかん) or, for を, its only use as the object particle.
+
+#### Easy verbs
+
+Taught the same way: the word with a photo of the action (食べる, someone eating).
+
+| Verb | Meaning | Photo |
+|---|---|---|
+| 食べる (たべる) | eat | someone eating |
+| 飲む (のむ) | drink | someone drinking |
+| 行く (いく) | go | someone walking off |
+| 来る (くる) | come | someone walking toward the camera |
+| 見る (みる) | see, look | someone looking through binoculars |
+| 寝る (ねる) | sleep | someone asleep |
+| 買う (かう) | buy | someone paying at a register |
+| 待つ (まつ) | wait | someone waiting at a bus stop |
+
+### 2. Vocabulary / Phrases
 
 - Greetings, thanks, apologies
-- すみません in all its uses (excuse me, sorry, thank you, getting attention)
 
-### 2. Airport & Arrival
+### 3. Airport / Directions
 
 - Immigration
 - Baggage
 - Getting to the city
-
-### 3. Trains & Transit
-
 - IC cards and tickets
 - Platforms (〜番線)
 - Transfers (乗り換え)
 - Taxis and buses
-
-### 4. Directions
-
 - Asking for directions
 - Understanding the answer (まっすぐ, 右, 左, 角)
-
-### 5. Accommodation
-
 - Check-in
 - Requests
 - Ryokan etiquette
 
-### 6. Restaurants
+### 4. Restaurants
 
 - Party size (何名様)
 - Ordering
@@ -58,35 +120,7 @@ Each unit should define:
 - Dietary needs and allergies
 - Paying (お会計)
 
-### 7. Konbini & Shopping
-
-- 袋いりますか
-- 温めますか
-- Sizes
-- Tax-free shopping
-- Card or cash
-
-### 8. Sightseeing
-
-- Tickets and opening hours
-- Asking someone to take a photo
-- Shrine and temple manners
-
-### 9. Money
-
-- Prices
-- ATMs
-- Cash culture
-
-### 10. Emergencies & Health
-
-- Pharmacy
-- Lost items
-- 交番 (police box)
-- 助けて
-- Describing symptoms
-
-### 11. Small Talk
+### 5. Small Talk
 
 - Where you're from
 - How long you're staying
