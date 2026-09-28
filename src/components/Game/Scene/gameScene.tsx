@@ -229,6 +229,9 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
     const npcsRef = useRef<SceneNPC[]>(npcs)
     npcsRef.current = npcs
     const spokenRef = useRef(new Set<number>())
+    const spaceRef = useRef<() => void>(() => {})
+    // spaceRef: the latest pressSpace (set each render below) for the
+    // mount-time keydown listener
     // spokenRef: indexes of NPCs talked to (to the end) in this scene, so
     // their 'spoken' Dialog plays next time. Per-scene memory only, not saved
     // talkRef: null = not talking. A ref, like the other scene state, so the
@@ -362,6 +365,12 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.code === 'Space') { // Space: **none** -> **talk key**, reason: talk/advance NPC dialogs from the keyboard, mechanism: calls the latest pressSpace through spaceRef (this listener is mount-time, so a direct call would read stale props); preventDefault stops the page scroll / a focused button's click, e.repeat drops the auto-repeat of a held key so one press = one line
+                if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+                e.preventDefault()
+                if (!e.repeat) spaceRef.current()
+                return
+            }
             inputRef.current.add(e.code)
         }
         const handleKeyUp = (e: KeyboardEvent) => {
@@ -448,6 +457,43 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
     }
     // restores the saved zoom and ends the talk; shared by the last-line tap
     // and the choice buttons
+
+    const nearNpc = (n: SceneNPC) => {
+        const p = playerRef.current.ent
+        return !!p && overlaps(p.x ?? 0, p.y ?? 0, p.w, p.h, { x: (n.ent.x ?? 0) - n.ent.w / 2, y: (n.ent.y ?? 0) - n.ent.h / 2, w: n.ent.w, h: n.ent.h }, TALK_RANGE)
+    }
+    // true when the player is within TALK_RANGE of the NPC's body: the check
+    // that shows the greeting bubble, shared by the render and pressSpace
+
+    const pressSpace = () => {
+        const talk = talkRef.current
+        if (talk) {
+            if (!talkReady()) return
+            const spoken = spokenRef.current.has(talk.i)
+            const last = talk.line + 1 >= talkLines(npcs[talk.i], spoken, questOpen).length
+            if (last && pickDialog(npcs[talk.i], spoken, questOpen).choices?.length) return
+            if (!last) talkRef.current = { ...talk, line: talk.line + 1 }
+            else endTalk(talk)
+            return
+        }
+        const p = playerRef.current.ent
+        let hit: number | null = null
+        let best = Infinity
+        npcs.forEach((n, i) => {
+            const d = Math.hypot((n.ent.x ?? 0) - (p?.x ?? 0), (n.ent.y ?? 0) - (p?.y ?? 0))
+            if (nearNpc(n) && d < best) { hit = i; best = d }
+        })
+        if (hit === null) return
+        talkRef.current = { i: hit, line: 0, savedZoom: zoomTarget.current }
+        release()
+    }
+    spaceRef.current = pressSpace
+    // keyboard twin of tapNpc. Not talking: starts a talk with the in-range
+    // NPC (the nearest if several are). Talking: once the zoom-in settles,
+    // shows the next line or ends after the last one. On a last line with
+    // choices it does nothing -- はい / いいえ are clicked, never picked by Space.
+    // Reassigned every render so the mount-time key listener calls the
+    // version with the current npcs / onQuest
 
     const tapNpc = (clientX: number, clientY: number) => {
         const hit = tappedNpc(clientX, clientY)
@@ -598,7 +644,7 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
                 </div>
                 {npcs.map((n, i) => {
                     const talk = talkRef.current
-                    const near = !!pEnt && overlaps(pEnt.x ?? 0, pEnt.y ?? 0, pEnt.w, pEnt.h, { x: (n.ent.x ?? 0) - n.ent.w / 2, y: (n.ent.y ?? 0) - n.ent.h / 2, w: n.ent.w, h: n.ent.h }, TALK_RANGE)
+                    const near = nearNpc(n) // near: **inline overlaps** -> **nearNpc(n)**, mechanism: same TALK_RANGE check, moved into a helper so pressSpace picks the same NPCs
                     return (
                         <div key={`npc-${i}`} style={{ position: 'absolute', left: 0, top: 0, zIndex: Math.round((n.ent.y ?? 0) + n.ent.h / 2) }}>
                             <NPCRenderer npc={n} index={i} velocity={STILL} inRange={!talk && near} selected={talk?.i === i} spoken={spokenRef.current.has(i)} questOpen={questOpen} line={talk?.i === i && talkReady() ? talk.line : undefined} /> {/* render: **EntityRenderer, dialog only near the player** -> **NPCRenderer**, reason: NPCs are tapped to talk, mechanism: inRange is the same TALK_RANGE overlaps check (greeting bubble + tap target), off for everyone during a talk; the selected NPC gets its line once talkReady() */}
