@@ -49,7 +49,7 @@ export const islandBg = (islandId: number): BGProps => ({ ...TEMP_BG, color: ISL
 
 export const QUEST_W = 1_000
 export const QUEST_H = 700
-export const QUEST_BG: BGProps = { x: QUEST_W / 2, y: QUEST_H / 2, w: QUEST_W, h: QUEST_H, color: BUBBLE_BG }
+export const QUEST_BG: BGProps = { x: QUEST_W / 2, y: QUEST_H / 2, w: QUEST_W, h: QUEST_H, color: BUBBLE_BG } //same color as '#fffff2'
 // the Quest Island a quest opens on: a smaller 1000 x 700 world painted the
 // dialog bubble's bg color. x/y is its center, where the player spawns and
 // the camera starts
@@ -65,7 +65,7 @@ type SceneProps = {
 }
 
 export const ZOOM_DEF = 1 // export: **local** -> **exported**, reason: the pinch starts its zoom ref here, mechanism: named export next to the default GameScene export
-const ZOOM_MIN = 0.2
+const ZOOM_MIN = 0.5
 const ZOOM_MAX = 4
 
 export const clampZoom = (z: number) => Math.min(Math.max(z, ZOOM_MIN), ZOOM_MAX)
@@ -645,7 +645,7 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
                     don't draw over objects the player walked past */}
                 {/* entities go here, sized/positioned in world px (no zoom) */}
                 <div style={{ position: 'absolute', left: 0, top: 0, zIndex: Math.round((pEnt?.y ?? 0) + (pEnt?.h ?? ENT_H) / 2) }}> {/* wrap: **none** -> **0x0 div with the player's bottom-edge zIndex**, mechanism: ent.y is the center, so + h/2 is the feet; compared with ObjectRenderer's y + sprite.h the lower one draws in front. The wrapper is its own stacking context, so the name tag's zIndex 1 still only orders it against the body */}
-                <PlayerRenderer velocity={velocityRef.current} maxSpeed={PLAYER_SPEED} player={playerRef.current} /> {/* props: **velocity, player** -> **+ maxSpeed**, reason: lean scales with how hard the stick is pushed, mechanism: PLAYER_SPEED is full speed, so vel.x / PLAYER_SPEED is the stick's x (or ±1 / ±0.71 on keys); passed as a prop because the renderers importing it from here would be a circular import */}
+                <PlayerRenderer velocity={velocityRef.current} maxSpeed={PLAYER_SPEED} player={{ ...playerRef.current, talking: talkRef.current !== null }} /> {/* player: **playerRef.current** -> **copy + talking**, mechanism: talkRef is non-null during a talk and the scene renders every frame, so PlayerRenderer sees talk start/end on the next frame; the copy is shallow, so ent is still the object the tick mutates */} {/* props: **velocity, player** -> **+ maxSpeed**, reason: lean scales with how hard the stick is pushed, mechanism: PLAYER_SPEED is full speed, so vel.x / PLAYER_SPEED is the stick's x (or ±1 / ±0.71 on keys); passed as a prop because the renderers importing it from here would be a circular import */}
                 </div>
                 {npcs.map((n, i) => {
                     const talk = talkRef.current

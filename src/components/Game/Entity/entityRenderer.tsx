@@ -1,5 +1,6 @@
 'use client'
 
+import type { CSSProperties } from "react"
 import GustRenderer from "./gustRenderer"
 import DialogBubble from "./dialogBubble"
 
@@ -41,6 +42,7 @@ const NAME_SIZE = 8 // world px, scaled by the scene zoom like everything else
 // NAME_GAP / NAME_SIZE: **in playerRenderer** -> **here**, mechanism: the name tag moved in with ent.name, so NPCs get the same tag
 
 export default function EntityRenderer({
+    style,
     velocity,
     maxSpeed = 1, // props: **no maxSpeed** -> **maxSpeed = 1**, reason: the lean needs to know what full speed is, mechanism: velocity / maxSpeed gives -1..1; default 1 means a caller passing an already-normalized velocity needs nothing
     ent = {
@@ -50,7 +52,7 @@ export default function EntityRenderer({
         facing: 'none'
     },
     dialog, // props: **no dialog** -> **dialog?**, reason: player and NPC speech bubbles, mechanism: undefined = no bubble; any string (even '') shows one, and DialogBubble turns '' into '...'
-}: { velocity: { x: number, y: number }, maxSpeed?: number, ent?: EntityProps, dialog?: string }) {
+}: { style?: CSSProperties, velocity: { x: number, y: number }, maxSpeed?: number, ent?: EntityProps, dialog?: string }) { // style: **CSSStyleProperties (not imported)** -> **CSSProperties**, mechanism: React's inline style type; merged last into the name tag and body below
 
     const lean = Math.min(Math.max(velocity.x / maxSpeed, -1), 1) // skew: **full TILT_MAX on any x** -> **TILT_MAX x x-speed fraction**, reason: a slight joystick push leaned the body all the way, mechanism: x speed / max speed clamped to -1..1 scales the angle, so a half push leans half (diagonals lean ~0.71 since only that much of the speed is sideways)
     const skew = `skewX(${-TILT_MAX * lean}deg)` // skew: **ternary picking ±TILT_MAX or ''** -> **one proportional skewX**, reason: same as lean, mechanism: negative lean (moving left) flips the sign; standing still gives skewX(0deg), which draws the same as no skew
@@ -68,7 +70,8 @@ export default function EntityRenderer({
                     whiteSpace: 'nowrap',
                     pointerEvents: 'none',
                     userSelect: 'none',
-                    zIndex: 1 // layer: **source order (under the gust)** -> **zIndex 1**, reason: moving down, the gust trails up into the name and was drawn over it, mechanism: the name and the gust/body are absolute siblings in the same stacking context, so zIndex 1 paints the name above them instead of in DOM order
+                    zIndex: 1, // layer: **source order (under the gust)** -> **zIndex 1**, reason: moving down, the gust trails up into the name and was drawn over it, mechanism: the name and the gust/body are absolute siblings in the same stacking context, so zIndex 1 paints the name above them instead of in DOM order
+                    ...style, // style: **unused** -> **spread last**, mechanism: caller extras (the player's talk fade: opacity + transition) apply to the name too, so the whole entity fades together
                 }}
             >
                 {ent.name}
@@ -90,7 +93,8 @@ export default function EntityRenderer({
                 height: ent.h,
                 transform: `translate(-50%, -50%) ${skew}`,
                 // transition: 'background-color 0.2s, transform 0.15s ease-out',
-                backgroundColor: ent.color
+                backgroundColor: ent.color,
+                ...style, // style: **unused** -> **spread last**, mechanism: same caller extras as the name tag; the eyes are children, so they fade with the body
             }}
         >
             <div

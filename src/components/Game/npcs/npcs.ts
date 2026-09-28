@@ -85,13 +85,13 @@ export const ISLAND_1_NPC: NPCProps[] = [
 
 //npcs on the Quest Island
 export const QUEST_ISLAND_NPC: NPCProps[] = [
-    npc('Kaeru', undefined, QUEST_W / 2 + 80, QUEST_H / 2, 'seagreen', [
+    npc('Elena', undefined, QUEST_W / 2 + 80, QUEST_H / 2, 'seagreen', [
         say('greeting', ['おかえり？', 'Heading back?']),
         ask('quest', [['はい', 'Yes'], ['いいえ', 'No']],
             ['しまにもどる？', 'Go back to the island?']),
     ]),
 ]
-// Kaeru (かえる, "to go home") stands 80 px right of the Quest Island spawn.
+// Elena stands 80 px right of the Quest Island spawn. // name: **Kaeru (かえる, "to go home")** -> **Elena**, mechanism: matches npc('Elena', ...) above
 // Its 'quest' entry reuses the offer flow: here onQuest is the scene's
 // accept action, which QuestScene points back at /Game/<islandId>, so はい
 // leaves and いいえ ends the talk. Silent (no voice) until recorded
