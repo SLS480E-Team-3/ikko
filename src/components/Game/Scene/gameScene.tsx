@@ -4,7 +4,8 @@ import { PointerEvent, useEffect, useMemo, useRef, useState } from "react" // im
 import PlayerRenderer, { PlayerProps } from "../Entity/playerRenderer"
 import FootPrintRenderer from "../Entity/footPrintRenderer"
 import { ENT_H, ENT_W } from "../Entity/entityRenderer" // imports: **ENT_H, ENT_W, EntityRenderer, EntityProps** -> **ENT_H, ENT_W**, reason: NPCs draw through NPCRenderer now, mechanism: NPCProps carries the EntityProps, so neither is used here
-import NPCRenderer, { NPCProps, NPC_TAP_ATTR, talkLines } from "../Entity/npcRenderer"
+import NPCRenderer, { NPCProps, NPC_TAP_ATTR, pickDialog, talkLines } from "../Entity/npcRenderer" // imports: **+ pickDialog**, mechanism: reads the talk's choices
+import { CHOICE_TAP_ATTR } from "../Entity/dialogBubble"
 import ObjectRenderer from "../Object/ObjectRenderer"
 import { HitBox, ObjectDef, PlacedObject, applyScale } from "../Object/gameObject"
 import { OBJECTS } from "../Object/objects"
@@ -165,7 +166,7 @@ export const objectHitBoxes = (objects: PlacedObject[]): HitBox[] => objects.fla
 // the scene's own solids use; unknown kinds and walk-through objects give
 // none. Exported so callers (MobileTester's NPC spots) can keep clear of them
 
-export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sensitivity = SENSITIVITY_DEF, objects = NO_OBJECTS, npcs = NO_NPCS }: { bgProps?: BGProps, player?: PlayerProps, screenSize?: { w: number, h: number }, sensitivity?: number, objects?: PlacedObject[], npcs?: SceneNPC[] }) { // props: **moveInput?, zoomInput?** -> **sensitivity?**, reason: MobileGameScene merged into GameScene so edits happen in one place, mechanism: the joystick and pinch live here now and write to the scene's own stickRef / zoomTarget, so no caller passes refs in; sensitivity is the one knob MobileGameScene had on top // props: **no npcs** -> **npcs?**, reason: entities with dialog in the scene, mechanism: each is drawn with EntityRenderer at its bottom-edge zIndex like the player; optional so a bare <GameScene /> has none // props: **no objects** -> **objects?**, reason: an island draws its map, mechanism: a PlacedObject list (island_N.ts) resolved against the OBJECTS catalog below; optional so a bare <GameScene /> is an empty field
+export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sensitivity = SENSITIVITY_DEF, objects = NO_OBJECTS, npcs = NO_NPCS, onQuest }: { bgProps?: BGProps, player?: PlayerProps, screenSize?: { w: number, h: number }, sensitivity?: number, objects?: PlacedObject[], npcs?: SceneNPC[], onQuest?: () => void }) { // props: **no onQuest** -> **onQuest?**, reason: NPCs offer the island's next quest, mechanism: called when the player picks choice 0 (はい); left out = no quest open, so NPCs skip their 'quest' entry // props: **moveInput?, zoomInput?** -> **sensitivity?**, reason: MobileGameScene merged into GameScene so edits happen in one place, mechanism: the joystick and pinch live here now and write to the scene's own stickRef / zoomTarget, so no caller passes refs in; sensitivity is the one knob MobileGameScene had on top // props: **no npcs** -> **npcs?**, reason: entities with dialog in the scene, mechanism: each is drawn with EntityRenderer at its bottom-edge zIndex like the player; optional so a bare <GameScene /> has none // props: **no objects** -> **objects?**, reason: an island draws its map, mechanism: a PlacedObject list (island_N.ts) resolved against the OBJECTS catalog below; optional so a bare <GameScene /> is an empty field
     // props are optional (?) because they have defaults -- lets a page mount
     // a bare <GameScene /> while the db-backed bg/player aren't wired yet.
     // screenSize has no default and isn't read yet, so it's undefined for now
@@ -405,13 +406,17 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
         const n = talk && npcs[talk.i]
         if (!n) return false
         const view = viewPortRef.current
+        const bg = bgRef.current
+        const halfW = sceneSizeRef.current.w / 2 / zoomRef.current
+        const halfH = sceneSizeRef.current.h / 2 / zoomRef.current
+        const fx = bg.w <= halfW * 2 ? bg.w / 2 : Math.min(Math.max(n.ent.x ?? 0, halfW), bg.w - halfW) // focus: **NPC head** -> **NPC head clamped like the camera**, reason: an NPC at the world edge never settled (seeded spots reach the edges), so its talk froze with no bubble, mechanism: the same clamp the tick applies to view, so the target is a point the camera can actually reach
+        const fy = bg.h <= halfH * 2 ? bg.h / 2 : Math.min(Math.max((n.ent.y ?? 0) - n.ent.h, halfH), bg.h - halfH)
         return Math.abs(zoomRef.current - TALK_ZOOM) < TALK_SETTLE_ZOOM &&
-            Math.hypot(view.x - (n.ent.x ?? 0), view.y - ((n.ent.y ?? 0) - n.ent.h)) < TALK_SETTLE_DIST
+            Math.hypot(view.x - fx, view.y - fy) < TALK_SETTLE_DIST
     }
     // true once the talk zoom-in has arrived: the zoom is at TALK_ZOOM and the
-    // camera on the same focus point the tick eases to. The camera clamp can
-    // hold the view off an NPC standing at the world edge, but the test spots
-    // are all near the center
+    // camera on the same focus point the tick eases to, clamped the way the
+    // tick clamps the view so an NPC at the world edge still settles
 
     const tappedNpc = (clientX: number, clientY: number) => {
         const hit = Array.from(sceneRef.current?.querySelectorAll(`[${NPC_TAP_ATTR}]`) ?? []).find(el => {
@@ -424,17 +429,42 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
     // overlay covers the world, so this checks the tagged elements' on-screen
     // rects (already scaled by the zoom) instead of waiting for their events
 
+    const tappedChoice = (clientX: number, clientY: number) => {
+        const hit = Array.from(sceneRef.current?.querySelectorAll(`[${CHOICE_TAP_ATTR}]`) ?? []).find(el => {
+            const r = el.getBoundingClientRect()
+            return clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom
+        })
+        return hit ? Number(hit.getAttribute(CHOICE_TAP_ATTR)) : null
+    }
+    // index of the dialog choice button under the tap, or null; same rect
+    // test as tappedNpc (the buttons only exist once DialogBubble shows them)
+
+    const questOpen = !!onQuest
+
+    const endTalk = (talk: { i: number, savedZoom: number }) => {
+        zoomTarget.current = talk.savedZoom
+        talkRef.current = null
+        spokenRef.current.add(talk.i) // spoken: **none** -> **marked when a talk ends**, mechanism: added after the last line, not at the start, so the picked entry doesn't switch mid-talk
+    }
+    // restores the saved zoom and ends the talk; shared by the last-line tap
+    // and the choice buttons
+
     const tapNpc = (clientX: number, clientY: number) => {
         const hit = tappedNpc(clientX, clientY)
         const talk = talkRef.current
         if (talk) {
-            if (hit === talk.i && talkReady()) {
-                if (talk.line + 1 < talkLines(npcs[talk.i], spokenRef.current.has(talk.i)).length) talkRef.current = { ...talk, line: talk.line + 1 } // talkLines: **(npc)** -> **(npc, spoken)**, mechanism: picks the same Dialog entry NPCRenderer shows
-                else {
-                    zoomTarget.current = talk.savedZoom
-                    talkRef.current = null
-                    spokenRef.current.add(talk.i) // spoken: **none** -> **marked when a talk ends**, mechanism: added after the last line, not at the start, so the picked entry doesn't switch mid-talk
+            const spoken = spokenRef.current.has(talk.i)
+            const last = talk.line + 1 >= talkLines(npcs[talk.i], spoken, questOpen).length // talkLines: **(npc, spoken)** -> **+ questOpen**, mechanism: picks the same Dialog entry NPCRenderer shows
+            if (last && pickDialog(npcs[talk.i], spoken, questOpen).choices?.length) { // step: **none** -> **choices on the last line**, reason: はい opens the quest, いいえ ends the talk, mechanism: only a choice button answers; a tap on the NPC does nothing so the player has to pick
+                const choice = tappedChoice(clientX, clientY)
+                if (choice !== null && talkReady()) {
+                    endTalk(talk)
+                    if (choice === 0) onQuest?.()
                 }
+            }
+            else if (hit === talk.i && talkReady()) {
+                if (!last) talkRef.current = { ...talk, line: talk.line + 1 }
+                else endTalk(talk) // end: **inline zoom/talk/spoken reset** -> **endTalk(talk)**, mechanism: same three steps, shared with the choices
             }
             return true
         }
@@ -571,7 +601,7 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
                     const near = !!pEnt && overlaps(pEnt.x ?? 0, pEnt.y ?? 0, pEnt.w, pEnt.h, { x: (n.ent.x ?? 0) - n.ent.w / 2, y: (n.ent.y ?? 0) - n.ent.h / 2, w: n.ent.w, h: n.ent.h }, TALK_RANGE)
                     return (
                         <div key={`npc-${i}`} style={{ position: 'absolute', left: 0, top: 0, zIndex: Math.round((n.ent.y ?? 0) + n.ent.h / 2) }}>
-                            <NPCRenderer npc={n} index={i} velocity={STILL} inRange={!talk && near} selected={talk?.i === i} spoken={spokenRef.current.has(i)} line={talk?.i === i && talkReady() ? talk.line : undefined} /> {/* render: **EntityRenderer, dialog only near the player** -> **NPCRenderer**, reason: NPCs are tapped to talk, mechanism: inRange is the same TALK_RANGE overlaps check (greeting bubble + tap target), off for everyone during a talk; the selected NPC gets its line once talkReady() */}
+                            <NPCRenderer npc={n} index={i} velocity={STILL} inRange={!talk && near} selected={talk?.i === i} spoken={spokenRef.current.has(i)} questOpen={questOpen} line={talk?.i === i && talkReady() ? talk.line : undefined} /> {/* render: **EntityRenderer, dialog only near the player** -> **NPCRenderer**, reason: NPCs are tapped to talk, mechanism: inRange is the same TALK_RANGE overlaps check (greeting bubble + tap target), off for everyone during a talk; the selected NPC gets its line once talkReady() */}
                         </div>
                     )
                 })}

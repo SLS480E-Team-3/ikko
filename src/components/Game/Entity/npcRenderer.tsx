@@ -23,8 +23,9 @@ const find = (npc: NPCProps, condition: Dialog['condition']) => npc.dialog?.find
 export const greeting = (npc: NPCProps) => find(npc, 'greeting') ?? GREETING_DEF
 // the entry shown above an NPC while the player is in range
 
-export const pickDialog = (npc: NPCProps, spoken: boolean): Dialog =>
+export const pickDialog = (npc: NPCProps, spoken: boolean, questOpen = false): Dialog => // args: **(npc, spoken)** -> **+ questOpen**, reason: NPCs offer the island's next quest, mechanism: GameScene passes true while it has an onQuest to open
     (npc.quest?.status === 'done' ? find(npc, 'questCleared') : undefined) ??
+    (questOpen ? find(npc, 'quest') : undefined) ?? // step: **none** -> **quest offer**, mechanism: wins over spoken/default so every talk offers it; skipped (normal talk) when no quest is open
     (spoken ? find(npc, 'spoken') : undefined) ??
     find(npc, 'default') ??
     greeting(npc)
@@ -32,8 +33,8 @@ export const pickDialog = (npc: NPCProps, spoken: boolean): Dialog =>
 // then already spoken to (this scene), then default. An NPC with none of
 // those repeats its greeting, so tapping it still zooms in and back out
 
-export const talkLines = (npc: NPCProps, spoken: boolean) => {
-    const d = pickDialog(npc, spoken)
+export const talkLines = (npc: NPCProps, spoken: boolean, questOpen = false) => { // args: **+ questOpen**, mechanism: passed to pickDialog so the scene steps through the entry the bubble shows
+    const d = pickDialog(npc, spoken, questOpen)
     const en = toList(d.en)
     const audio = toList(d.audio ?? [])
     return toList(d.jp).map((jp, i) => ({ jp, en: en[i] ?? '', audio: audio[i] })) // lines: **{ jp, en }** -> **+ audio**, mechanism: the line's mp3 file name, index-aligned like en
@@ -46,18 +47,23 @@ export const NPC_TAP_ATTR = 'data-npc'
 // the NPC itself; the overlay hit-tests the elements carrying this attribute
 // (value = the NPC's index) with getBoundingClientRect instead
 
-export default function NPCRenderer({ npc, index, velocity, inRange, selected = false, spoken = false, line }: { // props: **+ spoken**, mechanism: GameScene knows who was talked to; passed so the bubble shows the same entry the scene steps through
+export default function NPCRenderer({ npc, index, velocity, inRange, selected = false, spoken = false, questOpen = false, line }: { // props: **+ questOpen**, mechanism: same pickDialog input GameScene uses // props: **+ spoken**, mechanism: GameScene knows who was talked to; passed so the bubble shows the same entry the scene steps through
     npc: NPCProps,
     index: number,
     velocity: { x: number, y: number },
     inRange: boolean,
     selected?: boolean,
     spoken?: boolean,
+    questOpen?: boolean,
     line?: number,
 }) {
     const ent = npc.ent
-    const cur = line === undefined ? undefined : talkLines(npc, spoken)[line]
-    const dialogs: Dialog[] | undefined = selected ? (cur && [{ condition: pickDialog(npc, spoken).condition, jp: cur.jp, en: cur.en }]) : inRange ? [greeting(npc)] : undefined
+    const lines = talkLines(npc, spoken, questOpen) // talkLines: **(npc, spoken)** -> **+ questOpen**
+    const picked = pickDialog(npc, spoken, questOpen)
+    const cur = line === undefined ? undefined : lines[line]
+    const dialogs: Dialog[] | undefined = selected ? (cur && [{ condition: picked.condition, jp: cur.jp, en: cur.en }]) : inRange ? [greeting(npc)] : undefined
+    const choices = selected && line === lines.length - 1 ? picked.choices : undefined
+    // choices: the picked entry's answer buttons, only on its last line
     // dialogs: **text + en** -> **Dialog[]**, mechanism: talking = just the
     // current line of the picked entry (one line per tap); in range = the
     // whole greeting entry; otherwise no bubble
@@ -85,7 +91,7 @@ export default function NPCRenderer({ npc, index, velocity, inRange, selected = 
                     }}
                 />
             )}
-            {dialogs && <DialogBubble x={ent.x} y={ent.y} h={ent.h} dialogs={dialogs} tapId={tap && index} audio={audio} />} {/* speak: **npc.voice while selected** -> **audio URL**, reason: mp3s replace speechSynthesis and the greeting plays too, mechanism: see audio above */} {/* dialogs: **one wrapped default line** -> **the entry picked above**, mechanism: see dialogs */}
+            {dialogs && <DialogBubble x={ent.x} y={ent.y} h={ent.h} dialogs={dialogs} tapId={tap && index} audio={audio} choices={choices} />} {/* speak: **npc.voice while selected** -> **audio URL**, reason: mp3s replace speechSynthesis and the greeting plays too, mechanism: see audio above */} {/* dialogs: **one wrapped default line** -> **the entry picked above**, mechanism: see dialogs */}
         </>
     )
 }

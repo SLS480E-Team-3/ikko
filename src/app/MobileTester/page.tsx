@@ -118,7 +118,7 @@ function IslandPreview({ sensitivity }: { sensitivity: number }) {
     const btn: CSSProperties = { padding: '8px 12px' }
     return (
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-            <GameScene key={island} sensitivity={sensitivity} bgProps={islandBg(island)} objects={ISLAND_MAPS[island] ?? []} npcs={ISLAND_NPCS[island] ?? []} />
+            <GameScene key={island} sensitivity={sensitivity} bgProps={islandBg(island)} objects={ISLAND_MAPS[island] ?? []} npcs={ISLAND_NPCS[island] ?? []} onQuest={() => alert(`quest accepted (island ${island})`)} /> {/* props: **no onQuest** -> **alert**, mechanism: opens the quest offer without login; はい shows the alert instead of routing */}
             <div style={{ position: 'absolute', bottom: 16, left: 16, right: 16, zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', pointerEvents: 'none' }}>
                 <button style={{ ...btn, pointerEvents: 'auto' }} disabled={island <= 1} onClick={() => setIsland(i => Math.max(1, i - 1))}>◀ prev</button>
                 <span>island {island}</span>

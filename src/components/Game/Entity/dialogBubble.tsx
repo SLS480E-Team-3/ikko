@@ -4,8 +4,9 @@ import { useEffect, useState } from "react"
 import { playLine, stopLine } from "./voice" // import: **speech (speakJa / stopSpeech)** -> **voice (playLine / stopLine)**, reason: lines play recorded mp3s now
 
 export type Dialog = {
-    condition: 'greeting' | 'spoken' | 'questCleared' | 'default' // so on // condition: **spoken | questCleared | default** -> **+ greeting**, reason: NPC data is one Dialog[] now, mechanism: the greeting shown in range is just the entry tagged 'greeting'
+    condition: 'greeting' | 'spoken' | 'questCleared' | 'quest' | 'default' // so on // condition: **no quest** -> **+ quest**, reason: an NPC offers the island's next quest, mechanism: pickDialog plays it while a quest is open // condition: **spoken | questCleared | default** -> **+ greeting**, reason: NPC data is one Dialog[] now, mechanism: the greeting shown in range is just the entry tagged 'greeting'
     jp: string | string[], en: string | string[]
+    choices?: { jp: string, en: string }[] // choices: **none** -> **choices?**, reason: a quest offer ends in はい / いいえ, mechanism: shown as buttons under the entry's last line; GameScene decides what each index does
     audio?: string | string[] // audio: **none** -> **audio?**, reason: lines play recorded mp3s, mechanism: file name (no .mp3) per jp line, index-aligned; missing = silent. NPCRenderer turns it into a URL with the NPC's voice folder
 }
 
@@ -15,6 +16,7 @@ type DialogBubbleProps = {
     h: number, // h: **optional, default ENT_H** -> **required**, mechanism: EntityRenderer now renders the bubble and always has ent.h, so the ENT_H import is dropped; importing entityRenderer here would be a circular import (it imports this file), same reason gustRenderer takes plain x/y/w/h
     tapId?: number, // tapId: **none** -> **tapId?**, reason: NPCs are picked by tapping their bubble, mechanism: set as the data-npc attribute on the wrapper, which GameScene's stick overlay hit-tests by rect (the bubble itself stays pointerEvents none)
     audio?: string, // speak: **speak?: NPCVoice** -> **audio?: string**, reason: speechSynthesis replaced by recorded mp3s, mechanism: URL of the clip played when the bubble shows; left out = silent (EntityRenderer's bubbles, lines with no recording)
+    choices?: Dialog['choices'], // choices: **none** -> **choices?**, mechanism: NPCRenderer passes them only on a talk's last line; drawn once that line has fully typed
     dialogs: Dialog[] // text, en: **text?, en?** -> **dialog: Dialog[]**, reason: a line's Japanese and English travel together with the condition they're said under, mechanism: each Dialog's jp lines page as before and en[i] types under jp[i]; the entries play in order, so the caller picks which ones (by condition) to pass
 }
 // the bubble takes the entity's position, not its own, so a caller passes
@@ -62,6 +64,12 @@ const EN_TYPE_MS = 30 // English runs ~2x longer than its kana, so it types fast
 // the English sits under the Japanese at 0.35 of its size: small enough to
 // stay secondary, readable once a talk zooms the scene in
 
+export const CHOICE_TAP_ATTR = 'data-choice'
+// like data-npc: the bubble stays pointerEvents none, so GameScene's stick
+// overlay hit-tests the choice buttons (value = the choice index) by rect
+
+const CHOICE_BG = '#ffe9a8'
+
 const toList = (text?: string | string[]) => typeof text === 'string' ? [text] : text ?? []
 
 type Page = { chars: string[], en: string[] }
@@ -87,7 +95,7 @@ const toPages = (dialog: Dialog[]): Page[] => { // args: **(text, en)** -> **(di
 // line has been read, and isn't cut into pages (it wraps instead)
 
 // index show in front of name
-export default function DialogBubble({ x, y = 0, h, dialogs, tapId, audio }: DialogBubbleProps) { // props: **text, en** -> **dialog**, mechanism: see dialog
+export default function DialogBubble({ x, y = 0, h, dialogs, tapId, audio, choices }: DialogBubbleProps) { // props: **no choices** -> **+ choices**, mechanism: see choices // props: **text, en** -> **dialog**, mechanism: see dialog
     const pages = toPages(dialogs) // pages: **toPages(text, en)** -> **toPages(dialog)**, mechanism: each page carries its English (only a line's last page has any)
     const textKey = pages.map(p => p.chars.join('') + '\t' + p.en.join('')).join('\n') // key: **Japanese only** -> **+ English**, mechanism: a changed translation also restarts the typing
     const [typing, setTyping] = useState({ key: textKey, page: 0, n: 0, e: 0 }) // state: **{ page, n }** -> **+ e**, mechanism: e = English characters typed on this page
@@ -168,6 +176,22 @@ export default function DialogBubble({ x, y = 0, h, dialogs, tapId, audio }: Dia
                     same way (typed part + hidden rest), so the bubble is sized
                     for both lines from the start and never grows mid-talk. It
                     wraps inside the same BUBBLE_MAX_W */}
+                {choices && choices.length > 0 && cur.page >= pages.length - 1 && cur.n >= page.chars.length && cur.e >= page.en.length && (
+                    <div style={{ display: 'flex', gap: 4, justifyContent: 'center', marginTop: 3 }}>
+                        {choices.map((c, i) => (
+                            <div key={i} {...{ [CHOICE_TAP_ATTR]: i }} style={{ border: `1px solid ${BUBBLE_BOARDER}`, background: CHOICE_BG, padding: '1px 6px', textAlign: 'center' }}>
+                                {c.jp}
+                                <div style={{ fontSize: EN_FONT }}>{c.en}</div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+                {/* choices: one button per choice (jp over its small en),
+                    shown only after the last page's Japanese and English have
+                    fully typed, so the question is read before it can be
+                    answered. They're divs, not buttons: the bubble is
+                    pointerEvents none and GameScene picks them by their
+                    CHOICE_TAP_ATTR rect */}
             </div>
             <div style={triangle(TAIL, BUBBLE_BOARDER, `calc(100% - ${TAIL}px)`)} />
             <div style={triangle(TAIL_INNER + SEAM, BUBBLE_BG, `calc(100% - ${TAIL + BUBBLE_BORDER_W + SEAM}px)`)} /> {/* fill triangle: **top at the border's top edge, size TAIL_INNER** -> **SEAM px higher and SEAM px bigger**, mechanism: its top edge used to land exactly on the body fill's bottom edge, and the anti-aliased edges of the two boxes left a thin line at the scene zoom; now it overlaps the body fill by SEAM px, so no edge meets there. At 45° a triangle SEAM higher and SEAM bigger has the same slanted sides, so the black outline of the tail doesn't change */}

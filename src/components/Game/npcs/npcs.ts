@@ -7,6 +7,11 @@ type Line = [ja: string, en: string, audio?: string] // Line: **[ja, en]** -> **
 const say = (condition: Dialog['condition'], ...lines: Line[]): Dialog => ({ condition, jp: lines.map(l => l[0]), en: lines.map(l => l[1]), audio: lines.map(l => l[2] ?? '') }) // say: **jp, en** -> **+ audio**, mechanism: collected index-aligned like en; a line with no file becomes '' (falsy, so NPCRenderer keeps it silent)
 // one Dialog from [ja, en] pairs, so a translation can't drift off its line
 
+const ask = (condition: Dialog['condition'], choices: [ja: string, en: string][], ...lines: Line[]): Dialog => ({ ...say(condition, ...lines), choices: choices.map(([jp, en]) => ({ jp, en })) })
+// say() plus answer buttons under the last line. For 'quest', choice 0
+// accepts (GameScene opens the quest) and any other choice declines (ends
+// the talk)
+
 const npc = (name: string, voice: string | undefined, x: number, y: number, color: string, dialog: Dialog[]): NPCProps => ({ // args: **(name, x, ...)** -> **(name, voice, x, ...)**, mechanism: voice is passed through; voice: **speech voice** -> **mp3 folder under public/dialog/ or undefined (silent)**
     voice,
     ent: { name, x, y, w: ENT_W, h: ENT_H, color, facing: 'none' },
@@ -31,6 +36,9 @@ export const ISLAND_1_NPC: NPCProps[] = [
             ['おれはラーメンがすきやで', 'I really love ramen', '俺はラーメンが好きやで'], // file: **'ラーメンが大好きだ'** -> **'俺はラーメンが好きやで'**, mechanism: the kanji form of the new Kansai line, rendered by python/dialogs/shuto.yaml
             ['いちばんはとんこつやな', 'Tonkotsu ramen is the best', '一番は豚骨やな'], // file: **'豚骨ラーメンが一番'** -> **'一番は豚骨やな'**, mechanism: same, kanji form of the new line
             ['いっしょにたべいこうぜ！', "Let's eat together!", '一緒に食べ行こうぜ']), // file: **'一緒に食べよう'** -> **'一緒に食べ行こうぜ'**, mechanism: kanji form with ！ dropped, as dialog.py names the mp3
+        ask('quest', [['はい', 'Yes'], ['いいえ', 'No']],
+            ['さいしょのクエストだ！', "It's your first quest!", '最初のクエストだ'],
+            ['じゅんびはできてるか？', 'Are you ready?', '準備はできてるか？']), // quest: **say() with [['はい'],['いいえ']] as a line** -> **ask() with [ja, en] choices**, mechanism: choices ride on the Dialog instead of being read as a third line; mp3s stay silent until rendered
         say('spoken', ['はらへったなあ', "I'm getting hungry", '腹減ったなあ']), // file: **'お腹空いたなあ'** -> **'腹減ったなあ'**, mechanism: kanji form of はらへった (was お腹空いた)
     ]),
     npc('Tiffany', 'tiffany', 3500, 5150, 'khaki', [
