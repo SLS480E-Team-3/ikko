@@ -20,8 +20,8 @@ export type BGProps = {
     img?: string, // something not gameObject and no interfearance to entity: particles, leafs, grass, rain
 }
 
-export const BG_H = 2_000 // size: **10_000** -> **1_000**, reason: every island is the same 700 x 1000 world, mechanism: TEMP_BG, islandBg and the TEST_PLAYER spawn all derive from BG_W / BG_H // export: **local** -> **exported**, reason: MobileTester places test NPCs around the spawn point, mechanism: named export like BG_COLOR
-export const BG_W = 1_400 // size: **7_000** -> **700**, mechanism: see BG_H // export: **local** -> **exported**, reason: same as BG_H
+export const BG_H = 2_000 // size: **10_000** -> **2_000**, reason: every island is the same 1400 x 2000 world, mechanism: TEMP_BG, islandBg and the TEST_PLAYER spawn all derive from BG_W / BG_H // export: **local** -> **exported**, reason: MobileTester places test NPCs around the spawn point, mechanism: named export like BG_COLOR
+export const BG_W = 1_400 // size: **7_000** -> **1_400**, mechanism: see BG_H // export: **local** -> **exported**, reason: same as BG_H
 export const BG_COLOR = 'lightgreen' // export: **local** -> **exported**, reason: Game/layout.tsx paints the page background with it, mechanism: named export next to the default GameScene export, same as ZOOM_DEF
 
 const TEMP_BG: BGProps = {

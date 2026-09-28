@@ -5,8 +5,8 @@ export const ISLAND_1: PlacedObject[] = [
     {
         id: 'tower-1',
         def: 'tower',
-        x: BG_W / 2 - 192, // x: **3500 - 192** -> **BG_W / 2 - 192**, reason: world shrank to 700 x 1000, mechanism: same offset from the spawn (world center), so the tower stays above the player
-        y: BG_H / 2 - 600, // y: **5000 - 600** -> **BG_H / 2 - 600**, mechanism: same as x; the sprite's top 100 px sit above the world edge, lower would put its hitBox on the spawn
+        x: BG_W / 2 - 192, // x: **3500 - 192** -> **BG_W / 2 - 192**, reason: world shrank to 1400 x 2000, mechanism: same offset from the spawn (world center), so the tower stays above the player
+        y: BG_H / 2 - 600, // y: **5000 - 600** -> **BG_H / 2 - 600**, mechanism: same as x, the tower sits fully inside the world (top at y 400)
         interaction: { kind: 'sign', text: 'タワー (tawā) = tower' },
         scale: 0.2
     },
