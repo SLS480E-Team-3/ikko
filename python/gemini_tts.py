@@ -7,10 +7,12 @@ import functools
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -27,6 +29,7 @@ TEXT_MODEL = "gemini-3.8-flash"
 SAMPLE_RATE = 24000
 TTS_TIMEOUT = 30  # seconds one TTS request may take before it is retried
 TTS_TRIES = 3  # attempts per line before render gives up
+RATE_LIMIT_WAIT = 60  # seconds to wait on a 429 that names no wait (Tier 1 = 10 requests/minute)
 # model names from the speech-generation / text-generation docs. TTS returns
 # 24 kHz mono 16-bit WAV for unary requests
 
@@ -133,6 +136,22 @@ def _redact(text: str) -> str:
 # belt and braces: an error message must never echo the key
 
 
+def _retry_after(e: Exception) -> float | None:
+    code = getattr(e, "code", None) or getattr(e, "status_code", None)
+    if code != 429:
+        return None
+    m = re.search(r"retry in ([\d.]+)\s*(ms|s|m|h)\b", str(getattr(e, "message", None) or e), re.I)
+    if not m:
+        return RATE_LIMIT_WAIT
+    n, unit = float(m.group(1)), m.group(2).lower()
+    return n * {"ms": 0.001, "s": 1, "m": 60, "h": 3600}[unit] + 1
+# seconds to wait on a 429, or None for any other error. The API's message
+# says how long ("Please retry in 34s"); +1s so the retry lands after the
+# window resets, not on its edge. A 429 without a wait in the text falls
+# back to RATE_LIMIT_WAIT. A daily-quota 429 ("retry in 20h") waits too, and
+# the printed line says how long
+
+
 # ---------- API calls ----------
 
 def _audio(interaction) -> bytes:
@@ -147,7 +166,8 @@ def tts(voice: str, text: str, style: str | None = None, model: str = TTS_MODEL)
     if style:
         part["annotations"] = [{"type": "speech_metadata", "style": style}]
     with api_errors(f"TTS ({voice})"):
-        for attempt in range(1, TTS_TRIES + 1):
+        attempt = 1
+        while True:  # loop: **for attempt in range(1, TTS_TRIES + 1)** -> **while True, attempt counted by hand**, mechanism: a rate-limit wait must not use up a timeout try, and a for loop can't hand the try back
             try:
                 it = client().interactions.create(
                     model=model,
@@ -158,11 +178,18 @@ def tts(voice: str, text: str, style: str | None = None, model: str = TTS_MODEL)
                 )
                 break
             except Exception as e:
+                wait = _retry_after(e)
+                if wait is not None:
+                    print(f"    rate limit hit, waiting {wait:.0f}s before retrying", flush=True)
+                    time.sleep(wait)
+                    continue
                 if "timeout" not in type(e).__name__.lower() or attempt == TTS_TRIES:
                     raise
                 print(f"    timed out after {TTS_TIMEOUT}s, retrying ({attempt}/{TTS_TRIES - 1})", flush=True)
+                attempt += 1
     return _audio(it)
     # request: **no timeout, waits forever** -> **TTS_TIMEOUT s, up to TTS_TRIES tries**, mechanism: with the SDK's own retries off (see client), a stalled request raises APITimeoutError, which is retried here inside api_errors and only reaches it (die) on the last try
+    # 429: **die "quota or rate limit hit"** -> **sleep the "retry in Ns" the API names, then retry the same line**, mechanism: _retry_after reads the wait from the 429 message; the render keeps going instead of exiting, and the wait doesn't count against TTS_TRIES
 # one line, one voice (prebuilt name or voice_...). The shape is the docs'
 # single-speaker example; style rides in speech_metadata, never in the text
 
