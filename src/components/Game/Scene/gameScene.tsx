@@ -20,8 +20,8 @@ export type BGProps = {
     img?: string, // something not gameObject and no interfearance to entity: particles, leafs, grass, rain
 }
 
-export const BG_H = 10_000 // export: **local** -> **exported**, reason: MobileTester places test NPCs around the spawn point, mechanism: named export like BG_COLOR
-export const BG_W = 7_000 // export: **local** -> **exported**, reason: same as BG_H
+export const BG_H = 2_000 // size: **10_000** -> **1_000**, reason: every island is the same 700 x 1000 world, mechanism: TEMP_BG, islandBg and the TEST_PLAYER spawn all derive from BG_W / BG_H // export: **local** -> **exported**, reason: MobileTester places test NPCs around the spawn point, mechanism: named export like BG_COLOR
+export const BG_W = 1_400 // size: **7_000** -> **700**, mechanism: see BG_H // export: **local** -> **exported**, reason: same as BG_H
 export const BG_COLOR = 'lightgreen' // export: **local** -> **exported**, reason: Game/layout.tsx paints the page background with it, mechanism: named export next to the default GameScene export, same as ZOOM_DEF
 
 const TEMP_BG: BGProps = {
@@ -31,6 +31,20 @@ const TEMP_BG: BGProps = {
     h: BG_H,
     color: BG_COLOR
 }
+
+export const ISLAND_COUNT = 5
+export const ISLAND_BG: Record<number, string> = {
+    1: 'lightgreen',
+    2: '#f5e8a0', // color: **yellow** -> **#f5e8a0**, mechanism: pastel yellow, same softness as lightgreen
+    3: '#a9d4f0', // color: **blue** -> **#a9d4f0**, mechanism: pastel blue
+    4: '#cdb8e8', // color: **purple** -> **#cdb8e8**, mechanism: lavender
+    5: '#f2aaa2', // color: **red** -> **#f2aaa2**, mechanism: pastel red
+}
+export const islandBg = (islandId: number): BGProps => ({ ...TEMP_BG, color: ISLAND_BG[islandId] ?? BG_COLOR })
+// islands 1..ISLAND_COUNT share the same size and differ only by ground
+// color; islandBg is TEMP_BG recolored for one island (unknown id falls
+// back to BG_COLOR). GameScene reads bgProps once at mount, so callers
+// switching islands remount it with key={islandId}
 
 // longest frame interval (seconds) one tick will simulate
 const MAX_DT = 1 / 10

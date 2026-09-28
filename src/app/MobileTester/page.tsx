@@ -25,14 +25,15 @@ import {
     XIAOMI_15_PRO_SCREEN,
 } from "@/utils/mobileScreenSIze"
 import { CSSProperties, ReactNode, useState, useSyncExternalStore } from "react" // imports: **useState** -> **+ useSyncExternalStore**, mechanism: see mounted
-import GameScene, { BG_W, BG_H, SceneNPC, objectHitBoxes, SENSITIVITY_DEF } from "@/components/Game/Scene/gameScene" // imports: **default only** -> **+ BG_W, BG_H, SceneNPC, objectHitBoxes, SENSITIVITY_DEF**, mechanism: places the test NPCs around the player spawn (world center), clear of the map's object hitBoxes; SENSITIVITY_DEF seeds the sensitivity input (moved here with the MobileGameScene merge)
+import GameScene, { BG_W, BG_H, SceneNPC, objectHitBoxes, SENSITIVITY_DEF, ISLAND_COUNT, islandBg } from "@/components/Game/Scene/gameScene" // imports: **default only** -> **+ BG_W, BG_H, SceneNPC, objectHitBoxes, SENSITIVITY_DEF**, mechanism: places the test NPCs around the player spawn (world center), clear of the map's object hitBoxes; SENSITIVITY_DEF seeds the sensitivity input (moved here with the MobileGameScene merge)
 import SignUpPage from "@/app/SignUp/page"
 import LogInPage from "@/app/LogIn/page"
 import InfoRecovery from "@/app/InfoRecovery/page"
 import EditInfo from "@/app/EditInfo/page"
 import { ISLAND_MAPS } from "@/components/Game/islands"
 import NPCRenderer from "@/components/Game/Entity/npcRenderer"
-import { ISLAND_1_NPC } from "@/components/Game/npcs/npcs" // imports: **none** -> **ISLAND_1_NPC**, mechanism: see the game scene page
+import { ISLAND_1_NPC } from "@/components/Game/npcs/npcs"
+import { ISLAND_NPCS } from "@/components/Game/npcs" // imports: **none** -> **ISLAND_NPCS**, mechanism: seeded per-island NPC spots for IslandPreview // imports: **none** -> **ISLAND_1_NPC**, mechanism: see the game scene page
 import EntityRenderer, { ENT_H } from "@/components/Game/Entity/entityRenderer"
 
 const PHONES: { label: string; screen: CSSProperties }[] = [
@@ -59,7 +60,7 @@ const PHONES: { label: string; screen: CSSProperties }[] = [
 ]
 
 const PAGES: { label: string; page: (sensitivity: number) => ReactNode }[] = [ // type: **page: ReactNode** -> **page: (sensitivity) => ReactNode**, reason: the sensitivity input must reach GameScene, mechanism: a prebuilt element is frozen with its props, so each page is built at render time from the current input
-    { label: 'game scene', page: (s) => <GameScene sensitivity={s} objects={ISLAND_MAPS[1]} npcs={ISLAND_1_NPC} /> }, // npcs: **TEST_NPCS** -> **ISLAND_1_NPC**, reason: test the real island 1 NPCs without logging in to /Game, mechanism: the same list IslandScene passes for island 1
+    { label: 'game scene', page: (s) => <IslandPreview sensitivity={s} /> }, // page: **<GameScene island 1>** -> **<IslandPreview>**, mechanism: same scene wrapped with prev/next island buttons // npcs: **TEST_NPCS** -> **ISLAND_1_NPC**, reason: test the real island 1 NPCs without logging in to /Game, mechanism: the same list IslandScene passes for island 1
     { label: 'sign up', page: () => <SignUpPage /> },
     { label: 'log in', page: () => <LogInPage /> },
     { label: 'recovery', page: () => <InfoRecovery /> },
@@ -111,6 +112,25 @@ const TEST_NPCS: SceneNPC[] = npcSpots.map((n, i) => ({ // spots: **fixed ±60 /
 // four entities at random spots near the player spawn (world center);
 // module-level so the array is the same every render. Bubbles can overlap
 // now that they're close, but only NPCs near the player show one
+
+function IslandPreview({ sensitivity }: { sensitivity: number }) {
+    const [island, setIsland] = useState(1)
+    const btn: CSSProperties = { padding: '8px 12px' }
+    return (
+        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+            <GameScene key={island} sensitivity={sensitivity} bgProps={islandBg(island)} objects={ISLAND_MAPS[island] ?? []} npcs={ISLAND_NPCS[island] ?? []} />
+            <div style={{ position: 'absolute', bottom: 16, left: 16, right: 16, zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', pointerEvents: 'none' }}>
+                <button style={{ ...btn, pointerEvents: 'auto' }} disabled={island <= 1} onClick={() => setIsland(i => Math.max(1, i - 1))}>◀ prev</button>
+                <span>island {island}</span>
+                <button style={{ ...btn, pointerEvents: 'auto' }} disabled={island >= ISLAND_COUNT} onClick={() => setIsland(i => Math.min(ISLAND_COUNT, i + 1))}>next ▶</button>
+            </div>
+        </div>
+    )
+}
+// island traversal without login: the same buttons /Game shows as links,
+// but switching in place. key={island} remounts GameScene so the new
+// bg color and spawn take effect (it reads them once at mount); islands
+// without a map file get an empty field
 
 function BubblePreview() {
     const spots = [
