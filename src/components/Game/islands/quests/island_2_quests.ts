@@ -1,8 +1,8 @@
 import { QuestsProps } from "@/utils/schema";
 
 // こんにちは
-const QUEST_1_KONNICHIWA_KANA: QuestsProps = { // naming: **QUEST_{unit}_{WORD}_{KANA|WORD}**, mechanism: the romaji word says which word the quest teaches and KANA/WORD says what the player picks (type A/B), instead of three bare numbers/letters
-    islandId: 1,
+const QUEST_2_KONNICHIWA_KANA: QuestsProps = { // naming: **QUEST_{unit}_{WORD}_{KANA|WORD}**, mechanism: the romaji word says which word the quest teaches and KANA/WORD says what the player picks (type A/B), instead of three bare numbers/letters
+    islandId: 2,
     title: 'Hiragana: こんにちは',
     type: 'A',
     rounds: [
@@ -14,8 +14,8 @@ const QUEST_1_KONNICHIWA_KANA: QuestsProps = { // naming: **QUEST_{unit}_{WORD}_
     ],
 }
 
-const QUEST_1_KONNICHIWA_WORD: QuestsProps = {
-    islandId: 1,
+const QUEST_2_KONNICHIWA_WORD: QuestsProps = {
+    islandId: 2,
     title: 'Word: こんにちは',
     type: 'B',
     rounds: [
@@ -24,8 +24,8 @@ const QUEST_1_KONNICHIWA_WORD: QuestsProps = {
 }
 
 // ありがとう
-const QUEST_1_ARIGATOU_KANA: QuestsProps = {
-    islandId: 1,
+const QUEST_2_ARIGATOU_KANA: QuestsProps = {
+    islandId: 2,
     title: 'Hiragana: ありがとう',
     type: 'A',
     rounds: [
@@ -37,8 +37,8 @@ const QUEST_1_ARIGATOU_KANA: QuestsProps = {
     ],
 }
 
-const QUEST_1_ARIGATOU_WORD: QuestsProps = {
-    islandId: 1,
+const QUEST_2_ARIGATOU_WORD: QuestsProps = {
+    islandId: 2,
     title: 'Word: ありがとう',
     type: 'B',
     rounds: [
@@ -47,8 +47,8 @@ const QUEST_1_ARIGATOU_WORD: QuestsProps = {
 }
 
 // すみません
-const QUEST_1_SUMIMASEN_KANA: QuestsProps = {
-    islandId: 1,
+const QUEST_2_SUMIMASEN_KANA: QuestsProps = {
+    islandId: 2,
     title: 'Hiragana: すみません',
     type: 'A',
     rounds: [
@@ -60,8 +60,8 @@ const QUEST_1_SUMIMASEN_KANA: QuestsProps = {
     ],
 }
 
-const QUEST_1_SUMIMASEN_WORD: QuestsProps = {
-    islandId: 1,
+const QUEST_2_SUMIMASEN_WORD: QuestsProps = {
+    islandId: 2,
     title: 'Word: すみません',
     type: 'B',
     rounds: [
@@ -70,8 +70,8 @@ const QUEST_1_SUMIMASEN_WORD: QuestsProps = {
 }
 
 // ごめんなさい
-const QUEST_1_GOMENNASAI_KANA: QuestsProps = {
-    islandId: 1,
+const QUEST_2_GOMENNASAI_KANA: QuestsProps = {
+    islandId: 2,
     title: 'Hiragana: ごめんなさい',
     type: 'A',
     rounds: [
@@ -84,8 +84,8 @@ const QUEST_1_GOMENNASAI_KANA: QuestsProps = {
     ],
 }
 
-const QUEST_1_GOMENNASAI_WORD: QuestsProps = {
-    islandId: 1,
+const QUEST_2_GOMENNASAI_WORD: QuestsProps = {
+    islandId: 2,
     title: 'Word: ごめんなさい',
     type: 'B',
     rounds: [
@@ -94,8 +94,8 @@ const QUEST_1_GOMENNASAI_WORD: QuestsProps = {
 }
 
 // さようなら
-const QUEST_1_SAYOUNARA_KANA: QuestsProps = {
-    islandId: 1,
+const QUEST_2_SAYOUNARA_KANA: QuestsProps = {
+    islandId: 2,
     title: 'Hiragana: さようなら',
     type: 'A',
     rounds: [
@@ -107,8 +107,8 @@ const QUEST_1_SAYOUNARA_KANA: QuestsProps = {
     ],
 }
 
-const QUEST_1_SAYOUNARA_WORD: QuestsProps = {
-    islandId: 1,
+const QUEST_2_SAYOUNARA_WORD: QuestsProps = {
+    islandId: 2,
     title: 'Word: さようなら',
     type: 'B',
     rounds: [
@@ -116,14 +116,14 @@ const QUEST_1_SAYOUNARA_WORD: QuestsProps = {
     ],
 }
 
-export const ISLAND_1_QUESTS: QuestsProps[] = [
-    QUEST_1_KONNICHIWA_KANA, QUEST_1_KONNICHIWA_WORD,
-    QUEST_1_ARIGATOU_KANA, QUEST_1_ARIGATOU_WORD,
-    QUEST_1_SUMIMASEN_KANA, QUEST_1_SUMIMASEN_WORD,
-    QUEST_1_GOMENNASAI_KANA, QUEST_1_GOMENNASAI_WORD,
-    QUEST_1_SAYOUNARA_KANA, QUEST_1_SAYOUNARA_WORD,
+export const ISLAND_2_QUESTS: QuestsProps[] = [ // island: **1 (island_1_quests.ts, ISLAND_1_QUESTS, QUEST_1_*)** -> **2 (island_2_quests.ts, ISLAND_2_QUESTS, QUEST_2_*)**, mechanism: greetings/thanks/apologies moved to island 2 Vocabulary / Phrases in docs/curriculum.md, so every quest sets islandId: 2
+    QUEST_2_KONNICHIWA_KANA, QUEST_2_KONNICHIWA_WORD,
+    QUEST_2_ARIGATOU_KANA, QUEST_2_ARIGATOU_WORD,
+    QUEST_2_SUMIMASEN_KANA, QUEST_2_SUMIMASEN_WORD,
+    QUEST_2_GOMENNASAI_KANA, QUEST_2_GOMENNASAI_WORD,
+    QUEST_2_SAYOUNARA_KANA, QUEST_2_SAYOUNARA_WORD,
 ]
-// 1. Basics (greetings, thanks, apologies, すみません): 5 words, each taught
+// 2. Vocabulary / Phrases (greetings, thanks, apologies, すみません): 5 words, each taught
 // by a KANA quest (type A: one round per distinct hiragana, pick the romaji)
 // followed by a WORD quest (type B: one round, pick the English meaning).
 // Kana distractors are look-alikes or same-row/column kana (こ vs く け ご)
