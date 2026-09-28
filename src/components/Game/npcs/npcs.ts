@@ -1,6 +1,7 @@
 import { NPCProps } from "../Entity/npcRenderer";
 import { Dialog } from "../Entity/dialogBubble";
 import { ENT_H, ENT_W } from "../Entity/entityRenderer";
+import { QUEST_H, QUEST_W } from "../Scene/gameScene";
 
 type Line = [ja: string, en: string, audio?: string] // Line: **[ja, en]** -> **+ audio?**, reason: lines play recorded mp3s, mechanism: the file name (no .mp3) in the NPC's public/dialog/<voice>/ folder; left out = silent
 
@@ -81,3 +82,16 @@ export const ISLAND_1_NPC: NPCProps[] = [
 // in a say() pair is the recording's file name (no .mp3): the line in kanji
 // with ！ 、 〜 dropped and ？ kept. A line whose file is missing just fails
 // to load and stays silent
+
+//npcs on the Quest Island
+export const QUEST_ISLAND_NPC: NPCProps[] = [
+    npc('Kaeru', undefined, QUEST_W / 2 + 80, QUEST_H / 2, 'seagreen', [
+        say('greeting', ['おかえり？', 'Heading back?']),
+        ask('quest', [['はい', 'Yes'], ['いいえ', 'No']],
+            ['しまにもどる？', 'Go back to the island?']),
+    ]),
+]
+// Kaeru (かえる, "to go home") stands 80 px right of the Quest Island spawn.
+// Its 'quest' entry reuses the offer flow: here onQuest is the scene's
+// accept action, which QuestScene points back at /Game/<islandId>, so はい
+// leaves and いいえ ends the talk. Silent (no voice) until recorded

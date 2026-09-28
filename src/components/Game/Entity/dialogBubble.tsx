@@ -25,7 +25,7 @@ type DialogBubbleProps = {
 const BUBBLE_GAP = 25
 const BUBBLE_BOARDER = 'black'
 const BUBBLE_TEXT = 'black'
-const BUBBLE_BG = '#fffff2'
+export const BUBBLE_BG = '#fffff2' // scope: **const** -> **export const**, reason: the Quest Island is painted the bubble's color, mechanism: gameScene imports it for QUEST_BG
 
 const BUBBLE_BORDER_W = 2
 const TAIL = 6 // tail height = half its width, so the slanted sides are 45°

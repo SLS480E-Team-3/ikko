@@ -5,7 +5,7 @@ import PlayerRenderer, { PlayerProps } from "../Entity/playerRenderer"
 import FootPrintRenderer from "../Entity/footPrintRenderer"
 import { ENT_H, ENT_W } from "../Entity/entityRenderer" // imports: **ENT_H, ENT_W, EntityRenderer, EntityProps** -> **ENT_H, ENT_W**, reason: NPCs draw through NPCRenderer now, mechanism: NPCProps carries the EntityProps, so neither is used here
 import NPCRenderer, { NPCProps, NPC_TAP_ATTR, pickDialog, talkLines } from "../Entity/npcRenderer" // imports: **+ pickDialog**, mechanism: reads the talk's choices
-import { CHOICE_TAP_ATTR } from "../Entity/dialogBubble"
+import { BUBBLE_BG, CHOICE_TAP_ATTR } from "../Entity/dialogBubble" // imports: **CHOICE_TAP_ATTR** -> **+ BUBBLE_BG**, mechanism: QUEST_BG ground color
 import ObjectRenderer from "../Object/ObjectRenderer"
 import { HitBox, ObjectDef, PlacedObject, applyScale } from "../Object/gameObject"
 import { OBJECTS } from "../Object/objects"
@@ -46,6 +46,13 @@ export const islandBg = (islandId: number): BGProps => ({ ...TEMP_BG, color: ISL
 // color; islandBg is TEMP_BG recolored for one island (unknown id falls
 // back to BG_COLOR). GameScene reads bgProps once at mount, so callers
 // switching islands remount it with key={islandId}
+
+export const QUEST_W = 1_000
+export const QUEST_H = 700
+export const QUEST_BG: BGProps = { x: QUEST_W / 2, y: QUEST_H / 2, w: QUEST_W, h: QUEST_H, color: BUBBLE_BG }
+// the Quest Island a quest opens on: a smaller 1000 x 700 world painted the
+// dialog bubble's bg color. x/y is its center, where the player spawns and
+// the camera starts
 
 // longest frame interval (seconds) one tick will simulate
 const MAX_DT = 1 / 10
@@ -103,9 +110,7 @@ const PLAYER_SPEED = 120 // world px/second
 
 const TEST_PLAYER: PlayerProps = { // in final will be made from db User info
     name: 'Player',
-    ent: {
-        x: BG_W / 2,
-        y: BG_H / 2,
+    ent: { // spawn: **x: BG_W / 2, y: BG_H / 2** -> **no x/y**, reason: the 1000 x 700 Quest Island center is not the island's, mechanism: playerRef fills the spawn from bgProps.x/y
         w: ENT_W,
         h: ENT_H,
         color: 'coral',
@@ -173,7 +178,7 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
 
     const [, force] = useState<number>(0)
 
-    const playerRef = useRef<PlayerProps>({ ...player, ent: player.ent && { ...player.ent } })
+    const playerRef = useRef<PlayerProps>({ ...player, ent: player.ent && { ...player.ent, x: player.ent.x ?? bgProps.x, y: player.ent.y ?? bgProps.y } }) // ent: **{ ...player.ent }** -> **+ x/y ?? bgProps.x/y**, mechanism: a player without a spot spawns at its world's center, so every scene size spawns inside its own bounds
     const inputRef = useRef<Set<string>>(new Set<string>())
     const velocityRef = useRef<{ x: number, y: number }>({ x: 0, y: 0 })
 
