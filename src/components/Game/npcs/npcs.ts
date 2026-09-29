@@ -96,7 +96,8 @@ const ryuukoDialog = (phase: TrainingPhase): Dialog[] => {
         case 'intro': return [
             say('greeting', ['じゅんびはできてる？', 'Ready?', '準備はできてる？']),
             ask('quest', YES_NO, ['じゅんびはできてる？', 'Ready?', '準備はできてる？'], ['いくわよ！', 'Here I go!', 'いくわよ'])]
-        case 'levelUp': return [
+        case 'levelUp':
+        case 'break': return [ // case: **levelUp** -> **+ break**, mechanism: after いいえ Ryuuko repeats the same level-up offer, so はい still starts level 2
             say('greeting', ['よゆうそうね。', 'Looks easy for you.', '余裕そうね']),
             ask('quest', YES_NO, ['よゆうそうね。', 'Looks easy for you.', '余裕そうね'], ['ちょっと早くするわよ', 'Let me speed it up', 'ちょっと早くするわよ'])]
         case 'fail': return [
@@ -116,7 +117,11 @@ const ryuukoDialog = (phase: TrainingPhase): Dialog[] => {
 // whose はい starts or retries a level; play1 / play2 / success have only a
 // greeting, which pickDialog falls back to, so a talk just repeats it
 
-const elenaDialog = (phase: TrainingPhase): Dialog[] => phase === 'fail'
+const elenaDialog = (phase: TrainingPhase): Dialog[] => phase === 'break'
+    ? [say('greeting', ['しまにもどる？', 'Go back to the island?']),
+    ask('quest', YES_NO, ['しまにもどる？', 'Go back to the island?'])]
+    // break: only the go-back offer, no おめでとう since the training isn't done
+    : phase === 'fail'
     ? [say('greeting', ['あきらめますか？', 'Give up?', '諦めますか？']),
     ask('quest', YES_NO, ['あきらめますか？', 'Give up?', '諦めますか？'])]
     : [say('greeting', ['おかえり？', 'Heading back?']),
@@ -128,7 +133,7 @@ const elenaDialog = (phase: TrainingPhase): Dialog[] => phase === 'fail'
 
 export const questIslandNpcs = (w: number, h: number, phase: TrainingPhase): NPCProps[] => {
     const { x: cx, y } = throwSpot(w, h) // spot: **(w / 2, h / 2 - 80)** -> **throwSpot(w, h)**, reason: Ryuuko stands at the top middle, mechanism: the same spot training.ts throws from, so blocks leave her hands
-    const withElena = phase === 'success' || phase === 'fail' || phase === 'again' // elena: **success / fail** -> **+ again**, mechanism: she stays so the player can still leave while Ryuuko offers a replay
+    const withElena = phase === 'success' || phase === 'fail' || phase === 'again' || phase === 'break' // elena: **success / fail** -> **+ again**, mechanism: she stays so the player can still leave while Ryuuko offers a replay // elena: **success / fail / again** -> **+ break**, mechanism: she comes out after いいえ to Ryuuko's level-up offer, standing 60px right of her like success
     const ryuukoX = phase === 'fail' ? cx + 40 : cx
     const elenaX = phase === 'fail' ? cx - 40 : cx + 60
     return [
@@ -139,7 +144,7 @@ export const questIslandNpcs = (w: number, h: number, phase: TrainingPhase): NPC
 // the Quest Island cast for one training phase, on an island sized at
 // runtime (w = innerWidth*2, h = innerHeight*2). Indices are stable because
 // the scene's onChoice gets the npc index: 0 = Ryuuko (always), 1 = Elena
-// (only in success / fail). Everyone stands at throwSpot (middle, a quarter
+// (only in success / fail / again / break). Everyone stands at throwSpot (middle, a quarter
 // down), the player spawns three quarters down: Ryuuko at
 // center, or 40 px right in fail with Elena 40 px left; in success Elena
 // stands 60 px right of Ryuuko. Choices: Ryuuko はい starts / retries a

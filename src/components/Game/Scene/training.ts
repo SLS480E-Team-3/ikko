@@ -7,10 +7,11 @@ import { BUBBLE_BOARDER, BUBBLE_BORDER_W } from "@/components/Game/Entity/dialog
 import { ENT_H } from "@/components/Game/Entity/entityRenderer"
 import { overlaps, type PlayerBox } from "./gameScene"
 
-export type TrainingPhase = 'intro' | 'play1' | 'levelUp' | 'play2' | 'success' | 'fail' | 'again'
+export type TrainingPhase = 'intro' | 'play1' | 'levelUp' | 'break' | 'play2' | 'success' | 'fail' | 'again' // phases: **no break** -> **+ 'break'**, reason: いいえ to Ryuuko's level-up offer did nothing, mechanism: a phase of its own so questIslandNpcs can bring Elena out
 // the Quest Island training's steps: Ryuuko's intro talk, level 1, her
 // level-up talk, level 2, then success (Elena) or fail (Elena + Ryuuko)
 // 'again': after success the player said いいえ to Elena, Ryuuko offers a replay
+// 'break': after level 1 the player said いいえ to Ryuuko, Elena asks whether to go back
 
 export const RYUUKO = 0
 export const ELENA = 1
@@ -176,15 +177,16 @@ export function useTraining({ w, h, onLeave }: { w: number, h: number, onLeave?:
         // the choice index is the level to start from, not はい / いいえ
         if (choice !== 0) {
             if (npc === ELENA && p === 'success') setPhase('again')
+            else if (npc === RYUUKO && p === 'levelUp') { setPhase('break'); talkTo(ELENA) }
             return
-        } // いいえ: **always ignored** -> **Elena's いいえ on success -> 'again'**, mechanism: staying on the island switches Ryuuko to her まだまだいけるでしょ？ offer
+        } // いいえ: **Ryuuko's on levelUp ignored** -> **'break' + talk to Elena**, mechanism: the new phase adds Elena to questIslandNpcs and talkTo opens her しまにもどる？ right away (onChoice runs after endTalk, so the new talk isn't overwritten) // いいえ: **always ignored** -> **Elena's いいえ on success -> 'again'**, mechanism: staying on the island switches Ryuuko to her まだまだいけるでしょ？ offer
         if (npc === RYUUKO) {
             if (p === 'intro') startLevel(0) // again: **no phase** -> **replay from level 1**, mechanism: same startLevel as intro, so counters reset and the player is placed below Ryuuko // again: **はい -> level 1** -> **handled above by choice index**, mechanism: Ryuuko's 'again' offer lists the levels instead of はい / いいえ
-            else if (p === 'levelUp') startLevel(1)
+            else if (p === 'levelUp' || p === 'break') startLevel(1) // levelUp: **only levelUp** -> **+ break**, mechanism: Ryuuko keeps her level-up offer while Elena is out, so はい still starts level 2
             else if (p === 'fail') startLevel(failedRef.current)
         }
-        else if (npc === ELENA && (p === 'fail' || p === 'success' || p === 'again')) onLeaveRef.current?.() // leave: **fail / success** -> **+ again**, mechanism: Elena stays in 'again' with her go-back offer
-    }, [startLevel, setPhase])
+        else if (npc === ELENA && (p === 'fail' || p === 'success' || p === 'again' || p === 'break')) onLeaveRef.current?.() // leave: **fail / success / again** -> **+ break**, mechanism: Elena's はい in 'break' goes back to the island too // leave: **fail / success** -> **+ again**, mechanism: Elena stays in 'again' with her go-back offer
+    }, [startLevel, setPhase, talkTo])
     // はい (choice 0) does most of the work; いいえ just ends the talk and the
     // player can talk again, except Elena's いいえ after success, which moves
     // to 'again' so Ryuuko offers a replay. Ryuuko's はい starts / continues / retries a
