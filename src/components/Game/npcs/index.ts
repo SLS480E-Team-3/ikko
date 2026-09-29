@@ -14,7 +14,7 @@ const mulberry32 = (seed: number) => () => {
 // server and client, so seeded NPC spots never cause a hydration mismatch
 
 const GAP = 4
-const MARGIN = 40
+const MAX_DIST = 450 // max world px from the world center (the player spawn, screen center at load)
 const MAX_TRIES = 1000
 const clear = (x: number, y: number, b: { x: number, y: number, w: number, h: number }) =>
     x + ENT_W / 2 + GAP <= b.x || x - ENT_W / 2 - GAP >= b.x + b.w || y + ENT_H / 2 + GAP <= b.y || y - ENT_H / 2 - GAP >= b.y + b.h
@@ -31,16 +31,17 @@ export const placeNpcs = (base: NPCProps[], islandId: number): NPCProps[] => {
     return base.map(n => {
         let x = BG_W / 2, y = BG_H / 2
         for (let i = 0; i < MAX_TRIES; i++) {
-            x = Math.round(MARGIN + rand() * (BG_W - MARGIN * 2))
-            y = Math.round(MARGIN + rand() * (BG_H - MARGIN * 2))
+            const r = MAX_DIST * Math.sqrt(rand()), a = rand() * Math.PI * 2
+            x = Math.round(BG_W / 2 + r * Math.cos(a)) // spot: **anywhere in the world (MARGIN px from the edges)** -> **within MAX_DIST px of the world center**, mechanism: a random angle + radius around the spawn; sqrt(rand) spreads spots evenly over the disc instead of bunching at the center
+            y = Math.round(BG_H / 2 + r * Math.sin(a))
             if (boxes.every(b => clear(x, y, b))) break
         }
         boxes.push({ x: x - ENT_W / 2, y: y - ENT_H / 2, w: ENT_W, h: ENT_H })
         return { ...n, ent: { ...n.ent, x, y } }
     })
 }
-// seeded random spot per NPC anywhere in the world (MARGIN px from the
-// edges): the island id seeds the PRNG, so each island's spots are fixed
+// seeded random spot per NPC within MAX_DIST px of the world center
+// (the player spawn): the island id seeds the PRNG, so each island's spots are fixed
 // across loads but differ between islands. A spot is retried while it
 // overlaps an object hitBox, the player spawn body (world center) or an
 // NPC already placed (each placed body joins boxes). MAX_TRIES caps the
