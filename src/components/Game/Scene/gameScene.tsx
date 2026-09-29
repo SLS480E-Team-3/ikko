@@ -48,9 +48,9 @@ export const islandBg = (islandId: number): BGProps => ({ ...TEMP_BG, color: ISL
 // back to BG_COLOR). GameScene reads bgProps once at mount, so callers
 // switching islands remount it with key={islandId}
 
-export const questBg = (w: number, h: number): BGProps => ({ x: w / 2, y: h * 3 / 4, w, h, color: BUBBLE_BG, border: true }) // QUEST_BG: **fixed 1000 x 700 const** -> **questBg(w, h)**, reason: the island is 2x the screen, mechanism: the caller measures the window and passes the size; color is BUBBLE_BG ('#fffff2') and border: true draws the bubble's black edge
+export const questBg = (w: number, h: number): BGProps => ({ x: w / 2, y: h / 4 + 300, w, h, color: BUBBLE_BG, border: true }) // QUEST_BG: **fixed 1000 x 700 const** -> **questBg(w, h)**, reason: the island is 2x the screen, mechanism: the caller measures the window and passes the size; color is BUBBLE_BG ('#fffff2') and border: true draws the bubble's black edge
 // the Quest Island a quest opens on, painted the dialog bubble's bg color.
-// x/y is where the player spawns and the camera starts // spawn: **island center (h / 2)** -> **bottom middle (h - 80)**, reason: Ryuuko throws from the top middle, mechanism: bgProps.x/y is only read as the player's spawn and the camera's start, so moving it moves just those // spawn: **bottom middle (h - 80)** -> **partway up (h * 3 / 4)**, reason: the walk to Ryuuko was ~25s, mechanism: half the island (one screen) below her at h / 4, about a 7s walk
+// x/y is where the player spawns and the camera starts // spawn: **island center (h / 2)** -> **bottom middle (h - 80)**, reason: Ryuuko throws from the top middle, mechanism: bgProps.x/y is only read as the player's spawn and the camera's start, so moving it moves just those // spawn: **bottom middle (h - 80)** -> **partway up (h * 3 / 4)**, reason: the walk to Ryuuko was ~25s, mechanism: half the island (one screen) below her at h / 4, about a 7s walk // spawn: **h * 3 / 4** -> **h / 4 + 300**, reason: arrive 300px from Ryuuko, mechanism: h / 4 is her y (throwSpot), so the player starts 300px straight below her; throwSpot isn't imported here since training.ts already imports gameScene
 
 // longest frame interval (seconds) one tick will simulate
 const MAX_DT = 1 / 10
