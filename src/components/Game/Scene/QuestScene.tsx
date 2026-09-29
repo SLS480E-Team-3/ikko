@@ -3,9 +3,7 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import QuestComplete from "../questComplete"
-import GameScene, { QUEST_BG } from "./gameScene"
-import { BUBBLE_BG } from "../Entity/dialogBubble"
-import { QUEST_ISLAND_NPC } from "../npcs/npcs"
+import QuestIsland from "./questIsland" // imports: **GameScene, QUEST_BG, BUBBLE_BG, QUEST_ISLAND_NPC** -> **QuestIsland**, mechanism: QuestIsland owns the bg, NPCs and training
 
 export type QuestSceneProps = {
     islandId: number
@@ -19,22 +17,20 @@ export type QuestSceneProps = {
 export default function QuestScene({ islandId, quest, cleared }: QuestSceneProps) {
     const router = useRouter()
     return (
-        <div style={{ position: 'relative', width: '100%', height: '100lvh', background: BUBBLE_BG }}> {/* wrapper: **flex column page** -> **relative 100lvh div, BUBBLE_BG**, reason: the quest plays on the Quest Island, mechanism: same box IslandScene gives GameScene; the bubble color hides the lightgreen html bg around a world smaller than the screen */}
-            <GameScene bgProps={QUEST_BG} npcs={QUEST_ISLAND_NPC} onQuest={() => router.push(`/Game/${islandId}`)} />
-            {/* the 1000 x 700 Quest Island; Kaeru's はい runs onQuest, which
-                goes back to the island this quest belongs to */}
-            <div style={{ position: 'absolute', top: 16, left: 16, zIndex: 2, display: 'flex', flexDirection: 'column', gap: 8 }}> {/* overlay: **page content** -> **absolute top-left**, mechanism: floats over the scene like IslandScene's quest list */}
+        <div style={{ position: 'relative', width: '100%', height: '100lvh' }}> {/* wrapper: **BUBBLE_BG** -> **no bg**, mechanism: QuestIsland fills this box with the bubble color itself and measures it for the 2x island */}
+            <QuestIsland onLeave={() => router.push(`/Game/${islandId}`)}>
+                {!cleared && <div style={{ position: 'absolute', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 3 }}><QuestComplete quest={quest.id} points={quest.reward_points} /></div>}
+            </QuestIsland>
+            {/* scene: **<GameScene QUEST_BG> + onQuest** -> **<QuestIsland> + onLeave**, mechanism: Elena's はい on the fail screen goes back to the island; the children are the success slot, so COMPLETE shows only after both levels are cleared */}
+            <div style={{ position: 'absolute', top: 16, left: 16, zIndex: 2, display: 'flex', flexDirection: 'column', gap: 8 }}> {/* overlay: **absolute top-left** -> unchanged; placeholder text removed, mechanism: the training is the content now */}
                 <Link href={`/Game/${islandId}`}>{'<-'}</Link>
-                <div>{quest.title}</div>
-                <div style={{ fontSize: '0.75rem' }}>quest content goes here</div>
-                {cleared
-                    ? <div style={{ fontSize: '0.75rem' }}>cleared!</div>
-                    : <QuestComplete quest={quest.id} points={quest.reward_points} />}
+                {/* <div>{quest.title}</div> */}
+                {cleared && <div style={{ fontSize: '0.75rem' }}>cleared!</div>}
             </div>
         </div>
     )
     // the back arrow is "pause": nothing to save beyond the updated_at the
     // page already wrote, so it's a plain link to the island, where this
-    // quest now shows "(resume)". The content is a placeholder until lessons
-    // are designed; a cleared quest can be reopened but not claimed twice
+    // quest now shows "(resume)". The training can be replayed on a cleared
+    // quest, but COMPLETE only shows when it isn't cleared, so no double claim
 }

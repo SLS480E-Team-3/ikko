@@ -1,11 +1,11 @@
 'use client'
 
-import { PointerEvent, useEffect, useMemo, useRef, useState } from "react" // imports: **no PointerEvent** -> **+ PointerEvent**, reason: MobileGameScene merged in, mechanism: types the joystick/pinch handlers that moved here
+import { PointerEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react" // imports: **no PointerEvent** -> **+ PointerEvent**, reason: MobileGameScene merged in, mechanism: types the joystick/pinch handlers that moved here
 import PlayerRenderer, { PlayerProps } from "../Entity/playerRenderer"
 import FootPrintRenderer from "../Entity/footPrintRenderer"
 import { ENT_H, ENT_W } from "../Entity/entityRenderer" // imports: **ENT_H, ENT_W, EntityRenderer, EntityProps** -> **ENT_H, ENT_W**, reason: NPCs draw through NPCRenderer now, mechanism: NPCProps carries the EntityProps, so neither is used here
 import NPCRenderer, { NPCProps, NPC_TAP_ATTR, pickDialog, talkLines } from "../Entity/npcRenderer" // imports: **+ pickDialog**, mechanism: reads the talk's choices
-import { BUBBLE_BG, CHOICE_TAP_ATTR } from "../Entity/dialogBubble" // imports: **CHOICE_TAP_ATTR** -> **+ BUBBLE_BG**, mechanism: QUEST_BG ground color
+import { BUBBLE_BG, BUBBLE_BOARDER, BUBBLE_BORDER_W, CHOICE_TAP_ATTR } from "../Entity/dialogBubble" // imports: **CHOICE_TAP_ATTR** -> **+ BUBBLE_BG**, mechanism: QUEST_BG ground color // imports: **+ BUBBLE_BOARDER, BUBBLE_BORDER_W**, mechanism: the border BGProps.border draws
 import ObjectRenderer from "../Object/ObjectRenderer"
 import { HitBox, ObjectDef, PlacedObject, applyScale } from "../Object/gameObject"
 import { OBJECTS } from "../Object/objects"
@@ -19,6 +19,7 @@ export type BGProps = {
 
     color: string,
     img?: string, // something not gameObject and no interfearance to entity: particles, leafs, grass, rain
+    border?: boolean, // border: **none** -> **optional**, reason: the Quest Island has a black square edge like DialogBubble, mechanism: the world div draws BUBBLE_BORDER_W of BUBBLE_BOARDER inside its box (border-box), so the playable size stays w x h
 }
 
 export const BG_H = 2_000 // size: **10_000** -> **2_000**, reason: every island is the same 1400 x 2000 world, mechanism: TEMP_BG, islandBg and the TEST_PLAYER spawn all derive from BG_W / BG_H // export: **local** -> **exported**, reason: MobileTester places test NPCs around the spawn point, mechanism: named export like BG_COLOR
@@ -47,12 +48,9 @@ export const islandBg = (islandId: number): BGProps => ({ ...TEMP_BG, color: ISL
 // back to BG_COLOR). GameScene reads bgProps once at mount, so callers
 // switching islands remount it with key={islandId}
 
-export const QUEST_W = 1_000
-export const QUEST_H = 700
-export const QUEST_BG: BGProps = { x: QUEST_W / 2, y: QUEST_H / 2, w: QUEST_W, h: QUEST_H, color: BUBBLE_BG } //same color as '#fffff2'
-// the Quest Island a quest opens on: a smaller 1000 x 700 world painted the
-// dialog bubble's bg color. x/y is its center, where the player spawns and
-// the camera starts
+export const questBg = (w: number, h: number): BGProps => ({ x: w / 2, y: h * 3 / 4, w, h, color: BUBBLE_BG, border: true }) // QUEST_BG: **fixed 1000 x 700 const** -> **questBg(w, h)**, reason: the island is 2x the screen, mechanism: the caller measures the window and passes the size; color is BUBBLE_BG ('#fffff2') and border: true draws the bubble's black edge
+// the Quest Island a quest opens on, painted the dialog bubble's bg color.
+// x/y is where the player spawns and the camera starts // spawn: **island center (h / 2)** -> **bottom middle (h - 80)**, reason: Ryuuko throws from the top middle, mechanism: bgProps.x/y is only read as the player's spawn and the camera's start, so moving it moves just those // spawn: **bottom middle (h - 80)** -> **partway up (h * 3 / 4)**, reason: the walk to Ryuuko was ~25s, mechanism: half the island (one screen) below her at h / 4, about a 7s walk
 
 // longest frame interval (seconds) one tick will simulate
 const MAX_DT = 1 / 10
@@ -107,6 +105,11 @@ type Stick = { base: { x: number, y: number }, knob: { x: number, y: number } }
 const VIEWPORT_FOLLOW_RATE = 0.1
 
 const PLAYER_SPEED = 120 // world px/second
+const SPRINT = 1.5
+// speed multiplier while Shift (either side) is held
+const STICK_SPRINT_PUSH = 0.99
+// stick length that counts as max tilt: the knob is clamped to the ring, so a
+// full push is exactly 1; 0.99 absorbs float rounding at the edge
 
 const TEST_PLAYER: PlayerProps = { // in final will be made from db User info
     name: 'Player',
@@ -149,7 +152,7 @@ type Talk = { i: number, line: number, savedZoom: number }
 // i = index of the NPC being talked to, line = the talk line shown,
 // savedZoom = the zoom target before the talk, restored when it ends
 
-const overlaps = (cx: number, cy: number, w: number, h: number, box: HitBox, pad = 0) =>
+export const overlaps = (cx: number, cy: number, w: number, h: number, box: HitBox, pad = 0) =>
     cx - w / 2 < box.x + box.w + pad && cx + w / 2 > box.x - pad &&
     cy - h / 2 < box.y + box.h + pad && cy + h / 2 > box.y - pad
 // entities are center-anchored (EntityRenderer's translate(-50%,-50%)) and
@@ -171,7 +174,10 @@ export const objectHitBoxes = (objects: PlacedObject[]): HitBox[] => objects.fla
 // the scene's own solids use; unknown kinds and walk-through objects give
 // none. Exported so callers (MobileTester's NPC spots) can keep clear of them
 
-export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sensitivity = SENSITIVITY_DEF, objects = NO_OBJECTS, npcs = NO_NPCS, onQuest }: { bgProps?: BGProps, player?: PlayerProps, screenSize?: { w: number, h: number }, sensitivity?: number, objects?: PlacedObject[], npcs?: SceneNPC[], onQuest?: () => void }) { // props: **no onQuest** -> **onQuest?**, reason: NPCs offer the island's next quest, mechanism: called when the player picks choice 0 (はい); left out = no quest open, so NPCs skip their 'quest' entry // props: **moveInput?, zoomInput?** -> **sensitivity?**, reason: MobileGameScene merged into GameScene so edits happen in one place, mechanism: the joystick and pinch live here now and write to the scene's own stickRef / zoomTarget, so no caller passes refs in; sensitivity is the one knob MobileGameScene had on top // props: **no npcs** -> **npcs?**, reason: entities with dialog in the scene, mechanism: each is drawn with EntityRenderer at its bottom-edge zIndex like the player; optional so a bare <GameScene /> has none // props: **no objects** -> **objects?**, reason: an island draws its map, mechanism: a PlacedObject list (island_N.ts) resolved against the OBJECTS catalog below; optional so a bare <GameScene /> is an empty field
+export type PlayerBox = { x: number, y: number, w: number, h: number }
+// the player's center + size handed to onTick, same shape overlaps() reads
+
+export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sensitivity = SENSITIVITY_DEF, objects = NO_OBJECTS, npcs = NO_NPCS, onQuest, onChoice, onTick, renderWorld, talkRequest }: { bgProps?: BGProps, player?: PlayerProps, screenSize?: { w: number, h: number }, sensitivity?: number, objects?: PlacedObject[], npcs?: SceneNPC[], onQuest?: () => void, onChoice?: (npc: number, choice: number) => void, onTick?: (dt: number, player: PlayerBox) => void, renderWorld?: () => ReactNode, talkRequest?: { npc: number, key: number } }) { // props: **no onChoice / onTick / renderWorld / talkRequest** -> **optional hooks**, reason: the Quest Island runs a minigame on top of the scene, mechanism: onChoice gets every choice tap (npc index, choice index), onTick runs each frame after the player moves, renderWorld draws extra world-px children, talkRequest opens a talk with an NPC when its key changes; islands pass none, so they behave as before // props: **no onQuest** -> **onQuest?**, reason: NPCs offer the island's next quest, mechanism: called when the player picks choice 0 (はい); left out = no quest open, so NPCs skip their 'quest' entry // props: **moveInput?, zoomInput?** -> **sensitivity?**, reason: MobileGameScene merged into GameScene so edits happen in one place, mechanism: the joystick and pinch live here now and write to the scene's own stickRef / zoomTarget, so no caller passes refs in; sensitivity is the one knob MobileGameScene had on top // props: **no npcs** -> **npcs?**, reason: entities with dialog in the scene, mechanism: each is drawn with EntityRenderer at its bottom-edge zIndex like the player; optional so a bare <GameScene /> has none // props: **no objects** -> **objects?**, reason: an island draws its map, mechanism: a PlacedObject list (island_N.ts) resolved against the OBJECTS catalog below; optional so a bare <GameScene /> is an empty field
     // props are optional (?) because they have defaults -- lets a page mount
     // a bare <GameScene /> while the db-backed bg/player aren't wired yet.
     // screenSize has no default and isn't read yet, so it's undefined for now
@@ -263,8 +269,13 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
             const vel = velocityRef.current
             const stick = stickRef.current // source: **moveInput?.current** -> **stickRef.current**, reason: the joystick moved in here, mechanism: same -1..1 vector, now from the scene's own ref
             const useStick = stick.x !== 0 || stick.y !== 0
-            vel.x = (useStick ? stick.x : dx / len) * PLAYER_SPEED // input: **keys only** -> **stick while pushed, else keys**, reason: phones have no keyboard, mechanism: stick length <= 1 so a half push walks at half speed (analog); stickRef is a stable ref so reading it from this mount-time closure stays current
-            vel.y = (useStick ? stick.y : dy / len) * PLAYER_SPEED // input: **keys only** -> **stick while pushed, else keys**, reason: same as vel.x, mechanism: same as vel.x
+            const sprinting = keys.has('ShiftLeft') || keys.has('ShiftRight') || (useStick && Math.hypot(stick.x, stick.y) >= STICK_SPRINT_PUSH)
+            const speed = PLAYER_SPEED * (sprinting ? SPRINT : 1) // sprint: **Shift only** -> **Shift or stick at max tilt**, reason: phones have no Shift, mechanism: the stick vector's length hits 1 when the knob sits on the ring, so pushing to the edge jumps to SPRINT; below that it stays analog 0..1x
+            // Shift sprints: keys holds e.code, so ShiftLeft / ShiftRight are
+            // already tracked by the keydown/keyup listeners; applies to the
+            // stick too when a keyboard is attached
+            vel.x = (useStick ? stick.x : dx / len) * speed // speed: **PLAYER_SPEED** -> **speed**, mechanism: PLAYER_SPEED x SPRINT while Shift is held // input: **keys only** -> **stick while pushed, else keys**, reason: phones have no keyboard, mechanism: stick length <= 1 so a half push walks at half speed (analog); stickRef is a stable ref so reading it from this mount-time closure stays current
+            vel.y = (useStick ? stick.y : dy / len) * speed // speed: **PLAYER_SPEED** -> **speed**, mechanism: same as vel.x // input: **keys only** -> **stick while pushed, else keys**, reason: same as vel.x, mechanism: same as vel.x
             const talk = talkRef.current
             const talkEnt = talk && npcsRef.current[talk.i]?.ent
             if (talk) {
@@ -287,14 +298,19 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
                 const x = ent.x ?? 0
                 const y = ent.y ?? 0
                 const nx = Math.min(Math.max(x + vel.x * dt, ent.w / 2), bg.w - ent.w / 2)
-                if (!solidsRef.current.some(s => overlaps(nx, y, ent.w, ent.h, s))) ent.x = nx // move: **always** -> **only if the new x hits no hitBox**, mechanism: a blocked step is dropped, so the player stops at the object's edge
+                if (!solidsRef.current.some(s => overlaps(nx, y, ent.w, ent.h, s) && !overlaps(x, y, ent.w, ent.h, s))) ent.x = nx // move: **always** -> **only if the new x hits no hitBox**, mechanism: a blocked step is dropped, so the player stops at the object's edge // block: **any hitBox at the new x** -> **only one the player isn't already inside**, reason: Quest Island NPCs appear mid-game and can spawn on top of the player, mechanism: a box already overlapping doesn't block, so the player can walk out of it instead of freezing
                 const ny = Math.min(Math.max(y + vel.y * dt, ent.h / 2), bg.h - ent.h / 2)
-                if (!solidsRef.current.some(s => overlaps(ent.x ?? x, ny, ent.w, ent.h, s))) ent.y = ny // move: **always** -> **only if the new y hits no hitBox**, mechanism: same as x
+                if (!solidsRef.current.some(s => overlaps(ent.x ?? x, ny, ent.w, ent.h, s) && !overlaps(ent.x ?? x, y, ent.w, ent.h, s))) ent.y = ny // move: **always** -> **only if the new y hits no hitBox**, mechanism: same as x // block: **any hitBox** -> **one not already overlapped**, mechanism: same as x
+                onTickRef.current?.(dt, { x: ent.x ?? 0, y: ent.y ?? 0, w: ent.w, h: ent.h })
             }
+            // onTick: the minigame hook (Quest Island training) runs here, after
+            // the player moved, with the same clamped dt, so its blocks share
+            // the scene's clock. Read through a ref because this tick is set up
+            // once at mount
             // x and y are tried separately, so pushing diagonally into a wall
             // still slides along it on the free axis. A step is at most
-            // PLAYER_SPEED * MAX_DT = 12px, less than any hitBox, so the
-            // player can't skip through one in a single frame
+            // PLAYER_SPEED * SPRINT * MAX_DT = 18px, so a hitBox thinner than
+            // that could be skipped in one very slow frame while sprinting // step: **12px** -> **18px**, mechanism: Shift raises the top speed 1.5x
             // position += velocity * dt keeps speed the same at any frame
             // rate; clamped to 0..bg.w/h so the player can't leave the world
 
@@ -453,7 +469,7 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
     // index of the dialog choice button under the tap, or null; same rect
     // test as tappedNpc (the buttons only exist once DialogBubble shows them)
 
-    const questOpen = !!onQuest
+    const questOpen = !!onQuest || !!onChoice // questOpen: **!!onQuest** -> **+ !!onChoice**, reason: the Quest Island answers choices through onChoice only, mechanism: either hook means someone listens to はい / いいえ, so NPCs play their 'quest' entry
 
     const endTalk = (talk: { i: number, savedZoom: number }) => {
         zoomTarget.current = talk.savedZoom
@@ -462,6 +478,26 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
     }
     // restores the saved zoom and ends the talk; shared by the last-line tap
     // and the choice buttons
+
+    const startTalk = (i: number) => {
+        talkRef.current = { i, line: 0, savedZoom: zoomTarget.current }
+        release()
+    }
+    // opens a talk with NPC i from line 0, saving the zoom to go back to and
+    // letting go of the stick so the player stops. Shared by pressSpace,
+    // tapNpc and talkRequest
+
+    useEffect(() => {
+        if (talkRequest && npcs[talkRequest.npc]) startTalk(talkRequest.npc)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [talkRequest?.key])
+    // talkRequest: a parent opens a talk without the player walking over
+    // (Ryuuko's level-up lines, the fail prompt). Keyed so the same NPC can
+    // be requested again; runs after the render that brought the new npcs in
+
+    const onTickRef = useRef(onTick)
+    onTickRef.current = onTick
+    // latest onTick for the mount-time rAF tick
 
     const nearNpc = (n: SceneNPC) => {
         const p = playerRef.current.ent
@@ -489,8 +525,7 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
             if (nearNpc(n) && d < best) { hit = i; best = d }
         })
         if (hit === null) return
-        talkRef.current = { i: hit, line: 0, savedZoom: zoomTarget.current }
-        release()
+        startTalk(hit) // start: **inline talkRef + release** -> **startTalk(hit)**, mechanism: same two steps, shared with tapNpc and talkRequest
     }
     spaceRef.current = pressSpace
     // keyboard twin of tapNpc. Not talking: starts a talk with the in-range
@@ -511,6 +546,7 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
                 if (choice !== null && talkReady()) {
                     endTalk(talk)
                     if (choice === 0) onQuest?.()
+                    onChoice?.(talk.i, choice) // choice: **only 0 -> onQuest** -> **+ every choice to onChoice**, reason: the Quest Island routes はい / いいえ per NPC, mechanism: called after endTalk, so a handler can open the next talk (talkRequest) without this one overwriting it
                 }
             }
             else if (hit === talk.i && talkReady()) {
@@ -520,8 +556,7 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
             return true
         }
         if (hit === null) return false
-        talkRef.current = { i: hit, line: 0, savedZoom: zoomTarget.current }
-        release()
+        startTalk(hit) // start: **inline talkRef + release** -> **startTalk(hit)**, mechanism: same two steps, shared with pressSpace and talkRequest
         return true
     }
     // true = the tap belonged to the talk and must not start the stick.
@@ -630,9 +665,13 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
                     // camera point is now the viewport ref (eased toward the
                     // player in the tick) instead of the fixed bg center
                     transformOrigin: '0 0',
-                    backgroundColor: bg.color
+                    backgroundColor: bg.color,
+                    ...(bg.border && { border: `${BUBBLE_BORDER_W}px solid ${BUBBLE_BOARDER}`, boxSizing: 'border-box' }) // border: **none** -> **bubble edge when bg.border**, mechanism: border-box keeps the div bg.w x bg.h, so world px and the clamp are unchanged
                 }}
             >
+                {renderWorld?.()}
+                {/* renderWorld: extra world-px children (training blocks), redrawn
+                    every frame since the tick force()-renders */}
                 {placed.map(({ obj, def }) => <ObjectRenderer key={obj.id} obj={obj} def={def} />)}
                 {/* objects, each with a zIndex of its bottom edge */}
                 <div style={{ position: 'absolute', left: 0, top: 0, zIndex: 0 }}>

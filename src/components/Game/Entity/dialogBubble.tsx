@@ -23,13 +23,13 @@ type DialogBubbleProps = {
 // the same x/y/h it gives EntityRenderer and the bubble finds the top itself
 
 const BUBBLE_GAP = 25
-const BUBBLE_BOARDER = 'black'
+export const BUBBLE_BOARDER = 'black' // scope: **const** -> **export const**, reason: the Quest Island border and the char blocks share the bubble's style, mechanism: named export like BUBBLE_BG
 const BUBBLE_TEXT = 'black'
 export const BUBBLE_BG = '#fffff2' // scope: **const** -> **export const**, reason: the Quest Island is painted the bubble's color, mechanism: gameScene imports it for QUEST_BG
 
-const BUBBLE_BORDER_W = 2
+export const BUBBLE_BORDER_W = 2 // scope: **const** -> **export const**, mechanism: see BUBBLE_BOARDER
 const TAIL = 6 // tail height = half its width, so the slanted sides are 45°
-const BUBBLE_SHADOW = 'rgba(0,0,0,0.18)'
+export const BUBBLE_SHADOW = 'rgba(0,0,0,0.18)' // scope: **const** -> **export const**, mechanism: see BUBBLE_BOARDER
 const SEAM = 1 // SEAM: **none** -> **1**, mechanism: how far (world px) the fill triangle reaches up into the body fill, so the anti-aliased seam between them is hidden
 const TAIL_INNER = Math.round(TAIL + BUBBLE_BORDER_W - BUBBLE_BORDER_W * Math.SQRT2)
 // world px. TAIL_INNER is the fill triangle: it starts BUBBLE_BORDER_W higher

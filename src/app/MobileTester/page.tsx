@@ -25,7 +25,7 @@ import {
     XIAOMI_15_PRO_SCREEN,
 } from "@/utils/mobileScreenSIze"
 import { CSSProperties, ReactNode, useState, useSyncExternalStore } from "react" // imports: **useState** -> **+ useSyncExternalStore**, mechanism: see mounted
-import GameScene, { BG_W, BG_H, SceneNPC, objectHitBoxes, SENSITIVITY_DEF, ISLAND_COUNT, islandBg, QUEST_BG } from "@/components/Game/Scene/gameScene" // imports: **default only** -> **+ BG_W, BG_H, SceneNPC, objectHitBoxes, SENSITIVITY_DEF**, mechanism: places the test NPCs around the player spawn (world center), clear of the map's object hitBoxes; SENSITIVITY_DEF seeds the sensitivity input (moved here with the MobileGameScene merge)
+import GameScene, { BG_W, BG_H, SceneNPC, objectHitBoxes, SENSITIVITY_DEF, ISLAND_COUNT, islandBg } from "@/components/Game/Scene/gameScene" // imports: **+ QUEST_BG** -> **removed**, mechanism: the quest island is QuestIsland now, which sizes its own bg // imports: **default only** -> **+ BG_W, BG_H, SceneNPC, objectHitBoxes, SENSITIVITY_DEF**, mechanism: places the test NPCs around the player spawn (world center), clear of the map's object hitBoxes; SENSITIVITY_DEF seeds the sensitivity input (moved here with the MobileGameScene merge)
 import SignUpPage from "@/app/SignUp/page"
 import LogInPage from "@/app/LogIn/page"
 import InfoRecovery from "@/app/InfoRecovery/page"
@@ -33,7 +33,8 @@ import EditInfo from "@/app/EditInfo/page"
 import { ISLAND_MAPS } from "@/components/Game/islands"
 import { BUBBLE_BG } from "@/components/Game/Entity/dialogBubble"
 import NPCRenderer from "@/components/Game/Entity/npcRenderer"
-import { ISLAND_1_NPC, QUEST_ISLAND_NPC } from "@/components/Game/npcs/npcs" // imports: **ISLAND_1_NPC** -> **+ QUEST_ISLAND_NPC**, mechanism: the quest island tab
+import { ISLAND_1_NPC } from "@/components/Game/npcs/npcs" // imports: **+ QUEST_ISLAND_NPC** -> **ISLAND_1_NPC**, mechanism: QuestIsland builds its own NPCs from the training phase
+import QuestIsland from "@/components/Game/Scene/questIsland"
 import { ISLAND_NPCS } from "@/components/Game/npcs" // imports: **none** -> **ISLAND_NPCS**, mechanism: seeded per-island NPC spots for IslandPreview // imports: **none** -> **ISLAND_1_NPC**, mechanism: see the game scene page
 import EntityRenderer, { ENT_H } from "@/components/Game/Entity/entityRenderer"
 
@@ -62,7 +63,7 @@ const PHONES: { label: string; screen: CSSProperties }[] = [
 
 const PAGES: { label: string; page: (sensitivity: number) => ReactNode }[] = [ // type: **page: ReactNode** -> **page: (sensitivity) => ReactNode**, reason: the sensitivity input must reach GameScene, mechanism: a prebuilt element is frozen with its props, so each page is built at render time from the current input
     { label: 'game scene', page: (s) => <IslandPreview sensitivity={s} /> }, // page: **<GameScene island 1>** -> **<IslandPreview>**, mechanism: same scene wrapped with prev/next island buttons // npcs: **TEST_NPCS** -> **ISLAND_1_NPC**, reason: test the real island 1 NPCs without logging in to /Game, mechanism: the same list IslandScene passes for island 1
-    { label: 'quest island', page: (s) => <GameScene bgProps={QUEST_BG} npcs={QUEST_ISLAND_NPC} sensitivity={s} onQuest={() => alert('back to island')} /> },
+    { label: 'quest island', page: (s) => <QuestIsland sensitivity={s} onLeave={() => alert('back to island')} /> }, // page: **<GameScene QUEST_BG>** -> **<QuestIsland>**, mechanism: the 2x-screen bordered island with Ryuuko's training; Elena's はい on the fail screen runs onLeave
     // the 1000 x 700 Quest Island without logging in; Kaeru's はい alerts
     // instead of routing back
     { label: 'sign up', page: () => <SignUpPage /> },
@@ -123,8 +124,8 @@ function IslandPreview({ sensitivity }: { sensitivity: number }) {
     const btn: CSSProperties = { padding: '8px 12px' }
     if (inQuest) return (
         <div style={{ position: 'relative', width: '100%', height: '100%', background: BUBBLE_BG }}>
-            <GameScene key={`quest-${island}`} sensitivity={sensitivity} bgProps={QUEST_BG} npcs={QUEST_ISLAND_NPC} onQuest={() => setInQuest(false)} />
-            <span style={{ position: 'absolute', top: 16, left: 16, zIndex: 2 }}>quest island (from island {island})</span>
+            <QuestIsland key={`quest-${island}`} sensitivity={sensitivity} onLeave={() => setInQuest(false)} /> {/* scene: **<GameScene QUEST_BG>** -> **<QuestIsland>**, mechanism: same training island as the tab; onLeave returns to the island in place */}
+            {/* <span style={{ position: 'absolute', top: 16, left: 16, zIndex: 2 }}>quest island (from island {island})</span> */} {/* label: **shown** -> **commented out**, mechanism: hidden for now; uncomment to show which island the quest came from */}
         </div>
     )
     // Shuto's はい swaps in the Quest Island, Kaeru's はい swaps back to the

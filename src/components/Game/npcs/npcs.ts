@@ -1,7 +1,7 @@
 import { NPCProps } from "../Entity/npcRenderer";
 import { Dialog } from "../Entity/dialogBubble";
 import { ENT_H, ENT_W } from "../Entity/entityRenderer";
-import { QUEST_H, QUEST_W } from "../Scene/gameScene";
+import { throwSpot, type TrainingPhase } from "../Scene/training"; // import: **{ QUEST_H, QUEST_W } from gameScene** -> **type TrainingPhase from training**, mechanism: the quest island is sized at runtime (w, h passed in), and its cast depends on the training phase // import: **type TrainingPhase** -> **+ throwSpot**, mechanism: Ryuuko stands where the blocks are thrown from
 
 type Line = [ja: string, en: string, audio?: string] // Line: **[ja, en]** -> **+ audio?**, reason: lines play recorded mp3s, mechanism: the file name (no .mp3) in the NPC's public/dialog/<voice>/ folder; left out = silent
 
@@ -84,14 +84,52 @@ export const ISLAND_1_NPC: NPCProps[] = [
 // to load and stays silent
 
 //npcs on the Quest Island
-export const QUEST_ISLAND_NPC: NPCProps[] = [
-    npc('Elena', undefined, QUEST_W / 2 + 80, QUEST_H / 2, 'seagreen', [
-        say('greeting', ['おかえり？', 'Heading back?']),
-        ask('quest', [['はい', 'Yes'], ['いいえ', 'No']],
-            ['しまにもどる？', 'Go back to the island?']),
-    ]),
-]
-// Elena stands 80 px right of the Quest Island spawn. // name: **Kaeru (かえる, "to go home")** -> **Elena**, mechanism: matches npc('Elena', ...) above
-// Its 'quest' entry reuses the offer flow: here onQuest is the scene's
-// accept action, which QuestScene points back at /Game/<islandId>, so はい
-// leaves and いいえ ends the talk. Silent (no voice) until recorded
+const YES_NO: [ja: string, en: string][] = [['はい', 'Yes'], ['いいえ', 'No']]
+// the shared はい / いいえ answers for every quest-island offer
+
+const ryuukoDialog = (phase: TrainingPhase): Dialog[] => {
+    switch (phase) {
+        case 'intro': return [
+            say('greeting', ['じゅんびはできてる？', 'Ready?', '準備はできてる？']),
+            ask('quest', YES_NO, ['じゅんびはできてる？', 'Ready?', '準備はできてる？'], ['いくわよ！', 'Here I go!', 'いくわよ'])]
+        case 'levelUp': return [
+            say('greeting', ['よゆうそうね。', 'Looks easy for you.', '余裕そうね']),
+            ask('quest', YES_NO, ['よゆうそうね。', 'Looks easy for you.', '余裕そうね'], ['ちょっと早くするわよ', 'Let me speed it up', 'ちょっと早くするわよ'])]
+        case 'fail': return [
+            say('greeting', ['まだまだいけるでしょ？', 'You can keep going, right?', 'まだまだいけるでしょ？']),
+            ask('quest', YES_NO, ['まだまだいけるでしょ？', 'You can keep going, right?', 'まだまだいけるでしょ？'])]
+        default: return [say('greeting', ['いくわよ！', 'Here I go!', 'いくわよ'])]
+    }
+}
+// Ryuuko's lines per training phase. intro / levelUp / fail carry a 'quest'
+// offer (it wins in pickDialog, since the quest island always has one open)
+// whose はい starts or retries a level; play1 / play2 / success have only a
+// greeting, which pickDialog falls back to, so a talk just repeats it
+
+const elenaDialog = (phase: TrainingPhase): Dialog[] => phase === 'fail'
+    ? [say('greeting', ['あきらめますか？', 'Give up?', '諦めますか？']),
+        ask('quest', YES_NO, ['あきらめますか？', 'Give up?', '諦めますか？'])]
+    : [say('greeting', ['おかえり？', 'Heading back?']),
+        ask('quest', YES_NO, ['しまにもどる？', 'Go back to the island?'])]
+// Elena's lines: 'fail' asks whether to give up, 'success' whether to head
+// back; both はい leave the quest island. She has no voice, so the audio
+// names (kept for when one is recorded) stay silent
+
+export const questIslandNpcs = (w: number, h: number, phase: TrainingPhase): NPCProps[] => {
+    const { x: cx, y } = throwSpot(w, h) // spot: **(w / 2, h / 2 - 80)** -> **throwSpot(w, h)**, reason: Ryuuko stands at the top middle, mechanism: the same spot training.ts throws from, so blocks leave her hands
+    const withElena = phase === 'success' || phase === 'fail'
+    const ryuukoX = phase === 'fail' ? cx + 40 : cx
+    const elenaX = phase === 'fail' ? cx - 40 : cx + 60
+    return [
+        npc('Ryuuko', 'ryuuko', ryuukoX, y, 'crimson', ryuukoDialog(phase)),
+        ...(withElena ? [npc('Elena', undefined, elenaX, y, 'seagreen', elenaDialog(phase))] : []),
+    ]
+}
+// the Quest Island cast for one training phase, on an island sized at
+// runtime (w = innerWidth*2, h = innerHeight*2). Indices are stable because
+// the scene's onChoice gets the npc index: 0 = Ryuuko (always), 1 = Elena
+// (only in success / fail). Everyone stands at throwSpot (middle, a quarter
+// down), the player spawns three quarters down: Ryuuko at
+// center, or 40 px right in fail with Elena 40 px left; in success Elena
+// stands 60 px right of Ryuuko. Choices: Ryuuko はい starts / retries a
+// level, Elena はい leaves the quest island, いいえ ends the talk
