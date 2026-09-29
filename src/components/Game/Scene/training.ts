@@ -2,7 +2,7 @@
 
 import { createElement, Fragment, useCallback, useRef, useState } from "react"
 import CharBlock, { CHAR_BLOCK_SIZE, TargetBubble } from "@/components/Game/Entity/charBlock" // import: **+ TargetBubble**, mechanism: drawn over Ryuuko while a level runs
-import { dialogUrl, playLine } from "@/components/Game/Entity/voice"
+import { dialogUrl, playLine, playSfx } from "@/components/Game/Entity/voice" // import: **+ playSfx**, mechanism: plays the damage sound on its own <audio>
 import { BUBBLE_BOARDER, BUBBLE_BORDER_W } from "@/components/Game/Entity/dialogBubble"
 import { ENT_H } from "@/components/Game/Entity/entityRenderer"
 import { overlaps, type PlayerBox } from "./gameScene"
@@ -41,6 +41,8 @@ const WALL_GAP = 300
 const time = 60_000 //60s
 const quota = 10
 const maxHP = 10
+const DAMAGE_SFX = '/_SFX/tookDamage.mp3'
+// played when a wrong block is caught (public/_SFX/tookDamage.mp3)
 // hp a level starts with; the HUD's hp bar is maxHP hits long
 
 export type QuestsLevel = { target: string, pool: string[], speed: number, every: number }
@@ -68,7 +70,7 @@ export const ROMAJI: Record<string, string> = KANA_ROMAJI // ROMAJI: **あ–お
 
 type Block = { id: number, kana: string, x: number, y: number, vx: number, vy: number }
 
-export type TrainingHud = { target: string, romaji: string, current: number, quota: number, hp: number, maxHP: number, secondsLeft: number, timeFrac: number, playing: boolean } // hud: **no maxHP / timeFrac** -> **+ maxHP, timeFrac**, mechanism: questIsland's bars size their fills as hp / maxHP and timeLeft / time
+export type TrainingHud = { target: string, romaji: string, current: number, quota: number, hp: number, maxHP: number, secondsLeft: number, timeFrac: number, playing: boolean, hurtAt: number } // hud: **no maxHP / timeFrac** -> **+ maxHP, timeFrac**, mechanism: questIsland's bars size their fills as hp / maxHP and timeLeft / time
 
 export function useTraining({ w, h, onLeave, kana = 'あ' }: { w: number, h: number, onLeave?: () => void, kana?: string }) { // args: **no kana (always あ)** -> **kana = 'あ'**, mechanism: the quest's kana picks the levels below
     const [phase, setPhaseState] = useState<TrainingPhase>('intro')
@@ -80,6 +82,8 @@ export function useTraining({ w, h, onLeave, kana = 'あ' }: { w: number, h: num
     // the latest phase and a second tick in the same frame can't re-trigger
 
     const current = useRef(0)
+    const hurtAt = useRef(-Infinity)
+    // performance.now() of the last wrong catch; -Infinity = never hit, so the flash starts faded out
     const hp = useRef(maxHP) // hp: **10** -> **maxHP**, mechanism: one constant the HUD bar also divides by
     const timeLeft = useRef(time)
     const spawnIn = useRef(0)
@@ -158,7 +162,11 @@ export function useTraining({ w, h, onLeave, kana = 'あ' }: { w: number, h: num
             if (b.x < 0 || b.x > w || b.y < 0 || b.y > h) return false
             if (overlaps(player.x, player.y, player.w, player.h, { x: b.x - s / 2, y: b.y - s / 2, w: s, h: s })) {
                 if (b.kana === lv.target) current.current++
-                else hp.current--
+                else {
+                    hp.current--
+                    hurtAt.current = performance.now()
+                    playSfx(DAMAGE_SFX)
+                } // miss: **hp-- only** -> **+ hurtAt stamp and damage sound**, mechanism: the HUD flashes the screen from hurtAt; the sound is on its own <audio> so Ryuuko's kana below still plays
                 playLine(dialogUrl('ryuuko', b.kana)) // voice: **on throw** -> **on catch**, mechanism: Ryuuko says the caught block's kana (right or wrong), so the player hears what they grabbed; the shared <audio> cuts off the previous kana
                 return false
             }
@@ -240,6 +248,7 @@ export function useTraining({ w, h, onLeave, kana = 'あ' }: { w: number, h: num
             secondsLeft: Math.max(0, Math.ceil(timeLeft.current / 1000)),
             timeFrac: Math.min(1, Math.max(0, timeLeft.current / time)),
             playing,
+            hurtAt: hurtAt.current,
         }
     }, [])
     // a snapshot read from the refs at call time, so call it from something

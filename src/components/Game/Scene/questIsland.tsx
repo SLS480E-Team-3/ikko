@@ -10,6 +10,11 @@ const TIMER_H = 8
 const HP_H = TIMER_H * 3
 const TIMER_TOP = 40
 const HP_BOTTOM = 40
+const HP_COLOR = '#ff8a8a'
+const FLASH_MS = 300
+const FLASH_OPACITY = 0.6
+// the damage flash is the hp bar's color over the whole screen, starting at
+// 60% opacity and fading to 0 over 300ms
 // screen px: the timer is a thin strip 40px under the top; the hp bar is 3x
 // as thick, 40px above the bottom
 
@@ -31,11 +36,17 @@ function Hud({ getHud }: { getHud: () => TrainingHud }) {
         return () => cancelAnimationFrame(raf)
     }, [])
     const hud = getHud()
-    if (!hud.playing) return null
+    const flash = FLASH_OPACITY * Math.max(0, 1 - (performance.now() - hud.hurtAt) / FLASH_MS)
+    // linear fade from the last hit; drawn before the playing check so the
+    // hit that ends a level (hp 0 -> fail) still flashes
+    const overlay = flash > 0 && <div style={{ position: 'absolute', inset: 0, zIndex: 3, background: HP_COLOR, opacity: flash, pointerEvents: 'none' }} />
+    // covers the whole box QuestIsland fills (it's position: relative), above the bars, and lets taps through
+    if (!hud.playing) return overlay || null // not playing: **null** -> **overlay || null**, mechanism: a fading flash outlives the level's end
     return (
         <>
+            {overlay}
             <Bar frac={hud.timeFrac} color="cyan" style={{ top: TIMER_TOP, left: '5%', width: '90%', height: TIMER_H }} /> {/* width: **left 0 / right 0 (full screen)** -> **left 5% / width 90%**, mechanism: same inset as the hp bar, so both bars line up */}
-            <Bar frac={hud.hp / hud.maxHP} color="#ff8a8a" style={{ bottom: HP_BOTTOM, left: '5%', width: '90%', height: HP_H }} /> {/* color: **red** -> **#ff8a8a**, mechanism: a bright pastel red, pure red mixed toward white so it stays light and soft on the cream background */}
+            <Bar frac={hud.hp / hud.maxHP} color={HP_COLOR} style={{ bottom: HP_BOTTOM, left: '5%', width: '90%', height: HP_H }} /> {/* color: **'#ff8a8a' literal** -> **HP_COLOR**, mechanism: one constant shared with the damage flash */} {/* color: **red** -> **#ff8a8a**, mechanism: a bright pastel red, pure red mixed toward white so it stays light and soft on the cream background */}
         </>
     ) // hud: **top-right box (target, current/quota, ♥ hp, seconds)** -> **timer + hp bars**, mechanism: timeFrac drives the cyan strip; hp / maxHP drives the red bar, which is 90% of the screen, so one hit is 90 / maxHP % of it. current/quota moved to the player's name tag (playerLabel), the target to the bubble over Ryuuko
 }

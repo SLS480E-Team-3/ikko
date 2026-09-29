@@ -35,3 +35,13 @@ export const stopLine = (url?: string) => {
 // greeting bubble is replaced by a talk bubble (or StrictMode re-runs an
 // effect), the old bubble's cleanup can run after the new clip started, and
 // must not cut it off
+
+export const playSfx = (url: string) => {
+    if (typeof Audio === 'undefined') return
+    const sfx = new Audio(url)
+    sfx.volume = VOLUME
+    sfx.play().catch(() => {})
+}
+// a fresh <audio> per effect, separate from the dialog clip, so a sound
+// effect plays over (and never cuts off) the line that's talking, and two
+// quick hits overlap instead of restarting each other
