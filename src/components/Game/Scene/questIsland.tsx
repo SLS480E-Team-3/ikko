@@ -5,6 +5,7 @@ import GameScene, { questBg } from "./gameScene"
 import { useTraining, TrainingHud } from "./training"
 import { questIslandNpcs } from "../npcs/npcs"
 import { BUBBLE_BG, BUBBLE_BOARDER, BUBBLE_BORDER_W } from "../Entity/dialogBubble"
+import { QUEST_BGM, playBgm, stopBgm } from "../Entity/voice" // imports: **QUEST_BGM, playBgm** -> **+ stopBgm**, mechanism: the island track is stopped on mount // imports: **none** -> **QUEST_BGM, playBgm**, mechanism: clear / fail music in Training
 
 const TIMER_H = 8
 const HP_H = TIMER_H * 3
@@ -57,6 +58,12 @@ function Hud({ getHud }: { getHud: () => TrainingHud }) {
 function Training({ w, h, onLeave, kana, sensitivity, children }: { w: number, h: number, onLeave: () => void, kana?: string, sensitivity?: number, children?: ReactNode }) {
     const t = useTraining({ w, h, onLeave, kana }) // args: **no kana** -> **kana**, mechanism: the quest's kana picks the training's target
     const npcs = questIslandNpcs(w, h, t.phase)
+    const bgm = t.phase === 'success' || t.phase === 'again' ? QUEST_BGM.clear : t.phase === 'fail' ? QUEST_BGM.fail : undefined
+    useEffect(() => bgm ? playBgm(bgm) : undefined, [bgm])
+    // result music: the clear track through 'success' and Ryuuko's replay
+    // offer ('again'), the fail track through 'fail'. The effect depends on
+    // the url, not the phase, so success -> again keeps the same track
+    // playing; starting a level (or leaving) changes it to none and stops it
     return (
         <>
             <GameScene bgProps={questBg(w, h)} npcs={npcs} onChoice={t.onChoice} onTalkEnd={t.onTalkEnd} onTick={t.onTick} renderWorld={t.renderWorld} talkRequest={t.talkRequest} moveRequest={t.moveRequest} wallY={t.wallY} playerLabel={t.playerLabel} sensitivity={sensitivity} /> {/* props: **no playerLabel** -> **t.playerLabel**, mechanism: current/quota replaces the player's name tag while a level runs */} {/* props: **no moveRequest** -> **t.moveRequest**, mechanism: a level start places the player 350px below Ryuuko */} {/* props: **no onTalkEnd** -> **t.onTalkEnd**, mechanism: Ryuuko's success talk ending switches to 'again' */} {/* props: **no wallY** -> **t.wallY**, mechanism: a line below Ryuuko the player can't cross while a level runs */}
@@ -73,6 +80,10 @@ function Training({ w, h, onLeave, kana, sensitivity, children }: { w: number, h
 export default function QuestIsland({ onLeave, kana, sensitivity, children }: { onLeave: () => void, kana?: string, sensitivity?: number, children?: ReactNode }) { // props: **no kana** -> **kana**, mechanism: passed through Training to useTraining; undefined falls back to あ
     const boxRef = useRef<HTMLDivElement>(null)
     const [size, setSize] = useState<{ w: number, h: number }>()
+    useEffect(() => { stopBgm() }, [])
+    // the quest island starts silent: any island track still running (a
+    // cleanup that lost a race, or one left over from a hot reload) is
+    // stopped here, before the result music can start
     useEffect(() => {
         const box = boxRef.current
         const w = box?.clientWidth || window.innerWidth

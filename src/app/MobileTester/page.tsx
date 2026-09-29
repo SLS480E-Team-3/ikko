@@ -24,7 +24,8 @@ import {
     PIXEL_10_PRO_SCREEN,
     XIAOMI_15_PRO_SCREEN,
 } from "@/utils/mobileScreenSIze"
-import { CSSProperties, ReactNode, useState, useSyncExternalStore } from "react" // imports: **useState** -> **+ useSyncExternalStore**, mechanism: see mounted
+import { CSSProperties, ReactNode, useEffect, useState, useSyncExternalStore } from "react" // imports: **+ useSyncExternalStore** -> **+ useEffect**, mechanism: IslandPreview starts the island BGM // imports: **useState** -> **+ useSyncExternalStore**, mechanism: see mounted
+import { ISLAND_BGM, playBgm } from "@/components/Game/Entity/voice" // imports: **none** -> **ISLAND_BGM, playBgm**, mechanism: same track table and player as IslandScene
 import GameScene, { BG_W, BG_H, SceneNPC, objectHitBoxes, SENSITIVITY_DEF, ISLAND_COUNT, islandBg } from "@/components/Game/Scene/gameScene" // imports: **+ QUEST_BG** -> **removed**, mechanism: the quest island is QuestIsland now, which sizes its own bg // imports: **default only** -> **+ BG_W, BG_H, SceneNPC, objectHitBoxes, SENSITIVITY_DEF**, mechanism: places the test NPCs around the player spawn (world center), clear of the map's object hitBoxes; SENSITIVITY_DEF seeds the sensitivity input (moved here with the MobileGameScene merge)
 import SignUpPage from "@/app/SignUp/page"
 import LogInPage from "@/app/LogIn/page"
@@ -128,6 +129,13 @@ function IslandPreview({ sensitivity }: { sensitivity: number }) {
     const npcs = npcsForRow(ISLAND_NPCS[island] ?? [], row)
     const [inQuest, setInQuest] = useState<string | false>(false) // inQuest: **boolean** -> **kana | false**, mechanism: holds the kana of the NPC whose quest was accepted
     const btn: CSSProperties = { padding: '8px 12px' }
+    useEffect(() => {
+        const url = inQuest ? undefined : ISLAND_BGM[island]
+        return url ? playBgm(url) : undefined
+    }, [island, inQuest])
+    // same island BGM as IslandScene: it loops while the island is shown and
+    // stops for the quest island, like the real game leaving for a quest page.
+    // Placed above the early return so the hook order never changes
     if (inQuest) return (
         <div style={{ position: 'relative', width: '100%', height: '100%', background: BUBBLE_BG }}>
             <QuestIsland key={`quest-${island}`} kana={inQuest} sensitivity={sensitivity} onLeave={() => setInQuest(false)} /> {/* scene: **<GameScene QUEST_BG>** -> **<QuestIsland>**, mechanism: same training island as the tab; onLeave returns to the island in place */}
