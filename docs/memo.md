@@ -27,3 +27,5 @@ Same format as Quest A, but the player chooses meanings instead of romaji.
 > **Audio (later):** play the character or word on a correct answer. Not in the first version.
 
 keep this 
+
+ジン＝フリークス（G）：ゲームの最高責任者・総合プロデューサーレイザー（R）：放出系システムや外敵の排除、一坪の海岸線イベントを担当エレナ（E）：出国管理人。港でプレイヤーの島外脱出やクリア手続きを担当イータ（E）：入場管理人。スタート地点でルール説明やクイズを出題ドゥーン（D）：G・I城に住み、クリア報酬の授与や最後のイベントを担当リスト（L）：クイズ大会優勝者をドゥーンの部屋へ案内する役割

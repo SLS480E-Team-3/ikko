@@ -28,6 +28,7 @@ Then open `.env` in an editor and paste your key as `GEMINI_API_KEY=...`.
 | `python voice.py create jordi --from voices.json` | Same, but reads the profile from a file instead of asking. The file can be `voices.json` (the entry is picked by name) or a flat profile JSON. |
 | `python voice.py list` | Shows every voice and its `voice_id`, or "not created". |
 | `python dialog.py write "ordering ramen" --speakers jordi,kaito` | Drafts `dialogs/ordering_ramen.yaml` with `gemini-3.8-flash`. Options: `--lines N`, `--out`, `--force`. |
+| `python eightbit.py <mp3 or folder>...` | Bitcrushes mp3s to an 8-bit sound and saves each as `<name>_8bit.mp3` next to the input. A folder is searched recursively, and earlier `_8bit` outputs are skipped. No API key is needed. Options: `--bits 8` (lower is grittier), `--rate 11025` (lower is fizzier, 177–44100), `--out DIR`, `--stereo` (the default is mono), `--force`. |
 | `python dialog.py render dialogs/sample.yaml` | Saves each line to `public/dialog/<speaker>/<line>.mp3` for the game, plus the whole scene to `output/sample.mp3` as a preview. Options: `--pause-ms 350`, `--force` (skip the cache), `--per-line` (never use the multi-speaker request). |
 
 `--model` overrides the default model. The defaults are:
