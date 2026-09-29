@@ -103,10 +103,11 @@ const ryuukoDialog = (phase: TrainingPhase): Dialog[] => {
             say('greeting', ['まだまだいけるでしょ？', 'You can keep going, right?', 'まだまだいけるでしょ？']),
             ask('quest', YES_NO, ['まだまだいけるでしょ？', 'You can keep going, right?', 'まだまだいけるでしょ？'])]
         case 'success': return [
-            say('greeting', ['おつかれさま！', 'Good job!', 'おつかれさま！'])]
+            say('greeting', ['おつかれさま！', 'Good job!', 'おつかれさま！']),
+            say('default', ['おつかれさま！', 'Good job!', 'おつかれさま！'])]
         case 'again': return [
             say('greeting', ['まだまだいけるでしょ？', 'You can keep going, right?', 'まだまだいけるでしょ？']),
-            ask('quest', LEVEL(LEVELS), ['まだまだいけるでしょ？', 'You can keep going, right?', 'まだまだいけるでしょ？'])] // choices: **YES_NO** -> **LEVEL(LEVELS)**, mechanism: レベル1 / レベル2 buttons, the picked index is the level training.ts starts
+            ask('quest', LEVEL(LEVELS), ['どこから始める？', 'Where are we starting?', 'どこから始める？'])] // choices: **YES_NO** -> **LEVEL(LEVELS)**, mechanism: レベル1 / レベル2 buttons, the picked index is the level training.ts starts
         default: return [say('greeting', ['いくわよ！', 'Here I go!', 'いくわよ'])]
     }
 }
@@ -119,7 +120,7 @@ const elenaDialog = (phase: TrainingPhase): Dialog[] => phase === 'fail'
     ? [say('greeting', ['あきらめますか？', 'Give up?', '諦めますか？']),
     ask('quest', YES_NO, ['あきらめますか？', 'Give up?', '諦めますか？'])]
     : [say('greeting', ['おかえり？', 'Heading back?']),
-    say('questCleared', ['おめでとう！', 'GOOD JOB!', 'おめでとう']),
+    say('default', ['おめでとう！', 'GOOD JOB!', 'おめでとう']),
     ask('quest', YES_NO, ['しまにもどる？', 'Go back to the island?'])]
 // Elena's lines: 'fail' asks whether to give up, 'success' whether to head
 // back; both はい leave the quest island. She has no voice, so the audio

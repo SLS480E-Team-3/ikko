@@ -3,6 +3,7 @@
 import { createElement, Fragment, useCallback, useRef, useState } from "react"
 import CharBlock, { CHAR_BLOCK_SIZE } from "@/components/Game/Entity/charBlock"
 import { dialogUrl, playLine } from "@/components/Game/Entity/voice"
+import { BUBBLE_BOARDER, BUBBLE_BORDER_W } from "@/components/Game/Entity/dialogBubble"
 import { overlaps, type PlayerBox } from "./gameScene"
 
 export type TrainingPhase = 'intro' | 'play1' | 'levelUp' | 'play2' | 'success' | 'fail' | 'again'
@@ -21,6 +22,11 @@ export const throwSpot = (w: number, h: number) => ({ x: w / 2, y: h / 4 }) // s
 
 const PLAYER_GAP = 350
 // px in y from Ryuuko to the player when a level starts (はい to Ryuuko)
+
+const WALL_GAP = 200
+// px in y from Ryuuko to the line the player can't cross while a level runs:
+// between her and the player's start (PLAYER_GAP), so blocks have room to
+// spread out before they can be caught
 
 const time = 30_000 //30s
 const quota = 10
@@ -144,15 +150,15 @@ export function useTraining({ w, h, onLeave }: { w: number, h: number, onLeave?:
 
         if (current.current >= quota) {
             if (level === 0) { setPhase('levelUp'); talkTo(RYUUKO) }
-            else { setPhase('success'); talkTo(ELENA) }
+            else { setPhase('success'); talkTo(RYUUKO) } // success: **talkTo(ELENA)** -> **talkTo(RYUUKO)**, mechanism: the talk zooms in on Ryuuko for her おつかれさま！, and onTalkEnd switches to 'again' after it
         }
         else if (hp.current <= 0 || timeLeft.current <= 0) {
             setFailedLevel(level)
             setPhase('fail')
             talkTo(ELENA)
         }
-        // quota met: level 1 -> Ryuuko's level-up talk, level 2 -> Elena's
-        // success talk. Out of hp or time: 'fail', Elena asks 諦めますか？ first;
+        // quota met: level 1 -> Ryuuko's level-up talk, level 2 -> Ryuuko's
+        // おつかれさま！ (then 'again'). Out of hp or time: 'fail', Elena asks 諦めますか？ first;
         // Ryuuko's retry offer is reached by walking over to her
     }, [setPhase, talkTo])
 
@@ -183,7 +189,15 @@ export function useTraining({ w, h, onLeave }: { w: number, h: number, onLeave?:
     // to 'again' so Ryuuko offers a replay. Ryuuko's はい starts / continues / retries a
     // level depending on the phase, Elena's はい leaves the island
 
+    const onTalkEnd = useCallback((npc: number) => {
+        if (npc === RYUUKO && phaseRef.current === 'success') setPhase('again')
+    }, [setPhase])
+    // Ryuuko's success talk (おつかれさま！, no choices) ending moves straight to
+    // 'again', where talking to her again offers the level select. GameScene
+    // calls this from endTalk, so it fires once whether Space or a tap ended it
+
     const renderWorld = useCallback(() => createElement(Fragment, null,
+        (phaseRef.current === 'play1' || phaseRef.current === 'play2') && createElement('div', { key: 'wall', style: { position: 'absolute', left: 0, top: throwSpot(sizeRef.current.w, sizeRef.current.h).y + WALL_GAP - BUBBLE_BORDER_W / 2, width: sizeRef.current.w, height: BUBBLE_BORDER_W, background: BUBBLE_BOARDER, pointerEvents: 'none' } }), // wall: **none** -> **black line while playing**, mechanism: drawn at wallY in the bubble border's color / width; setPhase leaving play stops drawing it
         ...blocks.current.map(b => createElement(CharBlock, { key: b.id, kana: b.kana, x: b.x, y: b.y })) // props: **kana + romaji** -> **kana only**, mechanism: no romaji passed, so CharBlock skips its English line; the HUD still shows the target's romaji
     ), [])
     // the flying blocks in world px; GameScene calls this every frame, so it
@@ -207,7 +221,11 @@ export function useTraining({ w, h, onLeave }: { w: number, h: number, onLeave?:
     // that re-renders each frame (e.g. inside renderWorld's output or a
     // component re-rendered by GameScene); the parent itself doesn't
 
-    return { phase, onTick, onChoice, renderWorld, getHud, talkRequest, moveRequest }
+    const wallY = phase === 'play1' || phase === 'play2' ? throwSpot(w, h).y + WALL_GAP : undefined
+    // the line GameScene keeps the player below; only while a level runs, so
+    // it goes away on levelUp / success / fail and Ryuuko can be reached again
+
+    return { phase, wallY, onTick, onChoice, onTalkEnd, renderWorld, getHud, talkRequest, moveRequest } // return: **no onTalkEnd** -> **+ onTalkEnd**, mechanism: passed to GameScene by questIsland.tsx
 }
 // usage: pass onTick / onChoice / renderWorld / talkRequest straight to
 // GameScene and build the NPC list with questIslandNpcs(w, h, phase)
