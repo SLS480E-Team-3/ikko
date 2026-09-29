@@ -1,0 +1,28 @@
+scene: ryuuko_quest
+lines:
+  - speaker: ryuuko
+    text: 準備はできてる？
+    style: confident trainer, a teasing challenge before the drill starts
+  - speaker: ryuuko
+    text: いくわよ！
+    style: energetic and sure of herself, kicking off the drill
+  - speaker: ryuuko
+    text: 余裕そうね。
+    style: amused and teasing, a little impressed but not showing it
+  - speaker: ryuuko
+    text: ちょっと早くするわよ
+    style: playful smirk, raising the pace as a challenge
+  - speaker: ryuuko
+    text: まだまだいけるでしょ？
+    style: teasing but encouraging, pushing the player to try again
+  - speaker: ryuuko
+    text: お疲れ様！
+    style: warm and satisfied, praising the player after the drill
+  - speaker: ryuuko
+    text: どこから始める？
+    style: calm and inviting, letting the player pick a level
+# quest island lines for ryuukoDialog() in npcs.ts, rendered per line
+# (--per-line) to public/dialog/ryuuko/<line>.mp3 with ！ and 。 dropped:
+# 準備はできてる？, いくわよ, 余裕そうね, ちょっと早くするわよ,
+# まだまだいけるでしょ？, お疲れ様, どこから始める？. Kept apart from
+# ryuuko.yaml so rendering them never touches the kana clips

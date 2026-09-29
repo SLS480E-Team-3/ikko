@@ -185,23 +185,4 @@ lines:
 # syllable). Each renders to public/dialog/ryuuko/<kana>.mp3. The basic 46
 # (あ to ん) were rendered earlier and are left out. The shared style keeps
 # the TTS from adding words around a lone syllable
-  # quest island training lines
-  - speaker: ryuuko
-    text: 準備はできてる？
-    style: confident trainer, a teasing challenge before the drill starts
-  - speaker: ryuuko
-    text: いくわよ！
-    style: energetic and sure of herself, kicking off the drill
-  - speaker: ryuuko
-    text: 余裕そうね。
-    style: amused and teasing, a little impressed but not showing it
-  - speaker: ryuuko
-    text: ちょっと早くするわよ
-    style: playful smirk, raising the pace as a challenge
-  - speaker: ryuuko
-    text: まだまだいけるでしょ？
-    style: teasing but encouraging, pushing the player to try again
-# quest island lines, rendered per line (--per-line) to
-# public/dialog/ryuuko/<line>.mp3 with ！ and 。 dropped: 準備はできてる？,
-# いくわよ, 余裕そうね, ちょっと早くするわよ, まだまだいけるでしょ？ — the
-# audio names questIslandNpcs() in npcs.ts plays
+# quest island lines moved to ryuuko_quest.yaml so they render without the kana clips

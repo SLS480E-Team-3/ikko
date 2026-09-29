@@ -104,8 +104,8 @@ const ryuukoDialog = (phase: TrainingPhase): Dialog[] => {
             say('greeting', ['まだまだいけるでしょ？', 'You can keep going, right?', 'まだまだいけるでしょ？']),
             ask('quest', YES_NO, ['まだまだいけるでしょ？', 'You can keep going, right?', 'まだまだいけるでしょ？'])]
         case 'success': return [
-            say('greeting', ['おつかれさま！', 'Good job!', 'おつかれさま！']),
-            say('default', ['おつかれさま！', 'Good job!', 'おつかれさま！'])]
+            say('greeting', ['おつかれさま！', 'Good job!', 'お疲れ様']), // audio: **おつかれさま！** -> **お疲れ様**, mechanism: kanji with ！ dropped, the file ryuuko_quest.yaml renders
+            say('default', ['おつかれさま！', 'Good job!', 'お疲れ様'])]
         case 'again': return [
             say('greeting', ['まだまだいけるでしょ？', 'You can keep going, right?', 'まだまだいけるでしょ？']),
             ask('quest', LEVEL(LEVELS), ['どこから始める？', 'Where are we starting?', 'どこから始める？'])] // choices: **YES_NO** -> **LEVEL(LEVELS)**, mechanism: レベル1 / レベル2 buttons, the picked index is the level training.ts starts
