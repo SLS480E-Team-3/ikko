@@ -32,6 +32,8 @@ const WALL_GAP = 300
 
 const time = 60_000 //60s
 const quota = 10
+const maxHP = 10
+// hp a level starts with; the HUD's hp bar is maxHP hits long
 
 export type QuestsLevel = { target: string, pool: string[], speed: number, every: number }
 // one training level: the kana to catch, what can be thrown, and how fast
@@ -53,7 +55,7 @@ export const ROMAJI: Record<string, string> = { あ: 'a', い: 'i', う: 'u', �
 
 type Block = { id: number, kana: string, x: number, y: number, vx: number, vy: number }
 
-export type TrainingHud = { target: string, romaji: string, current: number, quota: number, hp: number, secondsLeft: number, playing: boolean }
+export type TrainingHud = { target: string, romaji: string, current: number, quota: number, hp: number, maxHP: number, secondsLeft: number, timeFrac: number, playing: boolean } // hud: **no maxHP / timeFrac** -> **+ maxHP, timeFrac**, mechanism: questIsland's bars size their fills as hp / maxHP and timeLeft / time
 
 export function useTraining({ w, h, onLeave }: { w: number, h: number, onLeave?: () => void }) {
     const [phase, setPhaseState] = useState<TrainingPhase>('intro')
@@ -65,7 +67,7 @@ export function useTraining({ w, h, onLeave }: { w: number, h: number, onLeave?:
     // the latest phase and a second tick in the same frame can't re-trigger
 
     const current = useRef(0)
-    const hp = useRef(10)
+    const hp = useRef(maxHP) // hp: **10** -> **maxHP**, mechanism: one constant the HUD bar also divides by
     const timeLeft = useRef(time)
     const spawnIn = useRef(0)
     const blocks = useRef<Block[]>([])
@@ -97,7 +99,7 @@ export function useTraining({ w, h, onLeave }: { w: number, h: number, onLeave?:
 
     const startLevel = useCallback((level: 0 | 1) => {
         current.current = 0
-        hp.current = 10
+        hp.current = maxHP // reset: **10** -> **maxHP**, mechanism: same constant as the HUD bar's length
         timeLeft.current = time
         spawnIn.current = 0
         blocks.current = []
@@ -127,11 +129,10 @@ export function useTraining({ w, h, onLeave }: { w: number, h: number, onLeave?:
             const from = throwSpot(w, h)
             const angle = (Math.random() * 2 - 1) * SPREAD
             blocks.current.push({ id: nextId.current++, kana, x: from.x, y: from.y, vx: Math.sin(angle) * lv.speed, vy: Math.cos(angle) * lv.speed }) // direction: **toward a random point on the island** -> **straight down +- SPREAD**, reason: Ryuuko throws downward from the top, mechanism: angle 0 = down (vx 0, vy +speed), sin/cos keep the speed the same at any angle
-            playLine(dialogUrl('ryuuko', kana))
-        }
+        } // voice: **playLine(kana) on throw** -> **removed here**, mechanism: the kana is now said when the block is caught (below)
         // a throw every lv.every seconds (+= keeps the rhythm even if a frame
         // runs long). The direction is a random angle within SPREAD of straight
-        // down at lv.speed px/s. Ryuuko says each kana as she throws it
+        // down at lv.speed px/s
 
         const s = CHAR_BLOCK_SIZE
         blocks.current = blocks.current.filter(b => {
@@ -141,6 +142,7 @@ export function useTraining({ w, h, onLeave }: { w: number, h: number, onLeave?:
             if (overlaps(player.x, player.y, player.w, player.h, { x: b.x - s / 2, y: b.y - s / 2, w: s, h: s })) {
                 if (b.kana === lv.target) current.current++
                 else hp.current--
+                playLine(dialogUrl('ryuuko', b.kana)) // voice: **on throw** -> **on catch**, mechanism: Ryuuko says the caught block's kana (right or wrong), so the player hears what they grabbed; the shared <audio> cuts off the previous kana
                 return false
             }
             return true
@@ -217,7 +219,9 @@ export function useTraining({ w, h, onLeave }: { w: number, h: number, onLeave?:
             current: current.current,
             quota,
             hp: hp.current,
+            maxHP,
             secondsLeft: Math.max(0, Math.ceil(timeLeft.current / 1000)),
+            timeFrac: Math.min(1, Math.max(0, timeLeft.current / time)),
             playing,
         }
     }, [])
@@ -225,11 +229,19 @@ export function useTraining({ w, h, onLeave }: { w: number, h: number, onLeave?:
     // that re-renders each frame (e.g. inside renderWorld's output or a
     // component re-rendered by GameScene); the parent itself doesn't
 
+    const playerLabel = useCallback((): string | undefined => {
+        const p = phaseRef.current
+        return p === 'play1' || p === 'play2' ? `${current.current}/${quota}` : undefined
+    }, [])
+    // the player's name tag text while a level runs; undefined otherwise, so
+    // GameScene falls back to the player's real name. Read from the refs, and
+    // GameScene calls it in its per-frame render, so the count stays live
+
     const wallY = phase === 'play1' || phase === 'play2' ? throwSpot(w, h).y + WALL_GAP : undefined
     // the line GameScene keeps the player below; only while a level runs, so
     // it goes away on levelUp / success / fail and Ryuuko can be reached again
 
-    return { phase, wallY, onTick, onChoice, onTalkEnd, renderWorld, getHud, talkRequest, moveRequest } // return: **no onTalkEnd** -> **+ onTalkEnd**, mechanism: passed to GameScene by questIsland.tsx
+    return { phase, wallY, onTick, onChoice, onTalkEnd, renderWorld, getHud, playerLabel, talkRequest, moveRequest } // return: **no playerLabel** -> **+ playerLabel**, mechanism: questIsland.tsx passes it to GameScene for the current/quota tag // return: **no onTalkEnd** -> **+ onTalkEnd**, mechanism: passed to GameScene by questIsland.tsx
 }
 // usage: pass onTick / onChoice / renderWorld / talkRequest straight to
 // GameScene and build the NPC list with questIslandNpcs(w, h, phase)

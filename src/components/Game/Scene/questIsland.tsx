@@ -1,10 +1,28 @@
 'use client'
 
-import { ReactNode, useEffect, useReducer, useRef, useState } from "react"
+import { CSSProperties, ReactNode, useEffect, useReducer, useRef, useState } from "react"
 import GameScene, { questBg } from "./gameScene"
 import { useTraining, TrainingHud } from "./training"
 import { questIslandNpcs } from "../npcs/npcs"
 import { BUBBLE_BG, BUBBLE_BOARDER, BUBBLE_BORDER_W } from "../Entity/dialogBubble"
+
+const TIMER_H = 8
+const HP_H = TIMER_H * 3
+const TIMER_TOP = 40
+const HP_BOTTOM = 40
+// screen px: the timer is a thin strip 40px under the top; the hp bar is 3x
+// as thick, 40px above the bottom
+
+function Bar({ frac, color, style }: { frac: number, color: string, style: CSSProperties }) {
+    return (
+        <div style={{ position: 'absolute', zIndex: 2, boxSizing: 'border-box', border: `${BUBBLE_BORDER_W}px solid ${BUBBLE_BOARDER}`, background: BUBBLE_BG, pointerEvents: 'none', ...style }}>
+            <div style={{ width: `${frac * 100}%`, height: '100%', background: color }} />
+        </div>
+    )
+}
+// a bordered track with a fill anchored to its left edge, so as frac drops
+// the right end moves left (drains right to left). border-box keeps the
+// border inside the given size; the empty part shows the bubble color
 
 function Hud({ getHud }: { getHud: () => TrainingHud }) {
     const [, force] = useReducer((n: number) => n + 1, 0)
@@ -15,25 +33,22 @@ function Hud({ getHud }: { getHud: () => TrainingHud }) {
     const hud = getHud()
     if (!hud.playing) return null
     return (
-        <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 2, padding: '4px 8px', background: BUBBLE_BG, border: `${BUBBLE_BORDER_W}px solid ${BUBBLE_BOARDER}`, fontSize: '0.875rem', display: 'flex', gap: 10, pointerEvents: 'none' }}>
-            <span>{hud.target} ({hud.romaji})</span>
-            <span>{hud.current}/{hud.quota}</span>
-            <span>♥ {hud.hp}</span>
-            <span>{hud.secondsLeft}s</span>
-        </div>
-    )
+        <>
+            <Bar frac={hud.timeFrac} color="cyan" style={{ top: TIMER_TOP, left: '5%', width: '90%', height: TIMER_H }} /> {/* width: **left 0 / right 0 (full screen)** -> **left 5% / width 90%**, mechanism: same inset as the hp bar, so both bars line up */}
+            <Bar frac={hud.hp / hud.maxHP} color="#ff8a8a" style={{ bottom: HP_BOTTOM, left: '5%', width: '90%', height: HP_H }} /> {/* color: **red** -> **#ff8a8a**, mechanism: a bright pastel red, pure red mixed toward white so it stays light and soft on the cream background */}
+        </>
+    ) // hud: **top-right box (target, current/quota, ♥ hp, seconds)** -> **timer + hp bars**, mechanism: timeFrac drives the cyan strip; hp / maxHP drives the red bar, which is 90% of the screen, so one hit is 90 / maxHP % of it. current/quota moved to the player's name tag (playerLabel), the target to the bubble over Ryuuko
 }
 // the training numbers live in refs that only GameScene's frame loop
 // redraws, so the HUD runs its own rAF and re-reads getHud() each frame.
-// It draws in screen px (top-right, over the scene) and only while a level
-// is being played, in the DialogBubble box style
+// It draws in screen px over the scene, and only while a level is played
 
 function Training({ w, h, onLeave, sensitivity, children }: { w: number, h: number, onLeave: () => void, sensitivity?: number, children?: ReactNode }) {
     const t = useTraining({ w, h, onLeave })
     const npcs = questIslandNpcs(w, h, t.phase)
     return (
         <>
-            <GameScene bgProps={questBg(w, h)} npcs={npcs} onChoice={t.onChoice} onTalkEnd={t.onTalkEnd} onTick={t.onTick} renderWorld={t.renderWorld} talkRequest={t.talkRequest} moveRequest={t.moveRequest} wallY={t.wallY} sensitivity={sensitivity} /> {/* props: **no moveRequest** -> **t.moveRequest**, mechanism: a level start places the player 350px below Ryuuko */} {/* props: **no onTalkEnd** -> **t.onTalkEnd**, mechanism: Ryuuko's success talk ending switches to 'again' */} {/* props: **no wallY** -> **t.wallY**, mechanism: a line below Ryuuko the player can't cross while a level runs */}
+            <GameScene bgProps={questBg(w, h)} npcs={npcs} onChoice={t.onChoice} onTalkEnd={t.onTalkEnd} onTick={t.onTick} renderWorld={t.renderWorld} talkRequest={t.talkRequest} moveRequest={t.moveRequest} wallY={t.wallY} playerLabel={t.playerLabel} sensitivity={sensitivity} /> {/* props: **no playerLabel** -> **t.playerLabel**, mechanism: current/quota replaces the player's name tag while a level runs */} {/* props: **no moveRequest** -> **t.moveRequest**, mechanism: a level start places the player 350px below Ryuuko */} {/* props: **no onTalkEnd** -> **t.onTalkEnd**, mechanism: Ryuuko's success talk ending switches to 'again' */} {/* props: **no wallY** -> **t.wallY**, mechanism: a line below Ryuuko the player can't cross while a level runs */}
             <Hud getHud={t.getHud} />
             {(t.phase === 'success' || t.phase === 'again') && children} {/* slot: **success** -> **success / again**, mechanism: the COMPLETE button stays while Ryuuko offers a replay */}
         </>
@@ -51,7 +66,7 @@ export default function QuestIsland({ onLeave, sensitivity, children }: { onLeav
         const box = boxRef.current
         const w = box?.clientWidth || window.innerWidth
         const h = box?.clientHeight || window.innerHeight
-        setSize({ w: Math.round(w * 2), h: Math.round(h * 2) })
+        setSize({ w: Math.round(w * 2), h: Math.round(h * 1.5) })
     }, [])
     return (
         <div ref={boxRef} style={{ position: 'relative', width: '100%', height: '100%', background: BUBBLE_BG }}>
