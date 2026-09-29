@@ -33,9 +33,9 @@ function Training({ w, h, onLeave, sensitivity, children }: { w: number, h: numb
     const npcs = questIslandNpcs(w, h, t.phase)
     return (
         <>
-            <GameScene bgProps={questBg(w, h)} npcs={npcs} onChoice={t.onChoice} onTick={t.onTick} renderWorld={t.renderWorld} talkRequest={t.talkRequest} sensitivity={sensitivity} />
+            <GameScene bgProps={questBg(w, h)} npcs={npcs} onChoice={t.onChoice} onTick={t.onTick} renderWorld={t.renderWorld} talkRequest={t.talkRequest} moveRequest={t.moveRequest} sensitivity={sensitivity} /> {/* props: **no moveRequest** -> **t.moveRequest**, mechanism: a level start places the player 350px below Ryuuko */}
             <Hud getHud={t.getHud} />
-            {t.phase === 'success' && children}
+            {(t.phase === 'success' || t.phase === 'again') && children} {/* slot: **success** -> **success / again**, mechanism: the COMPLETE button stays while Ryuuko offers a replay */}
         </>
     )
 }

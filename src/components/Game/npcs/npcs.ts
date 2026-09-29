@@ -98,6 +98,11 @@ const ryuukoDialog = (phase: TrainingPhase): Dialog[] => {
         case 'fail': return [
             say('greeting', ['まだまだいけるでしょ？', 'You can keep going, right?', 'まだまだいけるでしょ？']),
             ask('quest', YES_NO, ['まだまだいけるでしょ？', 'You can keep going, right?', 'まだまだいけるでしょ？'])]
+        case 'success': return [
+            say('greeting', ['おつかれさま！', 'Good job!', 'おつかれさま！'])]
+        case 'again': return [
+            say('greeting', ['まだまだいけるでしょ？', 'You can keep going, right?', 'まだまだいけるでしょ？']),
+            ask('quest', YES_NO, ['まだまだいけるでしょ？', 'You can keep going, right?', 'まだまだいけるでしょ？'])]
         default: return [say('greeting', ['いくわよ！', 'Here I go!', 'いくわよ'])]
     }
 }
@@ -108,16 +113,17 @@ const ryuukoDialog = (phase: TrainingPhase): Dialog[] => {
 
 const elenaDialog = (phase: TrainingPhase): Dialog[] => phase === 'fail'
     ? [say('greeting', ['あきらめますか？', 'Give up?', '諦めますか？']),
-        ask('quest', YES_NO, ['あきらめますか？', 'Give up?', '諦めますか？'])]
+    ask('quest', YES_NO, ['あきらめますか？', 'Give up?', '諦めますか？'])]
     : [say('greeting', ['おかえり？', 'Heading back?']),
-        ask('quest', YES_NO, ['しまにもどる？', 'Go back to the island?'])]
+    say('questCleared', ['おめでとう！', 'GOOD JOB!', 'おめでとう']),
+    ask('quest', YES_NO, ['しまにもどる？', 'Go back to the island?'])]
 // Elena's lines: 'fail' asks whether to give up, 'success' whether to head
 // back; both はい leave the quest island. She has no voice, so the audio
 // names (kept for when one is recorded) stay silent
 
 export const questIslandNpcs = (w: number, h: number, phase: TrainingPhase): NPCProps[] => {
     const { x: cx, y } = throwSpot(w, h) // spot: **(w / 2, h / 2 - 80)** -> **throwSpot(w, h)**, reason: Ryuuko stands at the top middle, mechanism: the same spot training.ts throws from, so blocks leave her hands
-    const withElena = phase === 'success' || phase === 'fail'
+    const withElena = phase === 'success' || phase === 'fail' || phase === 'again' // elena: **success / fail** -> **+ again**, mechanism: she stays so the player can still leave while Ryuuko offers a replay
     const ryuukoX = phase === 'fail' ? cx + 40 : cx
     const elenaX = phase === 'fail' ? cx - 40 : cx + 60
     return [

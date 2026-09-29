@@ -5,9 +5,10 @@ import CharBlock, { CHAR_BLOCK_SIZE } from "@/components/Game/Entity/charBlock"
 import { dialogUrl, playLine } from "@/components/Game/Entity/voice"
 import { overlaps, type PlayerBox } from "./gameScene"
 
-export type TrainingPhase = 'intro' | 'play1' | 'levelUp' | 'play2' | 'success' | 'fail'
+export type TrainingPhase = 'intro' | 'play1' | 'levelUp' | 'play2' | 'success' | 'fail' | 'again'
 // the Quest Island training's steps: Ryuuko's intro talk, level 1, her
 // level-up talk, level 2, then success (Elena) or fail (Elena + Ryuuko)
+// 'again': after success the player said いいえ to Elena, Ryuuko offers a replay
 
 export const RYUUKO = 0
 export const ELENA = 1
@@ -17,6 +18,9 @@ export const ELENA = 1
 
 export const throwSpot = (w: number, h: number) => ({ x: w / 2, y: h / 4 }) // spot: **(w / 2, 160)** -> **(w / 2, h / 4)**, reason: Ryuuko stands further down, mechanism: a quarter of the island (half a screen) from the top, so her talk bubble has room and the player's walk up is shorter; npcs.ts places her here too
 // where Ryuuko stands and every block is thrown from (world px, center)
+
+const PLAYER_GAP = 350
+// px in y from Ryuuko to the player when a level starts (はい to Ryuuko)
 
 const time = 30_000 //30s
 const quota = 10
@@ -72,6 +76,9 @@ export function useTraining({ w, h, onLeave }: { w: number, h: number, onLeave?:
     // one place that changes the phase: updates the ref first (the tick reads
     // it right away) and clears any flying blocks when leaving play
 
+    const [moveRequest, setMoveRequest] = useState<{ x: number, y: number, key: number } | undefined>(undefined)
+    // where GameScene should place the player; key bumps like talkRequest
+
     const talkTo = useCallback((npc: number) => setTalkRequest(r => ({ npc, key: (r?.key ?? 0) + 1 })), [])
     // bumping key asks GameScene to open a talk even with the same NPC again.
     // Called together with setPhase, so React batches both into one render and
@@ -83,6 +90,8 @@ export function useTraining({ w, h, onLeave }: { w: number, h: number, onLeave?:
         timeLeft.current = time
         spawnIn.current = 0
         blocks.current = []
+        const from = throwSpot(sizeRef.current.w, sizeRef.current.h)
+        setMoveRequest(r => ({ x: from.x, y: from.y + PLAYER_GAP, key: (r?.key ?? 0) + 1 })) // start: **player stays where they talked** -> **placed PLAYER_GAP below Ryuuko**, mechanism: bumps moveRequest, GameScene's effect sets the player's center to (Ryuuko x, Ryuuko y + 350) before the first throw
         setPhase(level === 0 ? 'play1' : 'play2')
     }, [setPhase])
     // resets the counters for a (re)start; spawnIn 0 throws the first block
@@ -148,17 +157,21 @@ export function useTraining({ w, h, onLeave }: { w: number, h: number, onLeave?:
     failedRef.current = failedLevel
 
     const onChoice = useCallback((npc: number, choice: number) => {
-        if (choice !== 0) return
         const p = phaseRef.current
+        if (choice !== 0) {
+            if (npc === ELENA && p === 'success') setPhase('again')
+            return
+        } // いいえ: **always ignored** -> **Elena's いいえ on success -> 'again'**, mechanism: staying on the island switches Ryuuko to her まだまだいけるでしょ？ offer
         if (npc === RYUUKO) {
-            if (p === 'intro') startLevel(0)
+            if (p === 'intro' || p === 'again') startLevel(0) // again: **no phase** -> **replay from level 1**, mechanism: same startLevel as intro, so counters reset and the player is placed below Ryuuko
             else if (p === 'levelUp') startLevel(1)
             else if (p === 'fail') startLevel(failedRef.current)
         }
-        else if (npc === ELENA && (p === 'fail' || p === 'success')) onLeaveRef.current?.()
-    }, [startLevel])
-    // only はい (choice 0) does anything; いいえ just ends the talk and the
-    // player can talk again. Ryuuko's はい starts / continues / retries a
+        else if (npc === ELENA && (p === 'fail' || p === 'success' || p === 'again')) onLeaveRef.current?.() // leave: **fail / success** -> **+ again**, mechanism: Elena stays in 'again' with her go-back offer
+    }, [startLevel, setPhase])
+    // はい (choice 0) does most of the work; いいえ just ends the talk and the
+    // player can talk again, except Elena's いいえ after success, which moves
+    // to 'again' so Ryuuko offers a replay. Ryuuko's はい starts / continues / retries a
     // level depending on the phase, Elena's はい leaves the island
 
     const renderWorld = useCallback(() => createElement(Fragment, null,
@@ -185,7 +198,7 @@ export function useTraining({ w, h, onLeave }: { w: number, h: number, onLeave?:
     // that re-renders each frame (e.g. inside renderWorld's output or a
     // component re-rendered by GameScene); the parent itself doesn't
 
-    return { phase, onTick, onChoice, renderWorld, getHud, talkRequest }
+    return { phase, onTick, onChoice, renderWorld, getHud, talkRequest, moveRequest }
 }
 // usage: pass onTick / onChoice / renderWorld / talkRequest straight to
 // GameScene and build the NPC list with questIslandNpcs(w, h, phase)
