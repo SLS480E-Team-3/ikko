@@ -1,7 +1,7 @@
 import { NPCProps } from "../Entity/npcRenderer";
 import { Dialog } from "../Entity/dialogBubble";
 import { ENT_H, ENT_W } from "../Entity/entityRenderer";
-import { throwSpot, type TrainingPhase } from "../Scene/training"; // import: **{ QUEST_H, QUEST_W } from gameScene** -> **type TrainingPhase from training**, mechanism: the quest island is sized at runtime (w, h passed in), and its cast depends on the training phase // import: **type TrainingPhase** -> **+ throwSpot**, mechanism: Ryuuko stands where the blocks are thrown from
+import { LEVELS, throwSpot, type QuestsLevel, type TrainingPhase } from "../Scene/training"; // import: **{ QUEST_H, QUEST_W } from gameScene** -> **type TrainingPhase from training**, mechanism: the quest island is sized at runtime (w, h passed in), and its cast depends on the training phase // import: **type TrainingPhase** -> **+ throwSpot**, mechanism: Ryuuko stands where the blocks are thrown from // import: **+ throwSpot** -> **+ LEVELS, QuestsLevel**, mechanism: Ryuuko's 'again' choices are built from the training levels
 
 type Line = [ja: string, en: string, audio?: string] // Line: **[ja, en]** -> **+ audio?**, reason: lines play recorded mp3s, mechanism: the file name (no .mp3) in the NPC's public/dialog/<voice>/ folder; left out = silent
 
@@ -86,6 +86,10 @@ export const ISLAND_1_NPC: NPCProps[] = [
 //npcs on the Quest Island
 const YES_NO: [ja: string, en: string][] = [['はい', 'Yes'], ['いいえ', 'No']]
 // the shared はい / いいえ answers for every quest-island offer
+const LEVEL = (levels: QuestsLevel[]): [ja: string, en: string][] => levels.map((_, i) => [`レベル${i + 1}`, `Level ${i + 1}`])
+// selection for which levels to start from
+// one [ja, en] choice per entry of LEVELS, numbered from 1; the choice index
+// is the level index, which training.ts onChoice passes to startLevel
 
 const ryuukoDialog = (phase: TrainingPhase): Dialog[] => {
     switch (phase) {
@@ -102,7 +106,7 @@ const ryuukoDialog = (phase: TrainingPhase): Dialog[] => {
             say('greeting', ['おつかれさま！', 'Good job!', 'おつかれさま！'])]
         case 'again': return [
             say('greeting', ['まだまだいけるでしょ？', 'You can keep going, right?', 'まだまだいけるでしょ？']),
-            ask('quest', YES_NO, ['まだまだいけるでしょ？', 'You can keep going, right?', 'まだまだいけるでしょ？'])]
+            ask('quest', LEVEL(LEVELS), ['まだまだいけるでしょ？', 'You can keep going, right?', 'まだまだいけるでしょ？'])] // choices: **YES_NO** -> **LEVEL(LEVELS)**, mechanism: レベル1 / レベル2 buttons, the picked index is the level training.ts starts
         default: return [say('greeting', ['いくわよ！', 'Here I go!', 'いくわよ'])]
     }
 }

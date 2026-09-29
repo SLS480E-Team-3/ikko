@@ -25,7 +25,10 @@ const PLAYER_GAP = 350
 const time = 30_000 //30s
 const quota = 10
 
-const LEVELS = [
+export type QuestsLevel = { target: string, pool: string[], speed: number, every: number }
+// one training level: the kana to catch, what can be thrown, and how fast
+
+export const LEVELS: QuestsLevel[] = [ // LEVELS: **private, inferred type** -> **exported QuestsLevel[]**, mechanism: npcs.ts builds Ryuuko's level-select choices from it, one per entry
     { target: 'あ', pool: ['あ'], speed: 70, every: 1.2 },
     { target: 'あ', pool: ['あ', 'い', 'う', 'え', 'お'], speed: 110, every: 0.8 },
 ]
@@ -158,12 +161,18 @@ export function useTraining({ w, h, onLeave }: { w: number, h: number, onLeave?:
 
     const onChoice = useCallback((npc: number, choice: number) => {
         const p = phaseRef.current
+        if (npc === RYUUKO && p === 'again') {
+            if (choice < LEVELS.length) startLevel(choice as 0 | 1)
+            return
+        }
+        // 'again': Ryuuko's choices are the levels (npcs.ts LEVEL(LEVELS)), so
+        // the choice index is the level to start from, not はい / いいえ
         if (choice !== 0) {
             if (npc === ELENA && p === 'success') setPhase('again')
             return
         } // いいえ: **always ignored** -> **Elena's いいえ on success -> 'again'**, mechanism: staying on the island switches Ryuuko to her まだまだいけるでしょ？ offer
         if (npc === RYUUKO) {
-            if (p === 'intro' || p === 'again') startLevel(0) // again: **no phase** -> **replay from level 1**, mechanism: same startLevel as intro, so counters reset and the player is placed below Ryuuko
+            if (p === 'intro') startLevel(0) // again: **no phase** -> **replay from level 1**, mechanism: same startLevel as intro, so counters reset and the player is placed below Ryuuko // again: **はい -> level 1** -> **handled above by choice index**, mechanism: Ryuuko's 'again' offer lists the levels instead of はい / いいえ
             else if (p === 'levelUp') startLevel(1)
             else if (p === 'fail') startLevel(failedRef.current)
         }
