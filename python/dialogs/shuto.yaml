@@ -14,7 +14,18 @@ lines:
   - speaker: shuto
     text: 腹減ったなあ
     style: sleepy, sighing
+  # quest lines
+  - speaker: shuto
+    text: 最初のクエストだ！
+    style: calm but a little upbeat, handing the player their first quest
+  - speaker: shuto
+    text: 準備はできてるか？
+    style: easygoing check-in, a relaxed question with a light rise at the end
 # Shuto's island-1 lines from src/components/Game/npcs/npcs.ts, in kanji
 # form. line_mp3 drops ！ 、 and keeps ？, so each file lands on the third
 # item of its say() line (やあ, 俺はラーメンが好きやで, ...). Styles stay
 # low-key to fit his calm, laid-back Kansai profile in voices.json
+# quest lines for his ask('quest', ...) in npcs.ts, rendered per line to
+# public/dialog/shuto/<line>.mp3 with ！ dropped: 最初のクエストだ,
+# 準備はできてるか？. Existing mp3s are skipped without --force, so only
+# these two render
