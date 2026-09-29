@@ -1,0 +1,19 @@
+scene: elena
+lines:
+  # quest island lines
+  - speaker: elena
+    text: 島に戻る？
+    style: calm and matter-of-fact, a plain question, light rise at the end
+  - speaker: elena
+    text: 諦めますか？
+    style: cool and level, asking seriously without judging
+  - speaker: elena
+    text: お帰り？
+    style: cool, quietly checking if the player is heading back
+  - speaker: elena
+    text: おめでとう！
+    style: composed but sincere, a small warm smile in the voice
+# quest island lines for questIslandNpcs() in npcs.ts, rendered to
+# public/dialog/elena/<line>.mp3 with ！ dropped: 島に戻る？, 諦めますか？,
+# お帰り？, おめでとう. Written in kanji so the TTS reads them right and each
+# kanji counts as one ondoku char

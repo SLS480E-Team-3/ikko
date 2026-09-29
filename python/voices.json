@@ -167,6 +167,26 @@
       "voice_id": "voice_4zbouxyvxg5o",
       "model": "gemini-3.8-flash-tts",
       "created": "2026-09-27T02:15:22+00:00"
+    },
+    {
+      "name": "elena",
+      "profile": {
+        "language": "Japanese",
+        "accent": "Tokyo standard",
+        "gender": "female",
+        "age": "14",
+        "personality": "cool, calm, diligent",
+        "timbre": "clear and cool, light with a slight crispness, youthful but not childish",
+        "energy": "low and composed, quietly focused",
+        "pitch": "medium",
+        "pitch_range": "narrow and even; endings fall neatly, a light rise only on real questions",
+        "speed": "moderate, measured",
+        "volume": "medium-soft",
+        "articulation": "crisp and precise, careful like a diligent student",
+        "register": "polite desu/masu with classmates' plain form mixed in, never slangy",
+        "pauses": "short, tidy breaks",
+        "use_case": "game character"
+      }
     }
   ]
 }

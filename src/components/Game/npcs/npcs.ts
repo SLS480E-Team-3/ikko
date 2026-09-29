@@ -118,18 +118,17 @@ const ryuukoDialog = (phase: TrainingPhase): Dialog[] => {
 // greeting, which pickDialog falls back to, so a talk just repeats it
 
 const elenaDialog = (phase: TrainingPhase): Dialog[] => phase === 'break'
-    ? [say('greeting', ['しまにもどる？', 'Go back to the island?']),
-    ask('quest', YES_NO, ['しまにもどる？', 'Go back to the island?'])]
+    ? [say('greeting', ['しまにもどる？', 'Go back to the island?', '島に戻る？']), // audio: **none** -> **島に戻る？**, mechanism: plays public/dialog/elena/島に戻る？.mp3 from elena.yaml
+    ask('quest', YES_NO, ['しまにもどる？', 'Go back to the island?', '島に戻る？'])]
     // break: only the go-back offer, no おめでとう since the training isn't done
     : phase === 'fail'
     ? [say('greeting', ['あきらめますか？', 'Give up?', '諦めますか？']),
     ask('quest', YES_NO, ['あきらめますか？', 'Give up?', '諦めますか？'])]
-    : [say('greeting', ['おかえり？', 'Heading back?']),
+    : [say('greeting', ['おかえり？', 'Heading back?', 'お帰り？']), // audio: **none** -> **お帰り？ / 島に戻る？**, mechanism: file names match elena.yaml's rendered mp3s
     say('default', ['おめでとう！', 'GOOD JOB!', 'おめでとう']),
-    ask('quest', YES_NO, ['しまにもどる？', 'Go back to the island?'])]
+    ask('quest', YES_NO, ['しまにもどる？', 'Go back to the island?', '島に戻る？'])]
 // Elena's lines: 'fail' asks whether to give up, 'success' whether to head
-// back; both はい leave the quest island. She has no voice, so the audio
-// names (kept for when one is recorded) stay silent
+// back; both はい leave the quest island. Audio names match python/dialogs/elena.yaml
 
 export const questIslandNpcs = (w: number, h: number, phase: TrainingPhase): NPCProps[] => {
     const { x: cx, y } = throwSpot(w, h) // spot: **(w / 2, h / 2 - 80)** -> **throwSpot(w, h)**, reason: Ryuuko stands at the top middle, mechanism: the same spot training.ts throws from, so blocks leave her hands
@@ -138,7 +137,7 @@ export const questIslandNpcs = (w: number, h: number, phase: TrainingPhase): NPC
     const elenaX = phase === 'fail' ? cx - 40 : cx + 60
     return [
         npc('Ryuuko', 'ryuuko', ryuukoX, y, 'crimson', ryuukoDialog(phase)),
-        ...(withElena ? [npc('Elena', undefined, elenaX, y, 'seagreen', elenaDialog(phase))] : []),
+        ...(withElena ? [npc('Elena', 'elena', elenaX, y, 'seagreen', elenaDialog(phase))] : []), // voice: **undefined** -> **'elena'**, mechanism: lines load from public/dialog/elena/
     ]
 }
 // the Quest Island cast for one training phase, on an island sized at
