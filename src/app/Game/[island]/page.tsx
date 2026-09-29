@@ -49,7 +49,7 @@ export default async function GameLevel({
     // RLS policy
 
     const { data: quests } = await supabase.from('quests')
-        .select('id, title').eq('island_id', islandId).order('id')
+        .select('id, title, kana').eq('island_id', islandId).order('id') // select: **id, title** -> **+ kana**, mechanism: IslandScene gives each quest to the NPC with the same kana
     const { data: mine } = await supabase.from('user_quests')
         .select('quest_id, completed_at').in('quest_id', (quests ?? []).map(q => q.id))
     const status = new Map((mine ?? []).map(q => [q.quest_id, q.completed_at ? 'done' : 'resume']))

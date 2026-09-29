@@ -120,11 +120,11 @@ const TEST_NPCS: SceneNPC[] = npcSpots.map((n, i) => ({ // spots: **fixed ±60 /
 
 function IslandPreview({ sensitivity }: { sensitivity: number }) {
     const [island, setIsland] = useState(1)
-    const [inQuest, setInQuest] = useState(false)
+    const [inQuest, setInQuest] = useState<string | false>(false) // inQuest: **boolean** -> **kana | false**, mechanism: holds the kana of the NPC whose quest was accepted
     const btn: CSSProperties = { padding: '8px 12px' }
     if (inQuest) return (
         <div style={{ position: 'relative', width: '100%', height: '100%', background: BUBBLE_BG }}>
-            <QuestIsland key={`quest-${island}`} sensitivity={sensitivity} onLeave={() => setInQuest(false)} /> {/* scene: **<GameScene QUEST_BG>** -> **<QuestIsland>**, mechanism: same training island as the tab; onLeave returns to the island in place */}
+            <QuestIsland key={`quest-${island}`} kana={inQuest} sensitivity={sensitivity} onLeave={() => setInQuest(false)} /> {/* scene: **<GameScene QUEST_BG>** -> **<QuestIsland>**, mechanism: same training island as the tab; onLeave returns to the island in place */}
             {/* <span style={{ position: 'absolute', top: 16, left: 16, zIndex: 2 }}>quest island (from island {island})</span> */} {/* label: **shown** -> **commented out**, mechanism: hidden for now; uncomment to show which island the quest came from */}
         </div>
     )
@@ -132,7 +132,7 @@ function IslandPreview({ sensitivity }: { sensitivity: number }) {
     // same island: the no-login stand-in for QuestScene's router.push
     return (
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-            <GameScene key={island} sensitivity={sensitivity} bgProps={islandBg(island)} objects={ISLAND_MAPS[island] ?? []} npcs={ISLAND_NPCS[island] ?? []} onQuest={() => setInQuest(true)} /> {/* onQuest: **alert** -> **setInQuest(true)**, mechanism: はい renders the Quest Island in place instead of only alerting */}
+            <GameScene key={island} sensitivity={sensitivity} bgProps={islandBg(island)} objects={ISLAND_MAPS[island] ?? []} npcs={ISLAND_NPCS[island] ?? []} onQuest={i => setInQuest(ISLAND_NPCS[island]?.[i]?.kana ?? 'あ')} /> {/* onQuest: **setInQuest(true)** -> **setInQuest(npc kana)**, mechanism: the training targets the kana of the NPC that asked */} {/* onQuest: **alert** -> **setInQuest(true)**, mechanism: はい renders the Quest Island in place instead of only alerting */}
             <div style={{ position: 'absolute', bottom: 16, left: 16, right: 16, zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', pointerEvents: 'none' }}>
                 <button style={{ ...btn, pointerEvents: 'auto' }} disabled={island <= 1} onClick={() => setIsland(i => Math.max(1, i - 1))}>◀ prev</button>
                 <span>island {island}</span>

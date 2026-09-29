@@ -1,7 +1,7 @@
 import { NPCProps } from "../Entity/npcRenderer";
 import { Dialog } from "../Entity/dialogBubble";
 import { ENT_H, ENT_W } from "../Entity/entityRenderer";
-import { LEVELS, throwSpot, type QuestsLevel, type TrainingPhase } from "../Scene/training"; // import: **{ QUEST_H, QUEST_W } from gameScene** -> **type TrainingPhase from training**, mechanism: the quest island is sized at runtime (w, h passed in), and its cast depends on the training phase // import: **type TrainingPhase** -> **+ throwSpot**, mechanism: Ryuuko stands where the blocks are thrown from // import: **+ throwSpot** -> **+ LEVELS, QuestsLevel**, mechanism: Ryuuko's 'again' choices are built from the training levels
+import { LEVELS, playSpot, throwSpot, type QuestsLevel, type TrainingPhase } from "../Scene/training"; // import: **{ QUEST_H, QUEST_W } from gameScene** -> **type TrainingPhase from training**, mechanism: the quest island is sized at runtime (w, h passed in), and its cast depends on the training phase // import: **type TrainingPhase** -> **+ throwSpot**, mechanism: Ryuuko stands where the blocks are thrown from // import: **+ throwSpot** -> **+ LEVELS, QuestsLevel**, mechanism: Ryuuko's 'again' choices are built from the training levels
 
 type Line = [ja: string, en: string, audio?: string] // Line: **[ja, en]** -> **+ audio?**, reason: lines play recorded mp3s, mechanism: the file name (no .mp3) in the NPC's public/dialog/<voice>/ folder; left out = silent
 
@@ -13,9 +13,10 @@ const ask = (condition: Dialog['condition'], choices: [ja: string, en: string][]
 // accepts (GameScene opens the quest) and any other choice declines (ends
 // the talk)
 
-const npc = (name: string, voice: string | undefined, x: number, y: number, color: string, dialog: Dialog[]): NPCProps => ({ // args: **(name, x, ...)** -> **(name, voice, x, ...)**, mechanism: voice is passed through; voice: **speech voice** -> **mp3 folder under public/dialog/ or undefined (silent)**
+const npc = (name: string, voice: string | undefined, x: number, y: number, color: string, dialog: Dialog[], kana?: string): NPCProps => ({ // args: **no kana** -> **+ kana?**, mechanism: the kana this NPC's quest trains; IslandScene matches it to a quest row, MobileTester passes it to QuestIsland // args: **(name, x, ...)** -> **(name, voice, x, ...)**, mechanism: voice is passed through; voice: **speech voice** -> **mp3 folder under public/dialog/ or undefined (silent)**
     voice,
     ent: { name, x, y, w: ENT_W, h: ENT_H, color, facing: 'none' },
+    kana,
     dialog, // args: **greeting: Line, dialog: Line[]** -> **dialog: Dialog[]**, reason: NPC data is Dialog[] now, mechanism: passed straight through; the entries are built with say()
 })
 // builds one island NPC: every NPC shares the default body size and stands
@@ -29,8 +30,12 @@ export const ISLAND_1_NPC: NPCProps[] = [
             ['わたしはおすしがだいすき！', 'I love sushi!', '私はお寿司が大好き'], // file: **'私はお寿司が大好き！'** -> **'私はお寿司が大好き'**, mechanism: dialog.py drops ！ from file names, so the rendered mp3 has no ！
             ['とくにサーモンがすき！', 'Salmon is my favorite', 'とくにサーモンがすき'],
             ['あなたもおすしすき？', 'Are you also a sushi muncher?', 'あなたもお寿司好き？']), // file: **'あなたもすしずき？'** -> **'あなたもお寿司好き？'**, mechanism: matches the new line おすしすき, which python/dialogs/jordi.yaml renders to this name
+        ask('quest', [['はい', 'Yes'], ['いいえ', 'No']],
+            ['「い」のクエストだよ！', "It's the い quest!", '「い」のクエストだよ'],
+            ['じゅんびはいい？', 'Ready?', '準備はいい？']),
+        // Jordi's い quest: offered while the い quest row isn't done
         say('spoken', ['またおすしのはなししよ！', "Let's talk sushi again", 'またお寿司の話しよ']), // file: **'またすしのはなししよ'** -> **'またお寿司の話しよ'**, mechanism: matches the new line おすしのはなし, rendered by python/dialogs/jordi.yaml
-    ]),
+    ], 'い'),
     npc('Shuto', 'shuto', 3590, 5060, 'steelblue', [
         say('greeting', ['やあ', 'Hey', 'やあ']),
         say('default',
@@ -41,31 +46,43 @@ export const ISLAND_1_NPC: NPCProps[] = [
             ['さいしょのクエストだ！', "It's your first quest!", '最初のクエストだ'],
             ['じゅんびはできてるか？', 'Are you ready?', '準備はできてるか？']), // quest: **say() with [['はい'],['いいえ']] as a line** -> **ask() with [ja, en] choices**, mechanism: choices ride on the Dialog instead of being read as a third line; mp3s stay silent until rendered
         say('spoken', ['はらへったなあ', "I'm getting hungry", '腹減ったなあ']), // file: **'お腹空いたなあ'** -> **'腹減ったなあ'**, mechanism: kanji form of はらへった (was お腹空いた)
-    ]),
+    ], 'あ'),
     npc('Tiffany', 'tiffany', 3500, 5150, 'khaki', [
         say('greeting', ['おはよう！', 'Good morning!', 'おはよう']),
         say('default',
             ['わたしはあまいものがすき', 'I like sweet things', '私は甘い物が好き'], // file: **'甘い物が好き'** -> **'私は甘い物が好き'**, mechanism: kanji form of the new line わたしは…, rendered by python/dialogs/tiffany.yaml
             ['おもちがいちばんすき！', 'Mochi is my favorite!', 'お餅が一番好き'], // file: **'餅が一番好き'** -> **'お餅が一番好き'**, mechanism: kanji form of the new line おもち…, ！ dropped
             ['やわらかくておいしいよね！', "It's soft and tasty", '柔らかくて美味しいよね']), // file: **'柔らかくて美味しい'** -> **'柔らかくて美味しいよね'**, mechanism: kanji form of the new line …よね！, ！ dropped
+        ask('quest', [['はい', 'Yes'], ['いいえ', 'No']],
+            ['「う」のクエストよ！', 'The う quest!', '「う」のクエストよ'],
+            ['じゅんびできた？', 'All set?', '準備できた？']),
+        // Tiffany's う quest
         say('spoken', ['もち、たべたいな〜', 'I want some mochi', '餅食べたいな']),
-    ]),
+    ], 'う'),
     npc('Genki', 'genki', 3300, 5110, 'gray', [
         say('greeting', ['よう！', 'Yo!', 'よう']),
         say('default',
             ['おれはカレーがすきだ', 'I like curry', '俺はカレーが好きだ'],
             ['からいカレーがいい', 'Spicy curry is good', '辛いカレーがいい'],
             ['やっぱまいにちたべたいよね！', 'I want it every day!', 'やっぱ毎日食べたいよね']), // file: **'毎日食べたい'** -> **'やっぱ毎日食べたいよね'**, mechanism: kanji form of the new line with ！ dropped, rendered by python/dialogs/genki.yaml
+        ask('quest', [['はい', 'Yes'], ['いいえ', 'No']],
+            ['「え」のクエストだ！', 'The え quest!', '「え」のクエストだ'],
+            ['いけるか？', 'Can you do it?', 'いけるか？']),
+        // Genki's え quest
         say('spoken', ['カレー、たべたか？', 'Did you eat curry?', 'カレー食べたか？']),
-    ]),
+    ], 'え'),
     npc('Sarah', 'sarah', 3710, 5130, 'lightpink', [
         say('greeting', ['こんにちは〜', 'Hi there~', 'こんにちは']),
         say('default',
             ['わたしはおにぎりがすき', 'I like onigiri', '私はおにぎりが好き'],
             ['うめぼしがすっぱい！', 'Umeboshi is sour!', '梅干しが酸っぱい'],
             ['でも、おいしいよ', "But it's delicious", 'でも美味しいよ']),
+        ask('quest', [['はい', 'Yes'], ['いいえ', 'No']],
+            ['「お」のクエストだよ', 'This is the お quest', '「お」のクエストだよ'],
+            ['がんばってね！', 'Good luck!', '頑張ってね']),
+        // Sarah's お quest
         say('spoken', ['またね〜', 'See you~', 'またね']),
-    ]),
+    ], 'お'),
 ]
 // five NPCs around the spawn (world center 3500, 5000), each talking about
 // a favorite food. Spots are fixed, not random, so server and client render
@@ -82,6 +99,8 @@ export const ISLAND_1_NPC: NPCProps[] = [
 // in a say() pair is the recording's file name (no .mp3): the line in kanji
 // with ！ 、 〜 dropped and ？ kept. A line whose file is missing just fails
 // to load and stays silent
+// kana: each NPC's quest trains one vowel (Shuto あ, Jordi い, Tiffany う,
+// Genki え, Sarah お); pickDialog skips the 'quest' talk once that row is done
 
 //npcs on the Quest Island
 const YES_NO: [ja: string, en: string][] = [['はい', 'Yes'], ['いいえ', 'No']]
@@ -134,9 +153,10 @@ export const questIslandNpcs = (w: number, h: number, phase: TrainingPhase): NPC
     const { x: cx, y } = throwSpot(w, h) // spot: **(w / 2, h / 2 - 80)** -> **throwSpot(w, h)**, reason: Ryuuko stands at the top middle, mechanism: the same spot training.ts throws from, so blocks leave her hands
     const withElena = phase === 'success' || phase === 'fail' || phase === 'again' || phase === 'break' // elena: **success / fail** -> **+ again**, mechanism: she stays so the player can still leave while Ryuuko offers a replay // elena: **success / fail / again** -> **+ break**, mechanism: she comes out after いいえ to Ryuuko's level-up offer, standing 60px right of her like success
     const ryuukoX = phase === 'fail' ? cx + 40 : cx
+    const ryuukoY = phase === 'play1' || phase === 'play2' ? playSpot(w, h).y : y // y: **y** -> **playSpot while playing**, mechanism: she drops 40px during a level so her target bubble clears the timer bar
     const elenaX = phase === 'fail' ? cx - 40 : cx + 60
     return [
-        npc('Ryuuko', 'ryuuko', ryuukoX, y, 'crimson', ryuukoDialog(phase)),
+        npc('Ryuuko', 'ryuuko', ryuukoX, ryuukoY, 'crimson', ryuukoDialog(phase)),
         ...(withElena ? [npc('Elena', 'elena', elenaX, y, 'seagreen', elenaDialog(phase))] : []), // voice: **undefined** -> **'elena'**, mechanism: lines load from public/dialog/elena/
     ]
 }

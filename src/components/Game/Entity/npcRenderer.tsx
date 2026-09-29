@@ -10,6 +10,7 @@ export type NPCProps = {
     ent: EntityProps, // shape: **EntityProps & {...}** -> **{ ent, ... }**, reason: GameScene already keeps NPCs as { ent, dialog }, mechanism: the entity box stays one object, so the scene's solids / range checks read n.ent like the player's
     dialog?: Dialog[], // greeting, greetingEn, dialog, dialogEn: **four separate fields** -> **dialog: Dialog[]**, reason: an NPC says different things by condition (first talk, after talking, quest cleared), mechanism: each entry is tagged with its condition and carries its jp lines + en; pickDialog below chooses one
     quest?: { id: number, title: string, status?: 'done' | 'resume' }
+    kana?: string // kana: **none** -> **kana?**, reason: each island-1 NPC trains one vowel, mechanism: IslandScene gives it the quest row with the same kana; MobileTester opens the training on it directly
 }
 // selected: **in NPCProps** -> **NPCRenderer prop**, reason: which NPC is
 // talking is scene state, not NPC data, mechanism: GameScene passes
@@ -25,7 +26,7 @@ export const greeting = (npc: NPCProps) => find(npc, 'greeting') ?? GREETING_DEF
 
 export const pickDialog = (npc: NPCProps, spoken: boolean, questOpen = false): Dialog => // args: **(npc, spoken)** -> **+ questOpen**, reason: NPCs offer the island's next quest, mechanism: GameScene passes true while it has an onQuest to open
     (npc.quest?.status === 'done' ? find(npc, 'questCleared') : undefined) ??
-    (questOpen ? find(npc, 'quest') : undefined) ?? // step: **none** -> **quest offer**, mechanism: wins over spoken/default so every talk offers it; skipped (normal talk) when no quest is open
+    (questOpen && npc.quest?.status !== 'done' ? find(npc, 'quest') : undefined) ?? // offer: **while any quest is open** -> **+ not this NPC's cleared quest**, mechanism: a cleared kana's NPC falls through to its normal talk instead of offering it again // step: **none** -> **quest offer**, mechanism: wins over spoken/default so every talk offers it; skipped (normal talk) when no quest is open
     (spoken ? find(npc, 'spoken') : undefined) ??
     find(npc, 'default') ??
     greeting(npc)

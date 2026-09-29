@@ -22,6 +22,13 @@ export const ELENA = 1
 export const throwSpot = (w: number, h: number) => ({ x: w / 2, y: h / 4 }) // spot: **(w / 2, 160)** -> **(w / 2, h / 4)**, reason: Ryuuko stands further down, mechanism: a quarter of the island (half a screen) from the top, so her talk bubble has room and the player's walk up is shorter; npcs.ts places her here too
 // where Ryuuko stands and every block is thrown from (world px, center)
 
+const PLAY_DROP = 40
+export const playSpot = (w: number, h: number) => ({ x: throwSpot(w, h).x, y: throwSpot(w, h).y + PLAY_DROP })
+// where Ryuuko stands and throws from while a level is played: 40px below
+// throwSpot. The player's start (PLAYER_GAP) and the wall (WALL_GAP) stay
+// measured from throwSpot, so on screen (the camera follows the player)
+// Ryuuko and her target bubble sit 40px lower, clear of the timer bar
+
 const PLAYER_GAP = 350
 // px in y from Ryuuko to the player when a level starts (はい to Ryuuko)
 
@@ -38,12 +45,17 @@ const maxHP = 10
 export type QuestsLevel = { target: string, pool: string[], speed: number, every: number }
 // one training level: the kana to catch, what can be thrown, and how fast
 
-export const LEVELS: QuestsLevel[] = [ // LEVELS: **private, inferred type** -> **exported QuestsLevel[]**, mechanism: npcs.ts builds Ryuuko's level-select choices from it, one per entry
-    { target: 'あ', pool: ['あ'], speed: 70, every: 1.2 },
-    { target: 'あ', pool: ['あ', 'い', 'う', 'え', 'お'], speed: 110, every: 0.8 },
-]
-// speed = px/s a block flies at, every = seconds between throws. Level 1
-// only throws the target; level 2 mixes in the other vowels
+export function levelsFor(target: string): QuestsLevel[] {
+    return [
+        { target, pool: [target], speed: 70, every: 1.2 },
+        { target, pool: ['あ', 'い', 'う', 'え', 'お'], speed: 110, every: 0.8 },
+    ]
+}
+// the two levels for one quest's kana. speed = px/s a block flies at, every =
+// seconds between throws. Level 1 only throws the target; level 2 mixes in
+// all five vowels
+
+export const LEVELS: QuestsLevel[] = levelsFor('あ') // LEVELS: **hard-coded あ levels** -> **levelsFor('あ')**, mechanism: same two levels built by levelsFor; npcs.ts LEVEL(LEVELS) only reads its length, which is the same for every kana
 
 const SPREAD = Math.PI / 4
 // max angle (45°) a throw leans left or right of straight down
@@ -57,7 +69,7 @@ type Block = { id: number, kana: string, x: number, y: number, vx: number, vy: n
 
 export type TrainingHud = { target: string, romaji: string, current: number, quota: number, hp: number, maxHP: number, secondsLeft: number, timeFrac: number, playing: boolean } // hud: **no maxHP / timeFrac** -> **+ maxHP, timeFrac**, mechanism: questIsland's bars size their fills as hp / maxHP and timeLeft / time
 
-export function useTraining({ w, h, onLeave }: { w: number, h: number, onLeave?: () => void }) {
+export function useTraining({ w, h, onLeave, kana = 'あ' }: { w: number, h: number, onLeave?: () => void, kana?: string }) { // args: **no kana (always あ)** -> **kana = 'あ'**, mechanism: the quest's kana picks the levels below
     const [phase, setPhaseState] = useState<TrainingPhase>('intro')
     const phaseRef = useRef<TrainingPhase>('intro')
     const [failedLevel, setFailedLevel] = useState<0 | 1>(0)
@@ -76,6 +88,10 @@ export function useTraining({ w, h, onLeave }: { w: number, h: number, onLeave?:
     sizeRef.current = { w, h }
     const onLeaveRef = useRef(onLeave)
     onLeaveRef.current = onLeave
+    const levelsRef = useRef(levelsFor(kana))
+    if (levelsRef.current[0].target !== kana) levelsRef.current = levelsFor(kana)
+    // this quest's levels, in a ref like w/h so the stable callbacks read them;
+    // rebuilt only when the kana changes
     // the per-frame game state lives in refs: onTick mutates them 60 times a
     // second and GameScene's own force() render redraws renderWorld from
     // them, so no React state changes per frame. w/h and onLeave are kept in
@@ -114,7 +130,7 @@ export function useTraining({ w, h, onLeave }: { w: number, h: number, onLeave?:
         const p = phaseRef.current
         if (p !== 'play1' && p !== 'play2') return
         const level: 0 | 1 = p === 'play1' ? 0 : 1
-        const lv = LEVELS[level]
+        const lv = levelsRef.current[level] // levels: **LEVELS** -> **levelsRef.current**, mechanism: the quest's kana levels
         const { w, h } = sizeRef.current
         timeLeft.current -= dt * 1000
         // dt is seconds (GameScene's clamped rAF delta); time is in ms
@@ -126,7 +142,7 @@ export function useTraining({ w, h, onLeave }: { w: number, h: number, onLeave?:
             const kana = others.length === 0 || Math.random() < TARGET_CHANCE
                 ? lv.target
                 : others[Math.floor(Math.random() * others.length)]
-            const from = throwSpot(w, h)
+            const from = playSpot(w, h) // from: **throwSpot** -> **playSpot**, mechanism: blocks leave Ryuuko's hands at her lowered play spot
             const angle = (Math.random() * 2 - 1) * SPREAD
             blocks.current.push({ id: nextId.current++, kana, x: from.x, y: from.y, vx: Math.sin(angle) * lv.speed, vy: Math.cos(angle) * lv.speed }) // direction: **toward a random point on the island** -> **straight down +- SPREAD**, reason: Ryuuko throws downward from the top, mechanism: angle 0 = down (vx 0, vy +speed), sin/cos keep the speed the same at any angle
         } // voice: **playLine(kana) on throw** -> **removed here**, mechanism: the kana is now said when the block is caught (below)
@@ -172,7 +188,7 @@ export function useTraining({ w, h, onLeave }: { w: number, h: number, onLeave?:
     const onChoice = useCallback((npc: number, choice: number) => {
         const p = phaseRef.current
         if (npc === RYUUKO && p === 'again') {
-            if (choice < LEVELS.length) startLevel(choice as 0 | 1)
+            if (choice < levelsRef.current.length) startLevel(choice as 0 | 1)
             return
         }
         // 'again': Ryuuko's choices are the levels (npcs.ts LEVEL(LEVELS)), so
@@ -203,7 +219,7 @@ export function useTraining({ w, h, onLeave }: { w: number, h: number, onLeave?:
 
     const renderWorld = useCallback(() => createElement(Fragment, null,
         (phaseRef.current === 'play1' || phaseRef.current === 'play2') && createElement('div', { key: 'wall', style: { position: 'absolute', left: 0, top: throwSpot(sizeRef.current.w, sizeRef.current.h).y + WALL_GAP - BUBBLE_BORDER_W / 2, width: sizeRef.current.w, height: BUBBLE_BORDER_W, background: BUBBLE_BOARDER, pointerEvents: 'none' } }), // wall: **none** -> **black line while playing**, mechanism: drawn at wallY in the bubble border's color / width; setPhase leaving play stops drawing it
-        (phaseRef.current === 'play1' || phaseRef.current === 'play2') && createElement(TargetBubble, { key: 'target', kana: LEVELS[phaseRef.current === 'play1' ? 0 : 1].target, x: throwSpot(sizeRef.current.w, sizeRef.current.h).x, y: throwSpot(sizeRef.current.w, sizeRef.current.h).y, h: ENT_H }), // target: **HUD only** -> **+ bubble over Ryuuko**, mechanism: the level's target kana in a CharBlock-sized DialogBubble at her spot (throwSpot, ENT_H tall like every npc()), only while playing
+        (phaseRef.current === 'play1' || phaseRef.current === 'play2') && createElement(TargetBubble, { key: 'target', kana: levelsRef.current[phaseRef.current === 'play1' ? 0 : 1].target, x: playSpot(sizeRef.current.w, sizeRef.current.h).x, y: playSpot(sizeRef.current.w, sizeRef.current.h).y, h: ENT_H }), // spot: **throwSpot** -> **playSpot**, mechanism: the bubble follows Ryuuko 40px down so the timer bar no longer covers the kana // target: **HUD only** -> **+ bubble over Ryuuko**, mechanism: the level's target kana in a CharBlock-sized DialogBubble at her spot (throwSpot, ENT_H tall like every npc()), only while playing
         ...blocks.current.map(b => createElement(CharBlock, { key: b.id, kana: b.kana, x: b.x, y: b.y })) // props: **kana + romaji** -> **kana only**, mechanism: no romaji passed, so CharBlock skips its English line; the HUD still shows the target's romaji
     ), [])
     // the flying blocks in world px; GameScene calls this every frame, so it
@@ -212,7 +228,7 @@ export function useTraining({ w, h, onLeave }: { w: number, h: number, onLeave?:
     const getHud = useCallback((): TrainingHud => {
         const p = phaseRef.current
         const playing = p === 'play1' || p === 'play2'
-        const lv = LEVELS[p === 'play2' || (p === 'fail' && failedRef.current === 1) ? 1 : 0]
+        const lv = levelsRef.current[p === 'play2' || (p === 'fail' && failedRef.current === 1) ? 1 : 0]
         return {
             target: lv.target,
             romaji: ROMAJI[lv.target] ?? '',

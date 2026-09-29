@@ -43,8 +43,8 @@ function Hud({ getHud }: { getHud: () => TrainingHud }) {
 // redraws, so the HUD runs its own rAF and re-reads getHud() each frame.
 // It draws in screen px over the scene, and only while a level is played
 
-function Training({ w, h, onLeave, sensitivity, children }: { w: number, h: number, onLeave: () => void, sensitivity?: number, children?: ReactNode }) {
-    const t = useTraining({ w, h, onLeave })
+function Training({ w, h, onLeave, kana, sensitivity, children }: { w: number, h: number, onLeave: () => void, kana?: string, sensitivity?: number, children?: ReactNode }) {
+    const t = useTraining({ w, h, onLeave, kana }) // args: **no kana** -> **kana**, mechanism: the quest's kana picks the training's target
     const npcs = questIslandNpcs(w, h, t.phase)
     return (
         <>
@@ -59,7 +59,7 @@ function Training({ w, h, onLeave, sensitivity, children }: { w: number, h: numb
 // the same render she's asked to talk). children = the success slot, shown
 // only once both levels are cleared
 
-export default function QuestIsland({ onLeave, sensitivity, children }: { onLeave: () => void, sensitivity?: number, children?: ReactNode }) {
+export default function QuestIsland({ onLeave, kana, sensitivity, children }: { onLeave: () => void, kana?: string, sensitivity?: number, children?: ReactNode }) { // props: **no kana** -> **kana**, mechanism: passed through Training to useTraining; undefined falls back to あ
     const boxRef = useRef<HTMLDivElement>(null)
     const [size, setSize] = useState<{ w: number, h: number }>()
     useEffect(() => {
@@ -70,7 +70,7 @@ export default function QuestIsland({ onLeave, sensitivity, children }: { onLeav
     }, [])
     return (
         <div ref={boxRef} style={{ position: 'relative', width: '100%', height: '100%', background: BUBBLE_BG }}>
-            {size && <Training w={size.w} h={size.h} onLeave={onLeave} sensitivity={sensitivity}>{children}</Training>}
+            {size && <Training w={size.w} h={size.h} onLeave={onLeave} kana={kana} sensitivity={sensitivity}>{children}</Training>}
         </div>
     )
 }

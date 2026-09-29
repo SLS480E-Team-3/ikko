@@ -86,3 +86,7 @@ For NPC dialog or voice work, read `docs/dialogs-and-voice.md` first, then follo
 | Generate audio for lines | [Speech Generation](docs/dialogs-and-voice.md#speech-generation) |
 
 A new NPC usually needs all three, in the order: voice → scripting → speech generation.
+
+## SQL
+
+Until deploy, every SQL query the user has to run in Supabase (schema changes, seed rows, fixes) is also appended to `docs/SQL-query.md`, in the order it should be run. Giving the SQL in chat alone is not enough.

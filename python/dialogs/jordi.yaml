@@ -14,7 +14,16 @@ lines:
   - speaker: jordi
     text: またお寿司の話しよ！
     style: warm, friendly goodbye
+  # quest line (jordi kana quest)
+  - speaker: jordi
+    text: 「い」のクエストだよ！
+    style: upbeat and playful, announcing a fun challenge
+  - speaker: jordi
+    text: 準備はいい？
+    style: friendly, eager, light rise at the end
 # Jordi's island-1 lines from src/components/Game/npcs/npcs.ts, in kanji
 # form. line_mp3 drops ！ 、 and keeps ？, so each file lands on the third
 # item of its say() line (こんにちは, 私はお寿司が大好き, ...). The greeting
 # has no style; it hits the cache only if it was rendered before // cache: **reuses voice.py's test strip** -> **own render or cache**, mechanism: voice.py no longer renders TEST_LINE strips
+
+# quest lines rendered to 「い」のクエストだよ, 準備はいい？

@@ -17,7 +17,7 @@ export default async function QuestPage({ // name: **QuestScene** -> **QuestPage
     if (!user) redirect('/LogIn')
 
     const { data: row } = await supabase.from('quests')
-        .select('id, island_id, title, reward_points').eq('id', questId).maybeSingle()
+        .select('id, island_id, title, reward_points, kana').eq('id', questId).maybeSingle() // select: **no kana** -> **+ kana**, mechanism: the training targets this quest's kana
     if (!row) notFound()
     if (row.island_id !== islandId) redirect(`/Game/${row.island_id}/${row.id}`)
     // loads this one quest only -- the reason quests get their own route.

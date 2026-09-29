@@ -3,6 +3,7 @@ export type QuestsProps = {
     islandId?: number,
     title?: string,
     rewardPoints?: number,
+    kana?: string | null, // column: **none** -> **kana**, mechanism: the kana this quest trains; the island NPC with the same kana offers it
 
     type?: 'A' | 'B',
     rounds?: QuestRound[],
@@ -48,7 +49,8 @@ create table quests (
   id            bigint generated always as identity primary key,
   island_id     bigint not null references islands(id),
   title         text not null,
-  reward_points int  not null default 0
+  reward_points int  not null default 0,
+  kana          text
 );
 
 create table user_quests (
