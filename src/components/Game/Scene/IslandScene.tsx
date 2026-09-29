@@ -4,7 +4,10 @@ import Link from "next/link"
 import { useRouter } from "next/navigation" // imports: **none** -> **useRouter**, mechanism: an NPC's はい opens the quest page
 import GameScene, { ISLAND_COUNT, islandBg } from "./gameScene" // imports: **GameScene** -> **+ ISLAND_COUNT, islandBg**, mechanism: per-island bg color and the bounds for the prev/next links
 import { ISLAND_MAPS } from "../islands"
-import { ISLAND_NPCS } from "../npcs" // imports: **none** -> **ISLAND_NPCS**, mechanism: the per-island NPC lists, looked up by id like the maps
+import { ISLAND_NPCS } from "../npcs"
+import { npcsForRow } from "../npcs/npcs"
+import { KANA_ROWS } from "../kana"
+// imports: **ISLAND_NPCS** -> **+ npcsForRow, KANA_ROWS**, mechanism: the NPCs are moved to the player's current kana row before the quests attach // imports: **none** -> **ISLAND_NPCS**, mechanism: the per-island NPC lists, looked up by id like the maps
 
 export type IslandSceneProps = {
     islandId: number
@@ -17,7 +20,13 @@ export type IslandSceneProps = {
 
 export default function IslandScene({ islandId, points, quests }: IslandSceneProps) { // props: **{ islandId: number }** -> **IslandSceneProps**, mechanism: the page passes points and the quest list along with the id, so the scene can draw them without its own queries
     const router = useRouter()
-    const npcs = (ISLAND_NPCS[islandId] ?? []).map(n => {
+    const done = (k: string) => quests.some(q => q.kana === k && q.status === 'done')
+    const firstOpen = KANA_ROWS.findIndex(r => !r.every(done))
+    const row = firstOpen === -1 ? KANA_ROWS.length - 1 : firstOpen
+    // the current kana row: the first one with a quest not yet done, so か–こ
+    // open only once all of あ–お are cleared. With every row done the last
+    // row stays, where each quest is done and no NPC offers one
+    const npcs = npcsForRow(ISLAND_NPCS[islandId] ?? [], row).map(n => { // npcs: **ISLAND_NPCS[islandId]** -> **npcsForRow(..., row)**, mechanism: each NPC's kana and quest line follow the current row, then the kana -> quest match below is unchanged
         const quest = quests.find(q => q.kana && q.kana === n.kana)
         return quest ? { ...n, quest } : { ...n, dialog: n.dialog?.filter(d => d.condition !== 'quest') }
     })

@@ -21,6 +21,16 @@ lines:
   - speaker: tiffany
     text: 準備できた？
     style: soft, gentle check-in
+  # next-row quest lines (か / さ / た rows)
+  - speaker: tiffany
+    text: 「く」のクエストよ！
+    style: sweet and dreamy, presenting it like a treat
+  - speaker: tiffany
+    text: 「す」のクエストよ！
+    style: sweet and dreamy, presenting it like a treat
+  - speaker: tiffany
+    text: 「つ」のクエストよ！
+    style: sweet and dreamy, presenting it like a treat
 # Tiffany's island-1 lines from src/components/Game/npcs/npcs.ts, in kanji
 # form. line_mp3 drops ！ 、 〜 and keeps ？, so each file lands on the third
 # item of its say() line (おはよう, 私は甘い物が好き, ...). Styles follow her

@@ -21,6 +21,16 @@ lines:
   - speaker: jordi
     text: 準備はいい？
     style: friendly, eager, light rise at the end
+  # next-row quest lines (か / さ / た rows)
+  - speaker: jordi
+    text: 「き」のクエストだよ！
+    style: upbeat and playful, announcing a fun challenge
+  - speaker: jordi
+    text: 「し」のクエストだよ！
+    style: upbeat and playful, announcing a fun challenge
+  - speaker: jordi
+    text: 「ち」のクエストだよ！
+    style: upbeat and playful, announcing a fun challenge
 # Jordi's island-1 lines from src/components/Game/npcs/npcs.ts, in kanji
 # form. line_mp3 drops ！ 、 and keeps ？, so each file lands on the third
 # item of its say() line (こんにちは, 私はお寿司が大好き, ...). The greeting

@@ -21,6 +21,16 @@ lines:
   - speaker: genki
     text: いけるか？
     style: encouraging older-brother check, quietly confident
+  # next-row quest lines (か / さ / た rows)
+  - speaker: genki
+    text: 「け」のクエストだ！
+    style: calm, warm older-brother, steady announcement
+  - speaker: genki
+    text: 「せ」のクエストだ！
+    style: calm, warm older-brother, steady announcement
+  - speaker: genki
+    text: 「て」のクエストだ！
+    style: calm, warm older-brother, steady announcement
 # Genki's island-1 lines from src/components/Game/npcs/npcs.ts, in kanji
 # form. line_mp3 drops ！ 、 and keeps ？, so each file lands on the third
 # item of its say() line (よう, 俺はカレーが好きだ, ...). Styles follow his

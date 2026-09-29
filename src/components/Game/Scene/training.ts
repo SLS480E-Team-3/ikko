@@ -6,6 +6,7 @@ import { dialogUrl, playLine } from "@/components/Game/Entity/voice"
 import { BUBBLE_BOARDER, BUBBLE_BORDER_W } from "@/components/Game/Entity/dialogBubble"
 import { ENT_H } from "@/components/Game/Entity/entityRenderer"
 import { overlaps, type PlayerBox } from "./gameScene"
+import { KANA_ROMAJI, rowOf } from "../kana"
 
 export type TrainingPhase = 'intro' | 'play1' | 'levelUp' | 'break' | 'play2' | 'success' | 'fail' | 'again' // phases: **no break** -> **+ 'break'**, reason: いいえ to Ryuuko's level-up offer did nothing, mechanism: a phase of its own so questIslandNpcs can bring Elena out
 // the Quest Island training's steps: Ryuuko's intro talk, level 1, her
@@ -48,7 +49,7 @@ export type QuestsLevel = { target: string, pool: string[], speed: number, every
 export function levelsFor(target: string): QuestsLevel[] {
     return [
         { target, pool: [target], speed: 70, every: 1.2 },
-        { target, pool: ['あ', 'い', 'う', 'え', 'お'], speed: 110, every: 0.8 },
+        { target, pool: rowOf(target), speed: 110, every: 0.8 }, // pool: **fixed あいうえお** -> **rowOf(target)**, mechanism: dummies are the other kana of the target's own row (か → かきくけこ, す → さしすせそ)
     ]
 }
 // the two levels for one quest's kana. speed = px/s a block flies at, every =
@@ -63,7 +64,7 @@ const SPREAD = Math.PI / 4
 const TARGET_CHANCE = 0.4
 // level 2: share of throws that are the target, the rest are a random other kana
 
-export const ROMAJI: Record<string, string> = { あ: 'a', い: 'i', う: 'u', え: 'e', お: 'o' }
+export const ROMAJI: Record<string, string> = KANA_ROMAJI // ROMAJI: **あ–お only** -> **KANA_ROMAJI**, mechanism: kana.ts maps all 20 kana (shi / chi / tsu included)
 
 type Block = { id: number, kana: string, x: number, y: number, vx: number, vy: number }
 

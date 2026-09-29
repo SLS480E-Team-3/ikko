@@ -21,6 +21,16 @@ lines:
   - speaker: shuto
     text: 準備はできてるか？
     style: easygoing check-in, a relaxed question with a light rise at the end
+  # next-row quest lines (か / さ / た rows)
+  - speaker: shuto
+    text: 「か」のクエストだ！
+    style: calm, laid-back announcement of the next quest
+  - speaker: shuto
+    text: 「さ」のクエストだ！
+    style: calm, laid-back announcement of the next quest
+  - speaker: shuto
+    text: 「た」のクエストだ！
+    style: calm, laid-back announcement of the next quest
 # Shuto's island-1 lines from src/components/Game/npcs/npcs.ts, in kanji
 # form. line_mp3 drops ！ 、 and keeps ？, so each file lands on the third
 # item of its say() line (やあ, 俺はラーメンが好きやで, ...). Styles stay

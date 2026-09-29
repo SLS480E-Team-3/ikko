@@ -87,6 +87,8 @@ For NPC dialog or voice work, read `docs/dialogs-and-voice.md` first, then follo
 
 A new NPC usually needs all three, in the order: voice → scripting → speech generation.
 
+Yaml lines are trivial: the main session writes them first, then a background sub-agent runs `dialog.py render` while the rest of the work continues. Don't estimate or flag the ondoku character budget.
+
 ## SQL
 
-Until deploy, every SQL query the user has to run in Supabase (schema changes, seed rows, fixes) is also appended to `docs/SQL-query.md`, in the order it should be run. Giving the SQL in chat alone is not enough.
+Until deploy, every SQL query the user has to run in Supabase (schema changes, seed rows, fixes) is also appended to `docs/SQL-query.md`, in the order it should be run. Giving the SQL in chat alone is not enough. and specify with title.

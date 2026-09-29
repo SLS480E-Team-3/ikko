@@ -21,6 +21,16 @@ lines:
   - speaker: sarah
     text: 頑張ってね！
     style: warm, bright cheer
+  # next-row quest lines (か / さ / た rows)
+  - speaker: sarah
+    text: 「こ」のクエストだよ
+    style: cheerful and easygoing, bright
+  - speaker: sarah
+    text: 「そ」のクエストだよ
+    style: cheerful and easygoing, bright
+  - speaker: sarah
+    text: 「と」のクエストだよ
+    style: cheerful and easygoing, bright
 # Sarah's island-1 lines from src/components/Game/npcs/npcs.ts, in kanji
 # form. line_mp3 drops ！ 、 〜 and keeps ？, so each file lands on the third
 # item of its say() line (こんにちは, 私はおにぎりが好き, ...). Styles follow

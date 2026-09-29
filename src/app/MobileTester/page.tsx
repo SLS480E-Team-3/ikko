@@ -33,10 +33,12 @@ import EditInfo from "@/app/EditInfo/page"
 import { ISLAND_MAPS } from "@/components/Game/islands"
 import { BUBBLE_BG } from "@/components/Game/Entity/dialogBubble"
 import NPCRenderer from "@/components/Game/Entity/npcRenderer"
-import { ISLAND_1_NPC } from "@/components/Game/npcs/npcs" // imports: **+ QUEST_ISLAND_NPC** -> **ISLAND_1_NPC**, mechanism: QuestIsland builds its own NPCs from the training phase
+import { ISLAND_1_NPC, npcsForRow } from "@/components/Game/npcs/npcs" // imports: **ISLAND_1_NPC** -> **+ npcsForRow**, mechanism: the preview moves the NPCs to the chosen kana row // imports: **+ QUEST_ISLAND_NPC** -> **ISLAND_1_NPC**, mechanism: QuestIsland builds its own NPCs from the training phase
 import QuestIsland from "@/components/Game/Scene/questIsland"
 import { ISLAND_NPCS } from "@/components/Game/npcs" // imports: **none** -> **ISLAND_NPCS**, mechanism: seeded per-island NPC spots for IslandPreview // imports: **none** -> **ISLAND_1_NPC**, mechanism: see the game scene page
 import EntityRenderer, { ENT_H } from "@/components/Game/Entity/entityRenderer"
+import { KANA_ROWS } from "@/components/Game/kana"
+// imports: **none** -> **KANA_ROWS**, mechanism: bounds and labels for the row buttons
 
 const PHONES: { label: string; screen: CSSProperties }[] = [
     { label: 'IPHONE17', screen: IPHONE17_SCREEN },
@@ -120,6 +122,10 @@ const TEST_NPCS: SceneNPC[] = npcSpots.map((n, i) => ({ // spots: **fixed ±60 /
 
 function IslandPreview({ sensitivity }: { sensitivity: number }) {
     const [island, setIsland] = useState(1)
+    const [row, setRow] = useState(0)
+    // the kana row the NPCs offer (0 = あ–お): with no login there's no quest
+    // progress, so the row buttons stand in for clearing a row
+    const npcs = npcsForRow(ISLAND_NPCS[island] ?? [], row)
     const [inQuest, setInQuest] = useState<string | false>(false) // inQuest: **boolean** -> **kana | false**, mechanism: holds the kana of the NPC whose quest was accepted
     const btn: CSSProperties = { padding: '8px 12px' }
     if (inQuest) return (
@@ -132,7 +138,14 @@ function IslandPreview({ sensitivity }: { sensitivity: number }) {
     // same island: the no-login stand-in for QuestScene's router.push
     return (
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-            <GameScene key={island} sensitivity={sensitivity} bgProps={islandBg(island)} objects={ISLAND_MAPS[island] ?? []} npcs={ISLAND_NPCS[island] ?? []} onQuest={i => setInQuest(ISLAND_NPCS[island]?.[i]?.kana ?? 'あ')} /> {/* onQuest: **setInQuest(true)** -> **setInQuest(npc kana)**, mechanism: the training targets the kana of the NPC that asked */} {/* onQuest: **alert** -> **setInQuest(true)**, mechanism: はい renders the Quest Island in place instead of only alerting */}
+            <GameScene key={`${island}-${row}`} sensitivity={sensitivity} bgProps={islandBg(island)} objects={ISLAND_MAPS[island] ?? []} npcs={npcs} onQuest={i => setInQuest(npcs[i]?.kana ?? 'あ')} /> {/* npcs: **ISLAND_NPCS[island]** -> **npcsForRow(..., row)**, mechanism: kana and quest line follow the row; key: **island** -> **island-row**, mechanism: remounts GameScene so the new NPC lines show */} {/* onQuest: **setInQuest(true)** -> **setInQuest(npc kana)**, mechanism: the training targets the kana of the NPC that asked */} {/* onQuest: **alert** -> **setInQuest(true)**, mechanism: はい renders the Quest Island in place instead of only alerting */}
+            <div style={{ position: 'absolute', bottom: 64, left: 16, right: 16, zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', pointerEvents: 'none' }}>
+                <button style={{ ...btn, pointerEvents: 'auto' }} disabled={row <= 0} onClick={() => setRow(r => Math.max(0, r - 1))}>◀ row</button>
+                <span>row {KANA_ROWS[row].join('')}</span>
+                <button style={{ ...btn, pointerEvents: 'auto' }} disabled={row >= KANA_ROWS.length - 1} onClick={() => setRow(r => Math.min(KANA_ROWS.length - 1, r + 1))}>row ▶</button>
+            </div>
+            {/* kana row switcher, one line above the island buttons: same
+                layout, steps row through KANA_ROWS */}
             <div style={{ position: 'absolute', bottom: 16, left: 16, right: 16, zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', pointerEvents: 'none' }}>
                 <button style={{ ...btn, pointerEvents: 'auto' }} disabled={island <= 1} onClick={() => setIsland(i => Math.max(1, i - 1))}>◀ prev</button>
                 <span>island {island}</span>

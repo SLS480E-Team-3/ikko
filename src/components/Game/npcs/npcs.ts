@@ -2,6 +2,7 @@ import { NPCProps } from "../Entity/npcRenderer";
 import { Dialog } from "../Entity/dialogBubble";
 import { ENT_H, ENT_W } from "../Entity/entityRenderer";
 import { LEVELS, playSpot, throwSpot, type QuestsLevel, type TrainingPhase } from "../Scene/training"; // import: **{ QUEST_H, QUEST_W } from gameScene** -> **type TrainingPhase from training**, mechanism: the quest island is sized at runtime (w, h passed in), and its cast depends on the training phase // import: **type TrainingPhase** -> **+ throwSpot**, mechanism: Ryuuko stands where the blocks are thrown from // import: **+ throwSpot** -> **+ LEVELS, QuestsLevel**, mechanism: Ryuuko's 'again' choices are built from the training levels
+import { KANA_ROWS } from "../kana";
 
 type Line = [ja: string, en: string, audio?: string] // Line: **[ja, en]** -> **+ audio?**, reason: lines play recorded mp3s, mechanism: the file name (no .mp3) in the NPC's public/dialog/<voice>/ folder; left out = silent
 
@@ -99,8 +100,42 @@ export const ISLAND_1_NPC: NPCProps[] = [
 // in a say() pair is the recording's file name (no .mp3): the line in kanji
 // with ！ 、 〜 dropped and ？ kept. A line whose file is missing just fails
 // to load and stays silent
-// kana: each NPC's quest trains one vowel (Shuto あ, Jordi い, Tiffany う,
-// Genki え, Sarah お); pickDialog skips the 'quest' talk once that row is done
+// kana: each NPC owns one column of KANA_ROWS (Shuto あかさた, Jordi いきしち, // kana: **one vowel per NPC** -> **one column per NPC**, mechanism: ISLAND_1_NPC holds the あ-row kana; npcsForRow moves every NPC to the same column of a later row
+// Tiffany うくすつ, Genki えけせて, Sarah おこそと); pickDialog skips the 'quest'
+// talk once that NPC's current quest row is done
+
+const QUEST_LINE: Record<string, (k: string) => Line> = {
+    shuto: k => k === 'あ' ? ['さいしょのクエストだ！', "It's your first quest!", '最初のクエストだ'] : [`「${k}」のクエストだ！`, `It's the ${k} quest!`, `「${k}」のクエストだ`],
+    jordi: k => [`「${k}」のクエストだよ！`, `It's the ${k} quest!`, `「${k}」のクエストだよ`],
+    tiffany: k => [`「${k}」のクエストよ！`, `The ${k} quest!`, `「${k}」のクエストよ`],
+    genki: k => [`「${k}」のクエストだ！`, `The ${k} quest!`, `「${k}」のクエストだ`],
+    sarah: k => [`「${k}」のクエストだよ`, `This is the ${k} quest`, `「${k}」のクエストだよ`],
+}
+// the first line of each NPC's quest offer, built from the kana so one
+// template covers every row. The file name is the line with ！ dropped, the
+// same name python/dialogs/<voice>.yaml renders to. Shuto keeps his
+// "first quest" line for あ
+
+const list = (v?: string | string[]): string[] => v === undefined ? [] : Array.isArray(v) ? v : [v]
+// a Dialog's jp / en / audio as an array (they may be a single string)
+
+export const npcsForRow = (npcs: NPCProps[], row: number): NPCProps[] => npcs.map(n => {
+    const col = KANA_ROWS[0].indexOf(n.kana ?? '')
+    const kana = KANA_ROWS[row]?.[col]
+    const line = n.voice ? QUEST_LINE[n.voice] : undefined
+    if (!kana || !line) return n
+    const [ja, en, audio] = line(kana)
+    return {
+        ...n, kana,
+        dialog: n.dialog?.map(d => d.condition === 'quest'
+            ? { ...d, jp: [ja, ...list(d.jp).slice(1)], en: [en, ...list(d.en).slice(1)], audio: [audio ?? '', ...list(d.audio).slice(1)] }
+            : d),
+    }
+})
+// moves the island's NPCs to kana row `row`: each NPC's あ-row kana gives
+// its column, the kana becomes that column of the new row, and the quest
+// offer's first line is swapped for QUEST_LINE (the second line, e.g.
+// 準備はいい？, stays). NPCs without a kana or a template are passed as-is
 
 //npcs on the Quest Island
 const YES_NO: [ja: string, en: string][] = [['はい', 'Yes'], ['いいえ', 'No']]
