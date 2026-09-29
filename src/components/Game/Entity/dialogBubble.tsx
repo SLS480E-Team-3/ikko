@@ -22,22 +22,22 @@ type DialogBubbleProps = {
 // the bubble takes the entity's position, not its own, so a caller passes
 // the same x/y/h it gives EntityRenderer and the bubble finds the top itself
 
-const BUBBLE_GAP = 25
+export const BUBBLE_GAP = 25 // scope: **const** -> **export const**, reason: Ryuuko's target bubble sits at the same height above her, mechanism: named export like BUBBLE_BG
 export const BUBBLE_BOARDER = 'black' // scope: **const** -> **export const**, reason: the Quest Island border and the char blocks share the bubble's style, mechanism: named export like BUBBLE_BG
 const BUBBLE_TEXT = 'black'
 export const BUBBLE_BG = '#fffff2' // scope: **const** -> **export const**, reason: the Quest Island is painted the bubble's color, mechanism: gameScene imports it for QUEST_BG
 
 export const BUBBLE_BORDER_W = 2 // scope: **const** -> **export const**, mechanism: see BUBBLE_BOARDER
-const TAIL = 6 // tail height = half its width, so the slanted sides are 45°
+export const TAIL = 6 // scope: **const** -> **export const**, mechanism: the target bubble draws the same tail // tail height = half its width, so the slanted sides are 45°
 export const BUBBLE_SHADOW = 'rgba(0,0,0,0.18)' // scope: **const** -> **export const**, mechanism: see BUBBLE_BOARDER
-const SEAM = 1 // SEAM: **none** -> **1**, mechanism: how far (world px) the fill triangle reaches up into the body fill, so the anti-aliased seam between them is hidden
-const TAIL_INNER = Math.round(TAIL + BUBBLE_BORDER_W - BUBBLE_BORDER_W * Math.SQRT2)
+export const SEAM = 1 // scope: **const** -> **export const**, mechanism: see TAIL // SEAM: **none** -> **1**, mechanism: how far (world px) the fill triangle reaches up into the body fill, so the anti-aliased seam between them is hidden
+export const TAIL_INNER = Math.round(TAIL + BUBBLE_BORDER_W - BUBBLE_BORDER_W * Math.SQRT2)
 // world px. TAIL_INNER is the fill triangle: it starts BUBBLE_BORDER_W higher
 // (over the body's bottom border) and a 45° side's border measured
 // sideways is B·√2, so this size leaves a ~BUBBLE_BORDER_W black edge on
 // both slants and a tip that thick at the bottom
 
-const triangle = (half: number, color: string, top: string) => ({
+export const triangle = (half: number, color: string, top: string) => ({ // scope: **const** -> **export const**, mechanism: see TAIL
     position: 'absolute' as const,
     left: '50%',
     top,

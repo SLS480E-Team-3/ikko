@@ -1,9 +1,10 @@
 'use client'
 
 import { createElement, Fragment, useCallback, useRef, useState } from "react"
-import CharBlock, { CHAR_BLOCK_SIZE } from "@/components/Game/Entity/charBlock"
+import CharBlock, { CHAR_BLOCK_SIZE, TargetBubble } from "@/components/Game/Entity/charBlock" // import: **+ TargetBubble**, mechanism: drawn over Ryuuko while a level runs
 import { dialogUrl, playLine } from "@/components/Game/Entity/voice"
 import { BUBBLE_BOARDER, BUBBLE_BORDER_W } from "@/components/Game/Entity/dialogBubble"
+import { ENT_H } from "@/components/Game/Entity/entityRenderer"
 import { overlaps, type PlayerBox } from "./gameScene"
 
 export type TrainingPhase = 'intro' | 'play1' | 'levelUp' | 'play2' | 'success' | 'fail' | 'again'
@@ -23,12 +24,12 @@ export const throwSpot = (w: number, h: number) => ({ x: w / 2, y: h / 4 }) // s
 const PLAYER_GAP = 350
 // px in y from Ryuuko to the player when a level starts (はい to Ryuuko)
 
-const WALL_GAP = 200
+const WALL_GAP = 300
 // px in y from Ryuuko to the line the player can't cross while a level runs:
 // between her and the player's start (PLAYER_GAP), so blocks have room to
 // spread out before they can be caught
 
-const time = 30_000 //30s
+const time = 60_000 //60s
 const quota = 10
 
 export type QuestsLevel = { target: string, pool: string[], speed: number, every: number }
@@ -41,8 +42,8 @@ export const LEVELS: QuestsLevel[] = [ // LEVELS: **private, inferred type** -> 
 // speed = px/s a block flies at, every = seconds between throws. Level 1
 // only throws the target; level 2 mixes in the other vowels
 
-const SPREAD = Math.PI / 3
-// max angle (60°) a throw leans left or right of straight down
+const SPREAD = Math.PI / 4
+// max angle (45°) a throw leans left or right of straight down
 
 const TARGET_CHANCE = 0.4
 // level 2: share of throws that are the target, the rest are a random other kana
@@ -198,6 +199,7 @@ export function useTraining({ w, h, onLeave }: { w: number, h: number, onLeave?:
 
     const renderWorld = useCallback(() => createElement(Fragment, null,
         (phaseRef.current === 'play1' || phaseRef.current === 'play2') && createElement('div', { key: 'wall', style: { position: 'absolute', left: 0, top: throwSpot(sizeRef.current.w, sizeRef.current.h).y + WALL_GAP - BUBBLE_BORDER_W / 2, width: sizeRef.current.w, height: BUBBLE_BORDER_W, background: BUBBLE_BOARDER, pointerEvents: 'none' } }), // wall: **none** -> **black line while playing**, mechanism: drawn at wallY in the bubble border's color / width; setPhase leaving play stops drawing it
+        (phaseRef.current === 'play1' || phaseRef.current === 'play2') && createElement(TargetBubble, { key: 'target', kana: LEVELS[phaseRef.current === 'play1' ? 0 : 1].target, x: throwSpot(sizeRef.current.w, sizeRef.current.h).x, y: throwSpot(sizeRef.current.w, sizeRef.current.h).y, h: ENT_H }), // target: **HUD only** -> **+ bubble over Ryuuko**, mechanism: the level's target kana in a CharBlock-sized DialogBubble at her spot (throwSpot, ENT_H tall like every npc()), only while playing
         ...blocks.current.map(b => createElement(CharBlock, { key: b.id, kana: b.kana, x: b.x, y: b.y })) // props: **kana + romaji** -> **kana only**, mechanism: no romaji passed, so CharBlock skips its English line; the HUD still shows the target's romaji
     ), [])
     // the flying blocks in world px; GameScene calls this every frame, so it

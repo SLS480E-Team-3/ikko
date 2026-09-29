@@ -1,4 +1,4 @@
-import { BUBBLE_BG, BUBBLE_BOARDER, BUBBLE_BORDER_W, BUBBLE_SHADOW } from "./dialogBubble"
+import { BUBBLE_BG, BUBBLE_BOARDER, BUBBLE_BORDER_W, BUBBLE_GAP, BUBBLE_SHADOW, SEAM, TAIL, TAIL_INNER, triangle } from "./dialogBubble" // import: **+ BUBBLE_GAP, TAIL, TAIL_INNER, SEAM, triangle**, mechanism: TargetBubble below reuses DialogBubble's position and tail
 
 export const CHAR_BLOCK_SIZE = 44 // size: **16** -> **32**, mechanism: twice as big; the training hit test imports this, so the catch box grows with it // size: **32** -> **64**, mechanism: twice as big again; kana / romaji font sizes scale off size // size: **64** -> **44**, mechanism: smaller box; the kana keeps its 32px via KANA_FONT, so only the frame shrinks
 export const KANA_FONT = 32
@@ -47,3 +47,49 @@ export default function CharBlock({ kana, romaji, x, y, size = CHAR_BLOCK_SIZE }
 // zIndex is the bottom edge, the same rule the player / NPC / object wrappers
 // use, so a block flying below an entity draws in front of it and above it
 // draws behind. pointerEvents none keeps the stick and NPC taps working
+
+export function TargetBubble({ kana, x, y, h, size = CHAR_BLOCK_SIZE }: { kana: string, x: number, y: number, h: number, size?: number }) {
+    return (
+        <div
+            style={{
+                position: 'absolute',
+                left: x,
+                top: y - h / 2 - BUBBLE_GAP,
+                transform: 'translate(-50%, -100%)',
+                paddingBottom: TAIL,
+                filter: `drop-shadow(3px 3px 0 ${BUBBLE_SHADOW})`,
+                pointerEvents: 'none',
+                userSelect: 'none',
+                zIndex: Math.round(y + h / 2) + 1,
+            }}
+        >
+            <div
+                style={{
+                    width: size,
+                    height: size,
+                    boxSizing: 'border-box',
+                    border: `${BUBBLE_BORDER_W}px solid ${BUBBLE_BOARDER}`,
+                    background: BUBBLE_BG,
+                    color: 'black',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    lineHeight: 1,
+                    fontSize: KANA_FONT,
+                }}
+            >
+                {kana}
+            </div>
+            <div style={triangle(TAIL, BUBBLE_BOARDER, `calc(100% - ${TAIL}px)`)} />
+            <div style={triangle(TAIL_INNER + SEAM, BUBBLE_BG, `calc(100% - ${TAIL + BUBBLE_BORDER_W + SEAM}px)`)} />
+        </div>
+    )
+}
+// the kana a level asks for, shown in a speech bubble over the thrower's
+// head. x / y / h are the entity's center and height, the same anchor
+// DialogBubble takes, so it sits BUBBLE_GAP above the head (clearing the
+// name tag) with its tail tip there. The body is a CharBlock-sized square
+// (border-box, so exactly size x size) with the kana at KANA_FONT, and the
+// tail / drop-shadow are DialogBubble's, so it reads as her saying the kana.
+// zIndex is one above the entity's bottom edge so it draws over her and
+// the blocks thrown from her
