@@ -56,6 +56,7 @@ export default function EntityRenderer({
 
     const lean = Math.min(Math.max(velocity.x / maxSpeed, -1), 1) // skew: **full TILT_MAX on any x** -> **TILT_MAX x x-speed fraction**, reason: a slight joystick push leaned the body all the way, mechanism: x speed / max speed clamped to -1..1 scales the angle, so a half push leans half (diagonals lean ~0.71 since only that much of the speed is sideways)
     const skew = `skewX(${-TILT_MAX * lean}deg)` // skew: **ternary picking ±TILT_MAX or ''** -> **one proportional skewX**, reason: same as lean, mechanism: negative lean (moving left) flips the sign; standing still gives skewX(0deg), which draws the same as no skew
+    const eye = ent.h / ENT_H // eye: **fixed 4px** -> **body height / ENT_H**, reason: a 1.5x Ryuuko kept tiny eyes, mechanism: default-size entities get 1 (unchanged); a bigger body scales its eyes' size and position with it
 
     return (
         <>
@@ -100,9 +101,9 @@ export default function EntityRenderer({
             <div
                 style={{
                     position: 'absolute',
-                    top: ent.h - 16,
-                    height: 4,
-                    width: 4,
+                    top: ent.h - 16 * eye,
+                    height: 4 * eye,
+                    width: 4 * eye,
                     left: 0,
                     backgroundColor: 'black'
                 }}
@@ -110,9 +111,9 @@ export default function EntityRenderer({
             <div
                 style={{
                     position: 'absolute',
-                    top: ent.h - 16,
-                    height: 4,
-                    width: 4,
+                    top: ent.h - 16 * eye,
+                    height: 4 * eye,
+                    width: 4 * eye, // eye: **4px, 16px up** -> **x eye**, mechanism: scales with the body height; 1 for default-size entities
                     right: 0,
                     backgroundColor: 'black'
                 }}

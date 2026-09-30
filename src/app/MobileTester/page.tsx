@@ -36,6 +36,7 @@ import { BUBBLE_BG } from "@/components/Game/Entity/dialogBubble"
 import NPCRenderer from "@/components/Game/Entity/npcRenderer"
 import { ISLAND_1_NPC, npcsForRow } from "@/components/Game/npcs/npcs" // imports: **ISLAND_1_NPC** -> **+ npcsForRow**, mechanism: the preview moves the NPCs to the chosen kana row // imports: **+ QUEST_ISLAND_NPC** -> **ISLAND_1_NPC**, mechanism: QuestIsland builds its own NPCs from the training phase
 import QuestIsland from "@/components/Game/Scene/questIsland"
+import { ShootQuestIsland } from "@/components/Game/Scene/shootQuestIsland" // imports: **none** -> **ShootQuestIsland**, mechanism: the quest island copy with shooting, for its own tab
 import { ISLAND_NPCS } from "@/components/Game/npcs" // imports: **none** -> **ISLAND_NPCS**, mechanism: seeded per-island NPC spots for IslandPreview // imports: **none** -> **ISLAND_1_NPC**, mechanism: see the game scene page
 import EntityRenderer, { ENT_H } from "@/components/Game/Entity/entityRenderer"
 import { KANA_ROWS } from "@/components/Game/kana"
@@ -67,6 +68,7 @@ const PHONES: { label: string; screen: CSSProperties }[] = [
 const PAGES: { label: string; page: (sensitivity: number) => ReactNode }[] = [ // type: **page: ReactNode** -> **page: (sensitivity) => ReactNode**, reason: the sensitivity input must reach GameScene, mechanism: a prebuilt element is frozen with its props, so each page is built at render time from the current input
     { label: 'game scene', page: (s) => <IslandPreview sensitivity={s} /> }, // page: **<GameScene island 1>** -> **<IslandPreview>**, mechanism: same scene wrapped with prev/next island buttons // npcs: **TEST_NPCS** -> **ISLAND_1_NPC**, reason: test the real island 1 NPCs without logging in to /Game, mechanism: the same list IslandScene passes for island 1
     { label: 'quest island', page: (s) => <QuestIsland sensitivity={s} onLeave={() => alert('back to island')} /> }, // page: **<GameScene QUEST_BG>** -> **<QuestIsland>**, mechanism: the 2x-screen bordered island with Ryuuko's training; Elena's はい on the fail screen runs onLeave
+    { label: 'quest shoot', page: (s) => <ShootQuestIsland sensitivity={s} onLeave={() => alert('back to island')} /> }, // pages: **no quest shoot** -> **quest shoot tab**, mechanism: same quest island, but Space / a tap (or a second finger while the stick is held) fires red 5x8 bullets during a level
     // the 1000 x 700 Quest Island without logging in; Kaeru's はい alerts
     // instead of routing back
     { label: 'sign up', page: () => <SignUpPage /> },
