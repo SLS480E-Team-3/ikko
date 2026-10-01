@@ -111,7 +111,7 @@ API failures print one line with the cause. The main cases are:
 
 ## Sprites
 
-`sprite.py` makes a game object sprite from a reference image. It uses the same `GEMINI_API_KEY` as the voices.
+`sprite.py` makes a game object sprite, from a reference image or from the name alone. It uses the same `GEMINI_API_KEY` as the voices.
 
 Setup, once, on top of the steps above:
 
@@ -127,21 +127,96 @@ The reference image comes from a browser search. The Claude Code skill `/make-sp
 python sprite.py make tree --ref output/refs/tree.jpg
 ```
 
+A generic object (a fern, pebbles) needs no reference:
+
+```bash
+python sprite.py make fern
+```
+
 What `make` does:
-1. Sends the reference and a fixed prompt to `gemini-3.1-flash-image` (Nano Banana 2): redraw the object alone, from the front, looking down about 45°, on a flat magenta background.
+1. Sends the reference (if there is one) and a fixed prompt to `gemini-3.1-flash-image` (Nano Banana 2): redraw the object alone, from the front, looking down about 45°, on a flat magenta background. With no reference the model sometimes answers with no image, so the script asks up to 3 times.
 2. Keys out the magenta (every pixel whose red and blue are both well above its green becomes transparent) and crops to the object.
 3. Pixelizes it with `image_pixelizer` and saves `../public/img/<name>.webp` (lossless, one image pixel per art pixel).
 4. Prints the entry to paste into `src/components/Game/Object/objects.ts`. The `hitBox` is the bottom 20% of the sprite in height, and as wide as the object is in its bottom 8% of rows (a tree's trunk, not its crown), so the player is blocked at the base and walks behind the top.
 
 | Option | Default | What it does |
 |---|---|---|
-| `--ref` | required | Reference image (png, jpg or webp). Keep these in `output/refs/`, which is gitignored. |
-| `-w`, `--width` | 64 | Sprite width in pixels. The height follows the object's shape. |
+| `--ref` | none | Reference image (png, jpg or webp). Keep these in `output/refs/`, which is gitignored. Without it, the object is drawn from its name. |
+| `-w`, `--width` | 32 | Sprite width in pixels. The height follows the object's shape. |
 | `-c`, `--colors` | 16 | Palette size. |
-| `--scale` | 4 | World px per sprite pixel, used for `w`, `h` and `hitBox` in the printed entry. |
+| `--scale` | 8 | World px per sprite pixel, used for `w`, `h` and `hitBox` in the printed entry. |
 | `--background` | `magenta` | What Gemini paints behind the object. `transparent` asks for real transparency, but the model usually paints a checkerboard instead, which can't be removed. |
 | `--bg-tol` | 12 | Color tolerance when removing a painted background that is not magenta (only used with `--background transparent`). |
-| `--max-kb` | 20 | Largest allowed `.webp` file, in KB. Over it, nothing is written and the script stops. A 64 px, 16 color sprite is 1–3 KB. |
+| `--max-kb` | 20 | Largest allowed `.webp` file, in KB. Over it, nothing is written and the script stops. A 32 px, 16 color sprite is under 1 KB. |
 | `--force` | off | Ignore the cache and ask Gemini again. |
 
-The raw Gemini image is cached in `.cache/` by reference, prompt and model, so changing `-w`, `-c` or `--scale` makes no new request. A copy is saved to `output/<name>_raw.png`.
+The raw Gemini image is cached in `.cache/` by reference, prompt and model, so changing `-w`, `-c` or `--scale` makes no new request. The full-size image is also saved to `../public/img/_original/<name>.png`, which is gitignored (dev only).
+
+### Ground tiles
+
+**Not used now.** Scenes use one plain color per section, with merged borders (below). The command is kept.
+
+`tile` makes a repeating ground texture for one section of an island. The Claude Code skill `/make-bg <material>` runs it, and `/make-scene <scene>` calls that skill for each section.
+
+```bash
+python sprite.py tile sand -c 4 --notes "dry, pale"
+```
+
+What `tile` does:
+1. Sends a fixed text prompt to `gemini-3.1-flash-image`: a flat top-down texture of the material, filling the image. There is no reference image, so nothing is downloaded.
+2. Crops the center square and pixelizes it to 32 x 32.
+3. Builds a 64 x 64 image from the tile and its three mirrors (flipped left-right, top-bottom, and both). Every edge then meets a copy of itself, so the tile repeats with no seam.
+4. Saves `../public/img/bg/<material>.webp` (lossless) and prints the `tile` path and the average `color` for a section of `ISLAND_SECTIONS` in `src/components/Game/Scene/gameScene.tsx`. The color shows under the tile while it loads.
+
+| Option | Default | What it does |
+|---|---|---|
+| `--notes` | none | Extra words for the prompt, like `less contrast, no stones`. |
+| `-w`, `--width` | 32 | Size of the tile before mirroring. The file is twice this. |
+| `-c`, `--colors` | 8 | Palette size. |
+| `--max-kb` | 20 | Largest allowed `.webp` file, in KB. A tile is about 1 KB. |
+| `--force` | off | Ignore the cache and ask Gemini again. |
+
+The model sometimes answers a text-only request with no image. The script asks up to 3 times before it stops. The raw image is cached in `.cache/` by prompt and model, and a copy is saved to `output/<material>_tile_raw.png`.
+
+### Merged borders
+
+`merge` makes the mask that mixes two soils at a border. It makes no Gemini request.
+
+```bash
+python sprite.py merge
+```
+
+What `merge` does:
+1. Draws a strip, 256 x 40 art px. Each column is solid up to a height set by three summed sine waves; whole cycles fit the width, so the strip repeats left-right with no seam.
+2. Above the solid part, keeps single pixels by a seeded random test. The chance falls with the distance from the solid part, which gives the dither.
+3. Saves it 4x larger (1024 x 160, nearest-neighbor) as `../public/img/bg/merge.webp`: white pixels, alpha 0 or 255.
+
+In `gameScene.tsx`, a section with `merge: true` draws its color (or its tile) again in the `MERGE_H` px above its top border, cut by this mask. One mask serves every soil pair.
+
+| Option | Default | What it does |
+|---|---|---|
+| `--seed` | 1 | A different seed gives a different edge. |
+| `-w`, `--width` | 256 | Strip width in art px. |
+| `--rows` | 40 | Strip height in art px. `MERGE_H` in `gameScene.tsx` must be 4 times this (the script prints it). |
+| `--max-kb` | 20 | Largest allowed `.webp` file, in KB. The mask is under 1 KB. |
+
+### Generation memo
+
+Every image Gemini makes for `make` or `tile` is noted in `generations.json`, under `sprite/<name>` or `tile/<material>`. The script prints the id when it saves it.
+
+| Field | What it is |
+|---|---|
+| `id` | The response id Gemini gave the request. `null` for an image made before the memo existed. |
+| `model`, `model_version` | The model asked for, and the version that answered. |
+| `created` | When the request was made. |
+| `prompt` | The exact text sent, with the notes. |
+| `ref` | The reference image (`make` only). `null` when the object was drawn from its name. |
+| `cache` | The raw image's file name in `.cache/`. |
+
+A new request overwrites the entry for that name; a cache hit leaves it as it is.
+
+The id names the request; Gemini can't make an image again from an id. To get a similar design, use the entry's raw image as the reference:
+
+```bash
+python sprite.py make tree2 --ref .cache/<cache>
+```

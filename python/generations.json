@@ -1,0 +1,254 @@
+{
+  "sprite/tree": {
+    "id": null,
+    "model": "gemini-3.1-flash-image",
+    "model_version": null,
+    "created": null,
+    "prompt": "Redraw the tree from the reference image as a single game object sprite. Camera: in front of the object, looking down at it from about 45 degrees (3/4 top-down view, like a classic top-down RPG), so its front and its top are both visible. Show the whole object, centered, standing upright, nothing cropped. Flat simple colors with clear dark outlines, no text, no ground, no cast shadow, no other objects. Background: one flat solid magenta color (#FF00FF) with no gradient and no pattern.",
+    "ref": "output/refs/tree.jpg",
+    "cache": "sprite_5b5fc10eb53f7a33.png"
+  },
+  "sprite/Tokyo-tower": {
+    "id": null,
+    "model": "gemini-3.1-flash-image",
+    "model_version": null,
+    "created": null,
+    "prompt": "Redraw the Tokyo-tower from the reference image as a single game object sprite. Camera: in front of the object, looking down at it from about 45 degrees (3/4 top-down view, like a classic top-down RPG), so its front and its top are both visible. Show the whole object, centered, standing upright, nothing cropped. Flat simple colors with clear dark outlines, no text, no ground, no cast shadow, no other objects. Background: one flat solid magenta color (#FF00FF) with no gradient and no pattern.",
+    "ref": "output/refs/Tokyo-tower.png",
+    "cache": "sprite_24d58b534f6965e0.png"
+  },
+  "tile/sand": {
+    "id": null,
+    "model": "gemini-3.1-flash-image",
+    "model_version": null,
+    "created": null,
+    "prompt": "Generate an image: a flat top-down ground texture of sand, seen straight from above, filling the whole image edge to edge. Even, low-contrast, small repeating detail, no objects, no shadows, no border, no text.",
+    "ref": null,
+    "cache": "tile_4a81610b27a236d7.png"
+  },
+  "tile/grass": {
+    "id": "jkK-au6rKKafqtsP7aa4yA8",
+    "model": "gemini-3.1-flash-image",
+    "model_version": "gemini-3.1-flash-image",
+    "created": "2026-10-01 01:23:02",
+    "prompt": "Generate an image: a flat top-down ground texture of grass, seen straight from above, filling the whole image edge to edge. Even, low-contrast, small repeating detail, no objects, no shadows, no border, no text.",
+    "ref": null,
+    "cache": "tile_53a80e0f392034f0.png"
+  },
+  "tile/moss": {
+    "id": "QU2-apKAEcujqtsP7NaZiAE",
+    "model": "gemini-3.1-flash-image",
+    "model_version": "gemini-3.1-flash-image",
+    "created": "2026-10-01 02:08:43",
+    "prompt": "Generate an image: a flat top-down ground texture of moss, seen straight from above, filling the whole image edge to edge. Even, low-contrast, small repeating detail, no objects, no shadows, no border, no text.",
+    "ref": null,
+    "cache": "tile_6dea5a02f77816e1.png"
+  },
+  "sprite/palm-tree": {
+    "id": "Akm-aorNDp_-qtsPm-mdqAM",
+    "model": "gemini-3.1-flash-image",
+    "model_version": "gemini-3.1-flash-image",
+    "created": "2026-10-01 01:50:35",
+    "prompt": "Generate an image: a palm tree as a single game object sprite. Style: a detailed hand-drawn game illustration of the real thing. Realistic shape and proportions, as the real object looks, with natural, slightly muted colors. Flat cel shading in two or three tones per color, with the real structure drawn in (branches and leaf clusters, bark, beams, cracks). A thin clean dark outline around the object and its main parts. Not a cartoon, not an emoji, not an icon, not a photo and not a 3D render: no face, no cute, rounded or exaggerated shapes, no glossy highlights, no gradients. Camera: in front of the object, looking down at it from about 45 degrees (3/4 top-down view, like a classic top-down RPG), so its front and its top are both visible. Show the whole object, centered, standing upright, nothing cropped. No text, no ground, no cast shadow, no other objects. Background: one flat solid magenta color (#FF00FF) with no gradient and no pattern.",
+    "ref": null,
+    "cache": "sprite_cdd475ac144de669.png"
+  },
+  "sprite/coconut": {
+    "id": "iUq-ar6kKLmtz7IPjKmpgA0",
+    "model": "gemini-3.1-flash-image",
+    "model_version": "gemini-3.1-flash-image",
+    "created": "2026-10-01 01:57:07",
+    "prompt": "Generate an image: a coconut as a single game object sprite. Style: a detailed hand-drawn game illustration of the real thing. Realistic shape and proportions, as the real object looks, with natural, slightly muted colors. Flat cel shading in two or three tones per color, with the real structure drawn in (branches and leaf clusters, bark, beams, cracks). A thin clean dark outline around the object and its main parts. Not a cartoon, not an emoji, not an icon, not a photo and not a 3D render: no face, no cute, rounded or exaggerated shapes, no glossy highlights, no gradients. Camera: in front of the object, looking down at it from about 45 degrees (3/4 top-down view, like a classic top-down RPG), so its front and its top are both visible. Show the whole object, centered, standing upright, nothing cropped. No text, no ground, no cast shadow, no other objects. Background: one flat solid magenta color (#FF00FF) with no gradient and no pattern.",
+    "ref": null,
+    "cache": "sprite_b1f40ba560b595c5.png"
+  },
+  "sprite/apple": {
+    "id": "hUm-atXTBJ_zz7IPqJmRqAI",
+    "model": "gemini-3.1-flash-image",
+    "model_version": "gemini-3.1-flash-image",
+    "created": "2026-10-01 01:52:45",
+    "prompt": "Generate an image: a apple as a single game object sprite. Style: a detailed hand-drawn game illustration of the real thing. Realistic shape and proportions, as the real object looks, with natural, slightly muted colors. Flat cel shading in two or three tones per color, with the real structure drawn in (branches and leaf clusters, bark, beams, cracks). A thin clean dark outline around the object and its main parts. Not a cartoon, not an emoji, not an icon, not a photo and not a 3D render: no face, no cute, rounded or exaggerated shapes, no glossy highlights, no gradients. Camera: in front of the object, looking down at it from about 45 degrees (3/4 top-down view, like a classic top-down RPG), so its front and its top are both visible. Show the whole object, centered, standing upright, nothing cropped. No text, no ground, no cast shadow, no other objects. Background: one flat solid magenta color (#FF00FF) with no gradient and no pattern.",
+    "ref": null,
+    "cache": "sprite_5e512d7e7b5feaee.png"
+  },
+  "sprite/flower": {
+    "id": "lEq-arrNJ-Psz7IP86rRiA4",
+    "model": "gemini-3.1-flash-image",
+    "model_version": "gemini-3.1-flash-image",
+    "created": "2026-10-01 01:57:16",
+    "prompt": "Generate an image: a flower as a single game object sprite. Style: a detailed hand-drawn game illustration of the real thing. Realistic shape and proportions, as the real object looks, with natural, slightly muted colors. Flat cel shading in two or three tones per color, with the real structure drawn in (branches and leaf clusters, bark, beams, cracks). A thin clean dark outline around the object and its main parts. Not a cartoon, not an emoji, not an icon, not a photo and not a 3D render: no face, no cute, rounded or exaggerated shapes, no glossy highlights, no gradients. Camera: in front of the object, looking down at it from about 45 degrees (3/4 top-down view, like a classic top-down RPG), so its front and its top are both visible. Show the whole object, centered, standing upright, nothing cropped. No text, no ground, no cast shadow, no other objects. Background: one flat solid magenta color (#FF00FF) with no gradient and no pattern.",
+    "ref": null,
+    "cache": "sprite_ba6fc7998cca5f3b.png"
+  },
+  "sprite/mushroom": {
+    "id": "mEm-aoDfJYCIqtsPxeKA2Qc",
+    "model": "gemini-3.1-flash-image",
+    "model_version": "gemini-3.1-flash-image",
+    "created": "2026-10-01 01:53:05",
+    "prompt": "Generate an image: a mushroom as a single game object sprite. Style: a detailed hand-drawn game illustration of the real thing. Realistic shape and proportions, as the real object looks, with natural, slightly muted colors. Flat cel shading in two or three tones per color, with the real structure drawn in (branches and leaf clusters, bark, beams, cracks). A thin clean dark outline around the object and its main parts. Not a cartoon, not an emoji, not an icon, not a photo and not a 3D render: no face, no cute, rounded or exaggerated shapes, no glossy highlights, no gradients. Camera: in front of the object, looking down at it from about 45 degrees (3/4 top-down view, like a classic top-down RPG), so its front and its top are both visible. Show the whole object, centered, standing upright, nothing cropped. No text, no ground, no cast shadow, no other objects. Background: one flat solid magenta color (#FF00FF) with no gradient and no pattern.",
+    "ref": null,
+    "cache": "sprite_a251d44e871313d9.png"
+  },
+  "sprite/banana": {
+    "id": "okm-au2LC6almtkPxcrxmAI",
+    "model": "gemini-3.1-flash-image",
+    "model_version": "gemini-3.1-flash-image",
+    "created": "2026-10-01 01:53:14",
+    "prompt": "Generate an image: a banana as a single game object sprite. Style: a detailed hand-drawn game illustration of the real thing. Realistic shape and proportions, as the real object looks, with natural, slightly muted colors. Flat cel shading in two or three tones per color, with the real structure drawn in (branches and leaf clusters, bark, beams, cracks). A thin clean dark outline around the object and its main parts. Not a cartoon, not an emoji, not an icon, not a photo and not a 3D render: no face, no cute, rounded or exaggerated shapes, no glossy highlights, no gradients. Camera: in front of the object, looking down at it from about 45 degrees (3/4 top-down view, like a classic top-down RPG), so its front and its top are both visible. Show the whole object, centered, standing upright, nothing cropped. No text, no ground, no cast shadow, no other objects. Background: one flat solid magenta color (#FF00FF) with no gradient and no pattern.",
+    "ref": null,
+    "cache": "sprite_9bcc732564694a60.png"
+  },
+  "sprite/volcano": {
+    "id": "q0m-atitNcCfqtsP-auMyA8",
+    "model": "gemini-3.1-flash-image",
+    "model_version": "gemini-3.1-flash-image",
+    "created": "2026-10-01 01:53:25",
+    "prompt": "Generate an image: a volcano as a single game object sprite. Style: a detailed hand-drawn game illustration of the real thing. Realistic shape and proportions, as the real object looks, with natural, slightly muted colors. Flat cel shading in two or three tones per color, with the real structure drawn in (branches and leaf clusters, bark, beams, cracks). A thin clean dark outline around the object and its main parts. Not a cartoon, not an emoji, not an icon, not a photo and not a 3D render: no face, no cute, rounded or exaggerated shapes, no glossy highlights, no gradients. Camera: in front of the object, looking down at it from about 45 degrees (3/4 top-down view, like a classic top-down RPG), so its front and its top are both visible. Show the whole object, centered, standing upright, nothing cropped. No text, no ground, no cast shadow, no other objects. Background: one flat solid magenta color (#FF00FF) with no gradient and no pattern.",
+    "ref": null,
+    "cache": "sprite_e56a152267d7fc87.png"
+  },
+  "sprite/lava-lake": {
+    "id": "tkm-apvPCZyzmtkP3cy40A8",
+    "model": "gemini-3.1-flash-image",
+    "model_version": "gemini-3.1-flash-image",
+    "created": "2026-10-01 01:53:33",
+    "prompt": "Generate an image: a lava lake as a single game object sprite. Style: a detailed hand-drawn game illustration of the real thing. Realistic shape and proportions, as the real object looks, with natural, slightly muted colors. Flat cel shading in two or three tones per color, with the real structure drawn in (branches and leaf clusters, bark, beams, cracks). A thin clean dark outline around the object and its main parts. Not a cartoon, not an emoji, not an icon, not a photo and not a 3D render: no face, no cute, rounded or exaggerated shapes, no glossy highlights, no gradients. Camera: in front of the object, looking down at it from about 45 degrees (3/4 top-down view, like a classic top-down RPG), so its front and its top are both visible. Show the whole object, centered, standing upright, nothing cropped. No text, no ground, no cast shadow, no other objects. Background: one flat solid magenta color (#FF00FF) with no gradient and no pattern.",
+    "ref": null,
+    "cache": "sprite_ac8e1fd538e1e9b2.png"
+  },
+  "sprite/rock": {
+    "id": "vkm-apLFMJCIqtsPxODRoA4",
+    "model": "gemini-3.1-flash-image",
+    "model_version": "gemini-3.1-flash-image",
+    "created": "2026-10-01 01:53:43",
+    "prompt": "Generate an image: a rock as a single game object sprite. Style: a detailed hand-drawn game illustration of the real thing. Realistic shape and proportions, as the real object looks, with natural, slightly muted colors. Flat cel shading in two or three tones per color, with the real structure drawn in (branches and leaf clusters, bark, beams, cracks). A thin clean dark outline around the object and its main parts. Not a cartoon, not an emoji, not an icon, not a photo and not a 3D render: no face, no cute, rounded or exaggerated shapes, no glossy highlights, no gradients. Camera: in front of the object, looking down at it from about 45 degrees (3/4 top-down view, like a classic top-down RPG), so its front and its top are both visible. Show the whole object, centered, standing upright, nothing cropped. No text, no ground, no cast shadow, no other objects. Background: one flat solid magenta color (#FF00FF) with no gradient and no pattern.",
+    "ref": null,
+    "cache": "sprite_e67a3c61d5b838b9.png"
+  },
+  "sprite/fire": {
+    "id": "yEm-au7kEujoz7IPhsaH4QU",
+    "model": "gemini-3.1-flash-image",
+    "model_version": "gemini-3.1-flash-image",
+    "created": "2026-10-01 01:53:52",
+    "prompt": "Generate an image: a fire as a single game object sprite. Style: a detailed hand-drawn game illustration of the real thing. Realistic shape and proportions, as the real object looks, with natural, slightly muted colors. Flat cel shading in two or three tones per color, with the real structure drawn in (branches and leaf clusters, bark, beams, cracks). A thin clean dark outline around the object and its main parts. Not a cartoon, not an emoji, not an icon, not a photo and not a 3D render: no face, no cute, rounded or exaggerated shapes, no glossy highlights, no gradients. Camera: in front of the object, looking down at it from about 45 degrees (3/4 top-down view, like a classic top-down RPG), so its front and its top are both visible. Show the whole object, centered, standing upright, nothing cropped. No text, no ground, no cast shadow, no other objects. Background: one flat solid magenta color (#FF00FF) with no gradient and no pattern.",
+    "ref": null,
+    "cache": "sprite_567192f6c20a301a.png"
+  },
+  "tile/red-rock": {
+    "id": "TE2-aozOD66dz7IPqZ32qAQ",
+    "model": "gemini-3.1-flash-image",
+    "model_version": "gemini-3.1-flash-image",
+    "created": "2026-10-01 02:08:53",
+    "prompt": "Generate an image: a flat top-down ground texture of red rock, seen straight from above, filling the whole image edge to edge. Even, low-contrast, small repeating detail, no objects, no shadows, no border, no text.",
+    "ref": null,
+    "cache": "tile_b515df8411ff2c5d.png"
+  },
+  "sprite/beach-grass": {
+    "id": "0Um-atyMPJvFqtsPkO6P4Q8",
+    "model": "gemini-3.1-flash-image",
+    "model_version": "gemini-3.1-flash-image",
+    "created": "2026-10-01 01:54:03",
+    "prompt": "Generate an image: a beach grass as a single game object sprite. Style: a detailed hand-drawn game illustration of the real thing. Realistic shape and proportions, as the real object looks, with natural, slightly muted colors. Flat cel shading in two or three tones per color, with the real structure drawn in (branches and leaf clusters, bark, beams, cracks). A thin clean dark outline around the object and its main parts. Not a cartoon, not an emoji, not an icon, not a photo and not a 3D render: no face, no cute, rounded or exaggerated shapes, no glossy highlights, no gradients. Camera: in front of the object, looking down at it from about 45 degrees (3/4 top-down view, like a classic top-down RPG), so its front and its top are both visible. Show the whole object, centered, standing upright, nothing cropped. No text, no ground, no cast shadow, no other objects. Background: one flat solid magenta color (#FF00FF) with no gradient and no pattern.",
+    "ref": null,
+    "cache": "sprite_fc45e57daa46e091.png"
+  },
+  "sprite/seashell": {
+    "id": "3Em-apXOEb7pqtsP77P-gAU",
+    "model": "gemini-3.1-flash-image",
+    "model_version": "gemini-3.1-flash-image",
+    "created": "2026-10-01 01:54:12",
+    "prompt": "Generate an image: a seashell as a single game object sprite. Style: a detailed hand-drawn game illustration of the real thing. Realistic shape and proportions, as the real object looks, with natural, slightly muted colors. Flat cel shading in two or three tones per color, with the real structure drawn in (branches and leaf clusters, bark, beams, cracks). A thin clean dark outline around the object and its main parts. Not a cartoon, not an emoji, not an icon, not a photo and not a 3D render: no face, no cute, rounded or exaggerated shapes, no glossy highlights, no gradients. Camera: in front of the object, looking down at it from about 45 degrees (3/4 top-down view, like a classic top-down RPG), so its front and its top are both visible. Show the whole object, centered, standing upright, nothing cropped. No text, no ground, no cast shadow, no other objects. Background: one flat solid magenta color (#FF00FF) with no gradient and no pattern.",
+    "ref": null,
+    "cache": "sprite_d34ae463ac924c95.png"
+  },
+  "sprite/starfish": {
+    "id": "5Um-ap6TNL3Qz7IPye3SyQk",
+    "model": "gemini-3.1-flash-image",
+    "model_version": "gemini-3.1-flash-image",
+    "created": "2026-10-01 01:54:23",
+    "prompt": "Generate an image: a starfish as a single game object sprite. Style: a detailed hand-drawn game illustration of the real thing. Realistic shape and proportions, as the real object looks, with natural, slightly muted colors. Flat cel shading in two or three tones per color, with the real structure drawn in (branches and leaf clusters, bark, beams, cracks). A thin clean dark outline around the object and its main parts. Not a cartoon, not an emoji, not an icon, not a photo and not a 3D render: no face, no cute, rounded or exaggerated shapes, no glossy highlights, no gradients. Camera: in front of the object, looking down at it from about 45 degrees (3/4 top-down view, like a classic top-down RPG), so its front and its top are both visible. Show the whole object, centered, standing upright, nothing cropped. No text, no ground, no cast shadow, no other objects. Background: one flat solid magenta color (#FF00FF) with no gradient and no pattern.",
+    "ref": null,
+    "cache": "sprite_9f7d47a74dd2bfcd.png"
+  },
+  "sprite/driftwood": {
+    "id": "8Em-aoWzM-Cfz7IP1fWrQA",
+    "model": "gemini-3.1-flash-image",
+    "model_version": "gemini-3.1-flash-image",
+    "created": "2026-10-01 01:54:33",
+    "prompt": "Generate an image: a driftwood as a single game object sprite. Style: a detailed hand-drawn game illustration of the real thing. Realistic shape and proportions, as the real object looks, with natural, slightly muted colors. Flat cel shading in two or three tones per color, with the real structure drawn in (branches and leaf clusters, bark, beams, cracks). A thin clean dark outline around the object and its main parts. Not a cartoon, not an emoji, not an icon, not a photo and not a 3D render: no face, no cute, rounded or exaggerated shapes, no glossy highlights, no gradients. Camera: in front of the object, looking down at it from about 45 degrees (3/4 top-down view, like a classic top-down RPG), so its front and its top are both visible. Show the whole object, centered, standing upright, nothing cropped. No text, no ground, no cast shadow, no other objects. Background: one flat solid magenta color (#FF00FF) with no gradient and no pattern.",
+    "ref": null,
+    "cache": "sprite_b66eae7ad96767ff.png"
+  },
+  "sprite/fern": {
+    "id": "-km-apCjEe3-qtsPs-3zgQI",
+    "model": "gemini-3.1-flash-image",
+    "model_version": "gemini-3.1-flash-image",
+    "created": "2026-10-01 01:54:43",
+    "prompt": "Generate an image: a fern as a single game object sprite. Style: a detailed hand-drawn game illustration of the real thing. Realistic shape and proportions, as the real object looks, with natural, slightly muted colors. Flat cel shading in two or three tones per color, with the real structure drawn in (branches and leaf clusters, bark, beams, cracks). A thin clean dark outline around the object and its main parts. Not a cartoon, not an emoji, not an icon, not a photo and not a 3D render: no face, no cute, rounded or exaggerated shapes, no glossy highlights, no gradients. Camera: in front of the object, looking down at it from about 45 degrees (3/4 top-down view, like a classic top-down RPG), so its front and its top are both visible. Show the whole object, centered, standing upright, nothing cropped. No text, no ground, no cast shadow, no other objects. Background: one flat solid magenta color (#FF00FF) with no gradient and no pattern.",
+    "ref": null,
+    "cache": "sprite_373b884dfbfc82f8.png"
+  },
+  "sprite/grass-tuft": {
+    "id": "BEq-asjyHNayqtsPgb_ogAE",
+    "model": "gemini-3.1-flash-image",
+    "model_version": "gemini-3.1-flash-image",
+    "created": "2026-10-01 01:54:52",
+    "prompt": "Generate an image: a grass tuft as a single game object sprite. Style: a detailed hand-drawn game illustration of the real thing. Realistic shape and proportions, as the real object looks, with natural, slightly muted colors. Flat cel shading in two or three tones per color, with the real structure drawn in (branches and leaf clusters, bark, beams, cracks). A thin clean dark outline around the object and its main parts. Not a cartoon, not an emoji, not an icon, not a photo and not a 3D render: no face, no cute, rounded or exaggerated shapes, no glossy highlights, no gradients. Camera: in front of the object, looking down at it from about 45 degrees (3/4 top-down view, like a classic top-down RPG), so its front and its top are both visible. Show the whole object, centered, standing upright, nothing cropped. No text, no ground, no cast shadow, no other objects. Background: one flat solid magenta color (#FF00FF) with no gradient and no pattern.",
+    "ref": null,
+    "cache": "sprite_32b7a721bbdeeb4a.png"
+  },
+  "sprite/clover": {
+    "id": "DUq-aoH8NrTmz7IP1vmx4AM",
+    "model": "gemini-3.1-flash-image",
+    "model_version": "gemini-3.1-flash-image",
+    "created": "2026-10-01 01:55:04",
+    "prompt": "Generate an image: a clover as a single game object sprite. Style: a detailed hand-drawn game illustration of the real thing. Realistic shape and proportions, as the real object looks, with natural, slightly muted colors. Flat cel shading in two or three tones per color, with the real structure drawn in (branches and leaf clusters, bark, beams, cracks). A thin clean dark outline around the object and its main parts. Not a cartoon, not an emoji, not an icon, not a photo and not a 3D render: no face, no cute, rounded or exaggerated shapes, no glossy highlights, no gradients. Camera: in front of the object, looking down at it from about 45 degrees (3/4 top-down view, like a classic top-down RPG), so its front and its top are both visible. Show the whole object, centered, standing upright, nothing cropped. No text, no ground, no cast shadow, no other objects. Background: one flat solid magenta color (#FF00FF) with no gradient and no pattern.",
+    "ref": null,
+    "cache": "sprite_beafa8e8c1e9ad56.png"
+  },
+  "sprite/small-bush": {
+    "id": "GUq-auWjDN2tz7IP6Nm2iA0",
+    "model": "gemini-3.1-flash-image",
+    "model_version": "gemini-3.1-flash-image",
+    "created": "2026-10-01 01:55:15",
+    "prompt": "Generate an image: a small bush as a single game object sprite. Style: a detailed hand-drawn game illustration of the real thing. Realistic shape and proportions, as the real object looks, with natural, slightly muted colors. Flat cel shading in two or three tones per color, with the real structure drawn in (branches and leaf clusters, bark, beams, cracks). A thin clean dark outline around the object and its main parts. Not a cartoon, not an emoji, not an icon, not a photo and not a 3D render: no face, no cute, rounded or exaggerated shapes, no glossy highlights, no gradients. Camera: in front of the object, looking down at it from about 45 degrees (3/4 top-down view, like a classic top-down RPG), so its front and its top are both visible. Show the whole object, centered, standing upright, nothing cropped. No text, no ground, no cast shadow, no other objects. Background: one flat solid magenta color (#FF00FF) with no gradient and no pattern.",
+    "ref": null,
+    "cache": "sprite_4fffc89a3f24b67a.png"
+  },
+  "sprite/dry-grass": {
+    "id": "JEq-aqvgLemKqtsPlI-U2A8",
+    "model": "gemini-3.1-flash-image",
+    "model_version": "gemini-3.1-flash-image",
+    "created": "2026-10-01 01:55:24",
+    "prompt": "Generate an image: a dry grass as a single game object sprite. Style: a detailed hand-drawn game illustration of the real thing. Realistic shape and proportions, as the real object looks, with natural, slightly muted colors. Flat cel shading in two or three tones per color, with the real structure drawn in (branches and leaf clusters, bark, beams, cracks). A thin clean dark outline around the object and its main parts. Not a cartoon, not an emoji, not an icon, not a photo and not a 3D render: no face, no cute, rounded or exaggerated shapes, no glossy highlights, no gradients. Camera: in front of the object, looking down at it from about 45 degrees (3/4 top-down view, like a classic top-down RPG), so its front and its top are both visible. Show the whole object, centered, standing upright, nothing cropped. No text, no ground, no cast shadow, no other objects. Background: one flat solid magenta color (#FF00FF) with no gradient and no pattern.",
+    "ref": null,
+    "cache": "sprite_403213dbd62af17d.png"
+  },
+  "sprite/dead-twig": {
+    "id": "LUq-atmLCbSvqtsPzPnc0Q8",
+    "model": "gemini-3.1-flash-image",
+    "model_version": "gemini-3.1-flash-image",
+    "created": "2026-10-01 01:55:33",
+    "prompt": "Generate an image: a dead twig as a single game object sprite. Style: a detailed hand-drawn game illustration of the real thing. Realistic shape and proportions, as the real object looks, with natural, slightly muted colors. Flat cel shading in two or three tones per color, with the real structure drawn in (branches and leaf clusters, bark, beams, cracks). A thin clean dark outline around the object and its main parts. Not a cartoon, not an emoji, not an icon, not a photo and not a 3D render: no face, no cute, rounded or exaggerated shapes, no glossy highlights, no gradients. Camera: in front of the object, looking down at it from about 45 degrees (3/4 top-down view, like a classic top-down RPG), so its front and its top are both visible. Show the whole object, centered, standing upright, nothing cropped. No text, no ground, no cast shadow, no other objects. Background: one flat solid magenta color (#FF00FF) with no gradient and no pattern.",
+    "ref": null,
+    "cache": "sprite_78ea61109ff34317.png"
+  },
+  "sprite/ember": {
+    "id": "Nkq-aqPvM8TjqtsP97KKoA8",
+    "model": "gemini-3.1-flash-image",
+    "model_version": "gemini-3.1-flash-image",
+    "created": "2026-10-01 01:55:42",
+    "prompt": "Generate an image: a ember as a single game object sprite. Style: a detailed hand-drawn game illustration of the real thing. Realistic shape and proportions, as the real object looks, with natural, slightly muted colors. Flat cel shading in two or three tones per color, with the real structure drawn in (branches and leaf clusters, bark, beams, cracks). A thin clean dark outline around the object and its main parts. Not a cartoon, not an emoji, not an icon, not a photo and not a 3D render: no face, no cute, rounded or exaggerated shapes, no glossy highlights, no gradients. Camera: in front of the object, looking down at it from about 45 degrees (3/4 top-down view, like a classic top-down RPG), so its front and its top are both visible. Show the whole object, centered, standing upright, nothing cropped. No text, no ground, no cast shadow, no other objects. Background: one flat solid magenta color (#FF00FF) with no gradient and no pattern.",
+    "ref": null,
+    "cache": "sprite_ba1bafba6a0196be.png"
+  },
+  "sprite/pebbles": {
+    "id": "P0q-at7LDujoz7IPhsaH4QU",
+    "model": "gemini-3.1-flash-image",
+    "model_version": "gemini-3.1-flash-image",
+    "created": "2026-10-01 01:55:51",
+    "prompt": "Generate an image: a pebbles as a single game object sprite. Style: a detailed hand-drawn game illustration of the real thing. Realistic shape and proportions, as the real object looks, with natural, slightly muted colors. Flat cel shading in two or three tones per color, with the real structure drawn in (branches and leaf clusters, bark, beams, cracks). A thin clean dark outline around the object and its main parts. Not a cartoon, not an emoji, not an icon, not a photo and not a 3D render: no face, no cute, rounded or exaggerated shapes, no glossy highlights, no gradients. Camera: in front of the object, looking down at it from about 45 degrees (3/4 top-down view, like a classic top-down RPG), so its front and its top are both visible. Show the whole object, centered, standing upright, nothing cropped. No text, no ground, no cast shadow, no other objects. Background: one flat solid magenta color (#FF00FF) with no gradient and no pattern.",
+    "ref": null,
+    "cache": "sprite_69d04ae6992232e1.png"
+  }
+}

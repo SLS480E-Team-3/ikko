@@ -10,3 +10,4 @@ node_modules
 next-env.d.ts
 
 .env
+public/img/_original

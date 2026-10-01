@@ -15,6 +15,35 @@ import MuteButton from "./MuteButton"
 // mute toggle drawn over the scene (see the end of the render)
 
 
+export type BgSection = {
+    id: string,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+
+    color: string,
+    tile?: string,
+    merge?: boolean,
+    // merge: this section's tile reaches up over its top border in an uneven,
+    // dithered strip (MERGE_H tall), so the two soils mix. Needs a section
+    // above it. With no tile the strip is the section's plain color. Full-width top borders only
+    solid?: boolean,
+    // solid: the player can't walk onto this section (water). Its rectangle
+    // is added to the scene's blocking boxes, like an object's hitBox. With
+    // merge, the box starts SHORE_IN px above the section's top, inside the
+    // merge strip, so the player stops in the loose pixels of the shore and
+    // not on the full color below them
+    wave?: boolean,
+    // wave: the section and its merge strip move up and back down like a
+    // wave (WAVE_RISE px over WAVE_PERIOD s). A solid wave section's blocking
+    // box moves with it and pushes a player it reaches up the shore
+}
+// one rectangle of ground inside the world, in world px from the world's
+// top-left (x, y = the rectangle's top-left corner, unlike BGProps where
+// x, y is the center). color fills it; tile is a repeating image drawn over
+// the color (a 64 px file from python/sprite.py `tile`, in public/img/bg/)
+
 export type BGProps = {
     x: number,
     y: number,
@@ -23,6 +52,9 @@ export type BGProps = {
 
     color: string,
     img?: string, // something not gameObject and no interfearance to entity: particles, leafs, grass, rain
+    sections?: BgSection[],
+    // ground areas drawn over color and under every object and entity. None
+    // = the whole world is the one flat color, as before
     border?: boolean, // border: **none** -> **optional**, reason: the Quest Island has a black square edge like DialogBubble, mechanism: the world div draws BUBBLE_BORDER_W of BUBBLE_BOARDER inside its box (border-box), so the playable size stays w x h
 }
 
@@ -38,6 +70,35 @@ const TEMP_BG: BGProps = {
     color: BG_COLOR
 }
 
+const SECTION_TILE_PX = 256
+// world px one ground tile covers: the 64 px tile file drawn 4x, the same
+// 4 world px per art pixel as the object sprites
+const MERGE_MASK = '/img/bg/merge.webp'
+const MERGE_H = 160
+const MERGE_SHIFT = 388
+const SHORE_IN = 85 // SHORE_IN: **40** -> **85**, mechanism: the blocking box of the water starts 45 px higher, so the player stops further up the shore, above the loose water pixels
+// world px a solid merged section's blocking box reaches up into its merge
+// strip: about where the mask's wavy full part starts, so the player's feet
+// stop at the water's edge
+const WAVE_RISE = 40
+const WAVE_PERIOD = 4
+const WAVE_STEP = 4
+const waveOffset = (now: number) => Math.round(-WAVE_RISE * (1 - Math.cos((now / 1000) * 2 * Math.PI / WAVE_PERIOD)) / 2 / WAVE_STEP) * WAVE_STEP
+// the wave of a section with wave: true. waveOffset gives its y offset in
+// world px at a time `now` (ms, the animation frame clock): 0 at rest, down
+// to -WAVE_RISE at the top of the wave, and back, once every WAVE_PERIOD
+// seconds. (1 - cos) / 2 runs 0..1..0 and is slow at both ends, like water
+// that stops before it turns. The section's own place is the lowest point,
+// so the water only comes up over the sand and never uncovers the ground
+// below its top. The result is rounded to WAVE_STEP (one art pixel, 4 world
+// px), so the shore moves on the pixel grid
+// the merge strip of a section border. MERGE_MASK is the shape made by
+// python/sprite.py `merge` (1024 x 160, white with alpha 0 or 255: full at
+// the bottom, loose pixels toward the top); MERGE_H is its height, printed
+// by that command. MERGE_SHIFT moves the mask left by this many world px
+// for each next merged border, so two borders do not show the same line; it
+// is a multiple of 4, so the mask's pixels stay on the 4 px art grid
+
 export const ISLAND_COUNT = 5
 export const ISLAND_BG: Record<number, string> = {
     1: 'lightgreen',
@@ -46,7 +107,23 @@ export const ISLAND_BG: Record<number, string> = {
     4: '#cdb8e8', // color: **purple** -> **#cdb8e8**, mechanism: lavender
     5: '#f2aaa2', // color: **red** -> **#f2aaa2**, mechanism: pastel red
 }
-export const islandBg = (islandId: number): BGProps => ({ ...TEMP_BG, color: ISLAND_BG[islandId] ?? BG_COLOR })
+export const ISLAND_SECTIONS: Record<number, BgSection[]> = {
+    2: [
+        { id: 'volcano', x: 0, y: 0, w: 1400, h: 500, color: '#8f4a36' }, // color, tile: **#853d2a, /img/bg/red-rock.webp** -> **#8f4a36, none**, mechanism: the ground is one plain color (red-brown), no texture; with no tile the section div shows only its backgroundColor
+        { id: 'forest', x: 0, y: 500, w: 1400, h: 400, color: '#a9cf7a', merge: true }, // color, tile: **#46591d, /img/bg/moss.webp** -> **#a9cf7a, none**, mechanism: same as volcano (light green); merge stays, so the green reaches up over the volcano border
+        { id: 'beach', x: 0, y: 900, w: 1400, h: 800, color: '#f3e9c6', merge: true }, // color, tile: **#cdad87, /img/bg/sand.webp** -> **#f3e9c6, none**, mechanism: same as volcano (off-white, a bit yellow); merge stays, so the sand reaches up over the forest border // h: **1100** -> **800**, mechanism: the bottom 300 px of the world is the ocean section now
+        { id: 'ocean', x: 0, y: 1700, w: 1400, h: 300, color: '#87ceeb', merge: true, solid: true, wave: true }, // solid: **none** -> **true**, mechanism: the ocean's rectangle joins the blocking boxes, so the player stops at the shore // wave: **none** -> **true**, mechanism: the water and its shore move up and down, and the blocking box with them
+        // the ocean below the sand: one plain sky blue band over the bottom
+        // 300 px of the world. merge makes the blue reach up over the sand's
+        // bottom edge through the mask, so the shore is an uneven, dithered
+        // line like the other borders
+    ],
+} // sections: **{}** -> **island 2's three sections**, mechanism: the tropical-island scene (docs/scenes/tropical-island.md): three full-width bands that cover the 1400 x 2000 world top to bottom; each is one plain color with no tile (moss light green, sand off-white and a bit yellow, volcano sand red-brown)
+// the ground sections of each island, keyed by island id. The /make-scene
+// skill adds an island's entry when it builds that scene. An island with no
+// entry keeps its flat ISLAND_BG color
+
+export const islandBg = (islandId: number): BGProps => ({ ...TEMP_BG, color: ISLAND_BG[islandId] ?? BG_COLOR, sections: ISLAND_SECTIONS[islandId] }) // sections: **none** -> **ISLAND_SECTIONS[islandId]**, mechanism: the island's ground sections ride along in BGProps; undefined for an island with no entry, so GameScene draws nothing extra
 // islands 1..ISLAND_COUNT share the same size and differ only by ground
 // color; islandBg is TEMP_BG recolored for one island (unknown id falls
 // back to BG_COLOR). GameScene reads bgProps once at mount, so callers
@@ -238,7 +315,24 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
     solidsRef.current = [
         ...placed.flatMap(p => p.solid ? [p.solid] : []),
         ...npcs.map(n => ({ x: (n.ent.x ?? 0) - n.ent.w / 2, y: (n.ent.y ?? 0) - n.ent.h / 2, w: n.ent.w, h: n.ent.h })),
+        ...(bgProps.sections ?? []).filter(sec => sec.solid && !sec.wave).map(sec => { // filter: **sec.solid** -> **sec.solid && !sec.wave**, mechanism: a wave section's box moves every frame, so it is kept apart in waveBoxesRef and placed by the tick
+            const up = sec.merge ? SHORE_IN : 0
+            return { x: sec.x, y: sec.y - up, w: sec.w, h: sec.h + up }
+        }),
+        // solid ground sections (water) block like an object: the section's
+        // own rectangle, grown upward by SHORE_IN when its border is merged.
+        // The same overlaps() check in the tick stops the player at its edge
     ] // solids: **object hitBoxes** -> **+ each NPC's body**, reason: NPCs block the player, mechanism: an NPC is center-anchored, so center - half size is its top-left; the same overlaps() check in the tick stops the player at its edge
+    const waveBoxesRef = useRef<HitBox[]>([])
+    waveBoxesRef.current = (bgProps.sections ?? []).filter(sec => sec.solid && sec.wave).map(sec => {
+        const up = sec.merge ? SHORE_IN : 0
+        return { x: sec.x, y: sec.y - up, w: sec.w, h: sec.h + up }
+    })
+    const waveRef = useRef(0)
+    // the blocking boxes of solid wave sections at rest (the same rectangle
+    // a still solid section gets), and the wave's current y offset. The tick
+    // writes waveRef each frame and shifts these boxes by it; the render
+    // reads waveRef to draw the water at the same place
     // each placement paired with its catalog def, plus its hitBox in world
     // px (worked out once here, not every frame). A typo'd def is skipped
     // with a warning instead of crashing the island. solidsRef hands the
@@ -309,13 +403,29 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
 
             const ent = playerRef.current.ent
             const bg = bgRef.current
+            const wave = waveBoxesRef.current.length ? waveOffset(now) : 0
+            waveRef.current = wave
+            const waveBoxes = waveBoxesRef.current.map(b => ({ ...b, y: b.y + wave, h: b.h - wave }))
+            const solids = waveBoxes.length ? [...solidsRef.current, ...waveBoxes] : solidsRef.current
+            // the wave: one offset for this frame, and each wave box moved
+            // up by it (the top rises, the bottom stays). solids is the
+            // still boxes plus the moved ones, so walking into the water is
+            // blocked at where the shore is now
             if (ent) {
                 const x = ent.x ?? 0
                 const y = ent.y ?? 0
                 const nx = Math.min(Math.max(x + vel.x * dt, ent.w / 2), bg.w - ent.w / 2)
-                if (!solidsRef.current.some(s => overlaps(nx, y, ent.w, ent.h, s) && !overlaps(x, y, ent.w, ent.h, s))) ent.x = nx // move: **always** -> **only if the new x hits no hitBox**, mechanism: a blocked step is dropped, so the player stops at the object's edge // block: **any hitBox at the new x** -> **only one the player isn't already inside**, reason: Quest Island NPCs appear mid-game and can spawn on top of the player, mechanism: a box already overlapping doesn't block, so the player can walk out of it instead of freezing
+                if (!solids.some(s => overlaps(nx, y, ent.w, ent.h, s) && !overlaps(x, y, ent.w, ent.h, s))) ent.x = nx // move: **always** -> **only if the new x hits no hitBox**, mechanism: a blocked step is dropped, so the player stops at the object's edge // block: **any hitBox at the new x** -> **only one the player isn't already inside**, reason: Quest Island NPCs appear mid-game and can spawn on top of the player, mechanism: a box already overlapping doesn't block, so the player can walk out of it instead of freezing
                 const ny = Math.min(Math.max(y + vel.y * dt, (wallYRef.current ?? 0) + ent.h / 2), bg.h - ent.h / 2) // top: **ent.h / 2** -> **wallY + ent.h / 2**, mechanism: with a wall the lowest allowed center moves down to it, so the player's top edge stops at the line; no wall = 0, the world's top as before
-                if (!solidsRef.current.some(s => overlaps(ent.x ?? x, ny, ent.w, ent.h, s) && !overlaps(ent.x ?? x, y, ent.w, ent.h, s))) ent.y = ny // move: **always** -> **only if the new y hits no hitBox**, mechanism: same as x // block: **any hitBox** -> **one not already overlapped**, mechanism: same as x
+                if (!solids.some(s => overlaps(ent.x ?? x, ny, ent.w, ent.h, s) && !overlaps(ent.x ?? x, y, ent.w, ent.h, s))) ent.y = ny // move: **always** -> **only if the new y hits no hitBox**, mechanism: same as x // block: **any hitBox** -> **one not already overlapped**, mechanism: same as x
+                for (const b of waveBoxes) {
+                    if (overlaps(ent.x ?? 0, ent.y ?? 0, ent.w, ent.h, b)) ent.y = Math.max(b.y - ent.h / 2, ent.h / 2)
+                }
+                // the wave pushes: when a rising wave box reaches the player,
+                // the player's center is set so the feet sit on the box's top
+                // edge, and the player rides up the shore with the water.
+                // When the water goes back down the player stays where they
+                // were left. Not below ent.h / 2, the top of the world
                 onTickRef.current?.(dt, { x: ent.x ?? 0, y: ent.y ?? 0, w: ent.w, h: ent.h })
             }
             // onTick: the minigame hook (Quest Island training) runs here, after
@@ -720,6 +830,68 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
                     ...(bg.border && { border: `${BUBBLE_BORDER_W}px solid ${BUBBLE_BOARDER}`, boxSizing: 'border-box' }) // border: **none** -> **bubble edge when bg.border**, mechanism: border-box keeps the div bg.w x bg.h, so world px and the clamp are unchanged
                 }}
             >
+                {bg.sections?.map(sec => (
+                    <div
+                        key={sec.id}
+                        style={{
+                            position: 'absolute',
+                            left: sec.x,
+                            top: sec.y + (sec.wave ? waveRef.current : 0), // top: **sec.y** -> **sec.y + the wave offset**, mechanism: a wave section is drawn at where the tick put the wave this frame (the tick re-renders every frame)
+                            width: sec.w,
+                            height: sec.h - (sec.wave ? waveRef.current : 0), // height: **sec.h** -> **sec.h - the wave offset**, mechanism: the offset is 0 or negative, so the div grows by as much as it moved up and its bottom stays on the world's edge
+                            zIndex: 0,
+                            pointerEvents: 'none',
+                            backgroundColor: sec.color,
+                            ...(sec.tile && {
+                                backgroundImage: `url(${sec.tile})`,
+                                backgroundRepeat: 'repeat',
+                                backgroundSize: SECTION_TILE_PX,
+                                imageRendering: 'pixelated' as const,
+                            }),
+                        }}
+                    />
+                ))}
+                {bg.sections?.filter(sec => sec.merge).map((sec, i) => ( // filter: **sec.merge && sec.tile** -> **sec.merge**, mechanism: a plain-color section has no tile but still gets its merged border
+                    <div
+                        key={`${sec.id}-merge`}
+                        style={{
+                            position: 'absolute',
+                            left: sec.x,
+                            top: sec.y - MERGE_H + (sec.wave ? waveRef.current : 0), // top: **sec.y - MERGE_H** -> **+ the wave offset**, mechanism: the shore strip moves with its section
+                            width: sec.w,
+                            height: MERGE_H,
+                            zIndex: 0,
+                            pointerEvents: 'none',
+                            backgroundColor: sec.color, // backgroundColor: **none** -> **sec.color**, mechanism: the mask cuts the plain color the same way it cuts a tile
+                            backgroundImage: sec.tile ? `url(${sec.tile})` : undefined, // backgroundImage: **always url(tile)** -> **only when the section has a tile**, mechanism: no request for url(undefined)
+                            backgroundRepeat: 'repeat',
+                            backgroundSize: SECTION_TILE_PX,
+                            backgroundPosition: `0 ${MERGE_H % SECTION_TILE_PX}px`,
+                            imageRendering: 'pixelated' as const,
+                            maskImage: `url(${MERGE_MASK})`,
+                            maskRepeat: 'repeat-x',
+                            maskPosition: `${-i * MERGE_SHIFT}px 0`,
+                            WebkitMaskImage: `url(${MERGE_MASK})`,
+                            WebkitMaskRepeat: 'repeat-x',
+                            WebkitMaskPosition: `${-i * MERGE_SHIFT}px 0`,
+                        }}
+                    />
+                ))}
+                {/* merge strips: for each section with merge, its own color
+                    (and its tile, if it has one) is drawn again in the MERGE_H px above its top border and
+                    cut by MERGE_MASK, so the lower soil reaches up into the
+                    upper one with an uneven, dithered edge. The mask is used
+                    at its own size (no scaling) and repeats left to right.
+                    backgroundPosition starts a tile at the strip's bottom
+                    edge, which is the section's top, so the pattern runs on
+                    from the section with no step. They come after all the
+                    section divs, so a strip draws over the section above it.
+                    One mask serves every pair of soils */}
+                {/* ground sections: one div per BgSection, first in the
+                    world div and zIndex 0, so objects, entities and the
+                    footprints (also zIndex 0, but later in the DOM) draw on
+                    top. The tile repeats at SECTION_TILE_PX with pixelated
+                    scaling; the color shows under it until the file loads */}
                 {renderWorld?.()}
                 {/* renderWorld: extra world-px children (training blocks), redrawn
                     every frame since the tick force()-renders */}
