@@ -15,7 +15,7 @@ const PLAYER_GAP = 350
 const WALL_GAP = 300
 const time = 60_000 //60s
 const quota = 10
-const maxHP = 10
+const maxHP = 5
 const DAMAGE_SFX = '/_SFX/tookDamage.mp3'
 const SPREAD = Math.PI / 4
 const TARGET_CHANCE = 0.4
@@ -36,9 +36,9 @@ export const RYUUKO_H = ENT_H * 1.5
 // Ryuuko's body in this mode is 1.5x the default entity (18 x 30); exported so
 // shootQuestIsland draws her at the same size the bullets hit
 
-const RYUUKO_SPEED = 80
+const RYUUKO_SPEED = 40 // speed: **80 px/s** -> **40 px/s**, mechanism: half the walk speed, same 120 px range, so one side-to-side sweep takes 6 s instead of 3
 const RYUUKO_RANGE = 120
-// during a level Ryuuko walks left and right at 80 px/s, up to 120 px either
+// during a level Ryuuko walks left and right at RYUUKO_SPEED, up to 120 px either
 // side of her play spot (world px), so she stays on a phone-width screen
 
 type Block = { id: number, kana: string, x: number, y: number, vx: number, vy: number }
@@ -144,11 +144,20 @@ export function useShootTraining({ w, h, onLeave, kana = 'あ' }: { w: number, h
             const kana = others.length === 0 || Math.random() < TARGET_CHANCE
                 ? lv.target
                 : others[Math.floor(Math.random() * others.length)]
-            const from = ryuuko // from: **playSpot** -> **ryuuko**, mechanism: blocks leave her hands where she is now
-            const angle = (Math.random() * 2 - 1) * SPREAD
-            blocks.current.push({ id: nextId.current++, kana, x: from.x, y: from.y, vx: Math.sin(angle) * lv.speed, vy: Math.cos(angle) * lv.speed })
+            const side = Math.floor(Math.random() * 3) - 1
+            const wallY = throwSpot(w, h).y + WALL_GAP
+            const from = side === 0 ? { x: ryuuko.x, y: h } : { x: side < 0 ? 0 : w, y: wallY }
+            const angle = side === 0 ? (Math.random() * 2 - 1) * SPREAD : Math.random() * SPREAD
+            const vx = side === 0 ? Math.sin(angle) * lv.speed : -side * Math.cos(angle) * lv.speed
+            const vy = side === 0 ? -Math.cos(angle) * lv.speed : Math.sin(angle) * lv.speed
+            blocks.current.push({ id: nextId.current++, kana, x: from.x, y: from.y, vx, vy })
         }
-        // throws exactly as useTraining: every lv.every s, straight down +- SPREAD
+        // every lv.every s a block is thrown from one of three spots, picked
+        // evenly: side 0 = the island's bottom edge under Ryuuko's x, straight
+        // up +- SPREAD; side -1 / 1 = the left / right edge at the wall's y,
+        // thrown inward and down, 0..SPREAD below horizontal, so it drops into
+        // the player's half. Same speed for all; x = 0 / w and y = h sit on
+        // the cull's edges (strict < / >), so a fresh block isn't culled
 
         const s = CHAR_BLOCK_SIZE
         for (const b of blocks.current) {

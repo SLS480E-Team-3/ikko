@@ -145,11 +145,12 @@ const LEVEL = (levels: QuestsLevel[]): [ja: string, en: string][] => levels.map(
 // one [ja, en] choice per entry of LEVELS, numbered from 1; the choice index
 // is the level index, which training.ts onChoice passes to startLevel
 
-const ryuukoDialog = (phase: TrainingPhase): Dialog[] => {
+const ryuukoDialog = (phase: TrainingPhase, targetChar?: string): Dialog[] => { // targetChar: **string** -> **string?**, mechanism: questIsland.tsx still calls questIslandNpcs without a target, so the line is skipped there instead of announcing a wrong kana
+    const target: Line[] = targetChar ? [[`こんかいのおだいは「${targetChar}」よ！`, `This time's target is "${targetChar}"!`]] : [] // target line: **separate say('quest', [ja]) with no en and no comma** -> **first line of the quest offer**, mechanism: pickDialog takes the first 'quest' entry, so a second one would hide the はい / いいえ offer; the line has no mp3 yet, so it plays silent
     switch (phase) {
         case 'intro': return [
             say('greeting', ['じゅんびはできてる？', 'Ready?', '準備はできてる？']),
-            ask('quest', YES_NO, ['じゅんびはできてる？', 'Ready?', '準備はできてる？'], ['いくわよ！', 'Here I go!', 'いくわよ'])]
+            ask('quest', YES_NO, ...target, ['じゅんびはできてる？', 'Ready?', '準備はできてる？'], ['いくわよ！', 'Here I go!', 'いくわよ'])]
         case 'levelUp':
         case 'break': return [ // case: **levelUp** -> **+ break**, mechanism: after いいえ Ryuuko repeats the same level-up offer, so はい still starts level 2
             say('greeting', ['よゆうそうね。', 'Looks easy for you.', '余裕そうね']),
@@ -184,14 +185,14 @@ const elenaDialog = (phase: TrainingPhase): Dialog[] => phase === 'break'
 // Elena's lines: 'fail' asks whether to give up, 'success' whether to head
 // back; both はい leave the quest island. Audio names match python/dialogs/elena.yaml
 
-export const questIslandNpcs = (w: number, h: number, phase: TrainingPhase): NPCProps[] => {
+export const questIslandNpcs = (w: number, h: number, phase: TrainingPhase, target?: string): NPCProps[] => { // args: **(w, h, phase)** -> **+ target?**, mechanism: the quest's target kana, passed to ryuukoDialog for her intro announcement; optional so questIsland.tsx compiles unchanged
     const { x: cx, y } = throwSpot(w, h) // spot: **(w / 2, h / 2 - 80)** -> **throwSpot(w, h)**, reason: Ryuuko stands at the top middle, mechanism: the same spot training.ts throws from, so blocks leave her hands
     const withElena = phase === 'success' || phase === 'fail' || phase === 'again' || phase === 'break' // elena: **success / fail** -> **+ again**, mechanism: she stays so the player can still leave while Ryuuko offers a replay // elena: **success / fail / again** -> **+ break**, mechanism: she comes out after いいえ to Ryuuko's level-up offer, standing 60px right of her like success
     const ryuukoX = phase === 'fail' ? cx + 40 : cx
     const ryuukoY = phase === 'play1' || phase === 'play2' ? playSpot(w, h).y : y // y: **y** -> **playSpot while playing**, mechanism: she drops 40px during a level so her target bubble clears the timer bar
     const elenaX = phase === 'fail' ? cx - 40 : cx + 60
     return [
-        npc('Ryuuko', 'ryuuko', ryuukoX, ryuukoY, 'crimson', ryuukoDialog(phase)),
+        npc('Ryuuko', 'ryuuko', ryuukoX, ryuukoY, 'crimson', ryuukoDialog(phase, target)), // dialog: **ryuukoDialog(phase)** -> **+ target**, mechanism: forwards the target kana
         ...(withElena ? [npc('Elena', 'elena', elenaX, y, 'seagreen', elenaDialog(phase))] : []), // voice: **undefined** -> **'elena'**, mechanism: lines load from public/dialog/elena/
     ]
 }

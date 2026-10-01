@@ -3,12 +3,12 @@
 import { CSSProperties, ReactNode, useEffect, useReducer, useRef, useState } from "react"
 import GameScene, { questBg } from "./gameScene"
 import { TrainingHud } from "./training"
-import { RYUUKO_W, RYUUKO_H, useShootTraining } from "./shootTraining" // imports: **useShootTraining** -> **+ RYUUKO_W, RYUUKO_H**, mechanism: her 1.5x size
+import { PLAYER_GAP, center, useDodgeTraining } from "./dodgeTraining"
 import { questIslandNpcs } from "../npcs/npcs"
 import { BUBBLE_BG, BUBBLE_BOARDER, BUBBLE_BORDER_W } from "../Entity/dialogBubble"
 import { QUEST_BGM, playBgm, stopBgm } from "../Entity/voice"
-// a copy of questIsland.tsx that runs useShootTraining and hands its onShoot
-// to GameScene; questIsland.tsx itself is untouched
+// a copy of questIsland.tsx for the dodging quest: a square island, Ryuuko
+// and Elena at its center, no wall. questIsland.tsx itself is untouched
 
 const TIMER_H = 8
 const HP_H = TIMER_H * 3
@@ -51,36 +51,34 @@ function Hud({ getHud }: { getHud: () => TrainingHud }) {
 // damage flash, the cyan timer strip and the hp bar
 
 function Training({ w, h, onLeave, kana, sensitivity, children }: { w: number, h: number, onLeave: () => void, kana?: string, sensitivity?: number, children?: ReactNode }) {
-    const t = useShootTraining({ w, h, onLeave, kana })
-    const npcs = questIslandNpcs(w, h, t.phase, t.getHud().target).map((n, i) => { // args: **(w, h, phase)** -> **+ getHud().target**, mechanism: the level target kana, so Ryuuko's intro names it
-        if (i !== 0) return n
-        const x = n.ent.x
-        return { ...n, ent: { ...n.ent, w: RYUUKO_W, h: RYUUKO_H, get x() { return t.getRyuukoX() ?? x } } }
-    }) // Ryuuko: **fixed x** -> **getter reading getRyuukoX()**, mechanism: GameScene force()-renders every frame and reads ent.x each time (drawing, solids, camera), so the getter hands it her walking x without re-rendering Training; outside a level it falls back to npcs.ts's x // npcs: **shared cast** -> **Ryuuko (index 0) resized to 1.5x**, mechanism: a shallow copy of her ent with the new size, so npcs.ts and the original quest keep the default size
+    const t = useDodgeTraining({ w, h, onLeave, kana })
+    const c = center(w, h)
+    const npcs = questIslandNpcs(w, h, t.phase, t.getHud().target).map(n => ({ ...n, ent: { ...n.ent, y: c.y } })) // args: **(w, h, phase)** -> **+ getHud().target**, mechanism: the level target kana, so Ryuuko's intro names it
+    // the shared cast moved to the center row: a shallow copy of each ent
+    // with y = h / 2, so npcs.ts keeps its throwSpot y for the other quests.
+    // x is untouched, so Ryuuko stays at w / 2 (+40 in fail) and Elena beside her
     const bgm = t.phase === 'success' || t.phase === 'again' ? QUEST_BGM.clear : t.phase === 'fail' ? QUEST_BGM.fail : undefined
     useEffect(() => bgm ? playBgm(bgm) : undefined, [bgm])
     return (
         <>
-            <GameScene bgProps={questBg(w, h)} npcs={npcs} onChoice={t.onChoice} onTalkEnd={t.onTalkEnd} onTick={t.onTick} renderWorld={t.renderWorld} talkRequest={t.talkRequest} moveRequest={t.moveRequest} wallY={t.wallY} playerLabel={t.playerLabel} sensitivity={sensitivity} onShoot={t.onShoot} />
+            <GameScene bgProps={{ ...questBg(w, h), y: c.y + PLAYER_GAP }} npcs={npcs} onChoice={t.onChoice} onTalkEnd={t.onTalkEnd} onTick={t.onTick} renderWorld={t.renderWorld} talkRequest={t.talkRequest} moveRequest={t.moveRequest} playerLabel={t.playerLabel} sensitivity={sensitivity} />
             <Hud getHud={t.getHud} />
             {(t.phase === 'success' || t.phase === 'again') && children}
         </>
     )
 }
-// questIsland.tsx's Training on useShootTraining, plus onShoot: GameScene
-// calls it on Space, a quick tap, or a second finger while the stick is held;
-// it fires only during a level and returns false otherwise, so Space still
-// talks outside one
+// questIsland.tsx's Training on useDodgeTraining. No wallY is passed, so the
+// player can walk anywhere; bgProps.y (the player's spawn / camera start) is
+// PLAYER_GAP below Ryuuko instead of questBg's tall-island default
 
-export function ShootQuestIsland({ onLeave, kana, sensitivity, children }: { onLeave: () => void, kana?: string, sensitivity?: number, children?: ReactNode }) {
+export function DodgeQuestIsland({ onLeave, kana, sensitivity, children }: { onLeave: () => void, kana?: string, sensitivity?: number, children?: ReactNode }) {
     const boxRef = useRef<HTMLDivElement>(null)
     const [size, setSize] = useState<{ w: number, h: number }>()
     useEffect(() => { stopBgm() }, [])
     useEffect(() => {
         const box = boxRef.current
-        const w = box?.clientWidth || window.innerWidth
-        const h = box?.clientHeight || window.innerHeight
-        setSize({ w: Math.round(w * 2), h: Math.round(h * 1.5) })
+        const h = Math.round(box?.clientHeight || window.innerHeight)
+        setSize({ w: h, h })
     }, [])
     return (
         <div ref={boxRef} style={{ position: 'relative', width: '100%', height: '100%', background: BUBBLE_BG }}>
@@ -88,5 +86,5 @@ export function ShootQuestIsland({ onLeave, kana, sensitivity, children }: { onL
         </div>
     )
 }
-// same shell as QuestIsland: stops any island BGM, measures its box once
-// after mount and makes the island 2x wide / 1.5x tall
+// same shell as QuestIsland (stops any island BGM, measures the box once
+// after mount), but the island is square: both sides are the screen height
