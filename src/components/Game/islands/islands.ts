@@ -10,6 +10,15 @@ export const ISLAND_1: PlacedObject[] = [
         interaction: { kind: 'sign', text: 'タワー (tawā) = tower' },
         scale: 0.2
     },
+    {
+        id: 'tree-1',
+        def: 'tree',
+        x: BG_W / 2 + 120,
+        y: BG_H / 2 - 320,
+        interaction: { kind: 'sign', text: 'き (ki) = tree' },
+    },
+    // the first generated sprite: right of and above the spawn, clear of
+    // the tower, close enough to walk to and test the trunk collision
 ]
 // island 1's map: every object placed on it, top-left in world px. The
 // tower is centered on x above the spawn point (world center BG_W / 2, BG_H / 2),

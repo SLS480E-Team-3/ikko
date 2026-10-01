@@ -108,3 +108,37 @@ API failures print one line with the cause. The main cases are:
 - 200 custom voices per Google Cloud project.
 - A custom voice expires 1 year after it's created.
 - Multi-speaker requests allow at most 2 speakers, and only prebuilt voices.
+
+## Sprites
+
+`sprite.py` makes a game object sprite from a reference image. It uses the same `GEMINI_API_KEY` as the voices.
+
+Setup, once, on top of the steps above:
+
+```bash
+pip install -e /path/to/image_pixelizer
+```
+
+`image_pixelizer` is a separate local repo, not on PyPI.
+
+```bash
+python sprite.py make tree --ref output/refs/tree.jpg
+```
+
+What `make` does:
+1. Sends the reference and a fixed prompt to `gemini-3.1-flash-image` (Nano Banana 2): redraw the object alone, from the front, looking down about 45°, on a flat magenta background.
+2. Keys out the magenta (every pixel whose red and blue are both well above its green becomes transparent) and crops to the object.
+3. Pixelizes it with `image_pixelizer` and saves `../public/img/<name>.webp` (lossless, one image pixel per art pixel).
+4. Prints the entry to paste into `src/components/Game/Object/objects.ts`. The `hitBox` is the bottom 20% of the sprite in height, and as wide as the object is in its bottom 8% of rows (a tree's trunk, not its crown), so the player is blocked at the base and walks behind the top.
+
+| Option | Default | What it does |
+|---|---|---|
+| `--ref` | required | Reference image (png, jpg or webp). Keep these in `output/refs/`, which is gitignored. |
+| `-w`, `--width` | 64 | Sprite width in pixels. The height follows the object's shape. |
+| `-c`, `--colors` | 16 | Palette size. |
+| `--scale` | 4 | World px per sprite pixel, used for `w`, `h` and `hitBox` in the printed entry. |
+| `--background` | `magenta` | What Gemini paints behind the object. `transparent` asks for real transparency, but the model usually paints a checkerboard instead, which can't be removed. |
+| `--bg-tol` | 12 | Color tolerance when removing a painted background that is not magenta (only used with `--background transparent`). |
+| `--force` | off | Ignore the cache and ask Gemini again. |
+
+The raw Gemini image is cached in `.cache/` by reference, prompt and model, so changing `-w`, `-c` or `--scale` makes no new request. A copy is saved to `output/<name>_raw.png`.
