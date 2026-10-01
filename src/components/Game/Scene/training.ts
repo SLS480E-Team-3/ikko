@@ -2,7 +2,7 @@
 
 import { createElement, Fragment, useCallback, useRef, useState } from "react"
 import CharBlock, { CHAR_BLOCK_SIZE, TargetBubble } from "@/components/Game/Entity/charBlock" // import: **+ TargetBubble**, mechanism: drawn over Ryuuko while a level runs
-import { dialogUrl, playLine, playSfx } from "@/components/Game/Entity/voice" // import: **+ playSfx**, mechanism: plays the damage sound on its own <audio>
+import { dialogUrl, playLine, playSfx, preloadClips } from "@/components/Game/Entity/voice" // import: **+ playSfx**, mechanism: plays the damage sound on its own <audio> // import: **no preloadClips** -> **+ preloadClips**, mechanism: startLevel decodes the catch sounds ahead of time
 import { BUBBLE_BOARDER, BUBBLE_BORDER_W } from "@/components/Game/Entity/dialogBubble"
 import { ENT_H } from "@/components/Game/Entity/entityRenderer"
 import { overlaps, type PlayerBox } from "./gameScene"
@@ -124,6 +124,10 @@ export function useTraining({ w, h, onLeave, kana = 'あ' }: { w: number, h: num
         timeLeft.current = time
         spawnIn.current = 0
         blocks.current = []
+        preloadClips([...levelsRef.current[level].pool.map(k => dialogUrl('ryuuko', k)), DAMAGE_SFX])
+        // decodes this level's catch sounds (Ryuuko's clip for each kana in
+        // the pool + the damage sound) before the first block arrives, so a
+        // catch plays from memory instead of loading the mp3 mid-frame
         const from = throwSpot(sizeRef.current.w, sizeRef.current.h)
         setMoveRequest(r => ({ x: from.x, y: from.y + PLAYER_GAP, key: (r?.key ?? 0) + 1 })) // start: **player stays where they talked** -> **placed PLAYER_GAP below Ryuuko**, mechanism: bumps moveRequest, GameScene's effect sets the player's center to (Ryuuko x, Ryuuko y + 350) before the first throw
         setPhase(level === 0 ? 'play1' : 'play2')

@@ -2,7 +2,7 @@
 
 import { createElement, Fragment, useCallback, useRef, useState } from "react"
 import CharBlock, { CHAR_BLOCK_SIZE, TargetBubble } from "@/components/Game/Entity/charBlock"
-import { dialogUrl, playLine, playSfx } from "@/components/Game/Entity/voice"
+import { dialogUrl, playLine, playSfx, preloadClips } from "@/components/Game/Entity/voice" // import: **no preloadClips** -> **+ preloadClips**, mechanism: startLevel decodes the catch sounds ahead of time
 import { ENT_H } from "@/components/Game/Entity/entityRenderer"
 import { overlaps, type PlayerBox } from "./gameScene"
 import { ELENA, RYUUKO, ROMAJI, levelsFor, type TrainingHud, type TrainingPhase } from "./training"
@@ -73,6 +73,10 @@ export function useDodgeTraining({ w, h, onLeave, kana = 'あ' }: { w: number, h
         timeLeft.current = time
         spawnIn.current = 0
         blocks.current = []
+        preloadClips([...levelsRef.current[level].pool.map(k => dialogUrl('ryuuko', k)), DAMAGE_SFX])
+        // decodes this level's catch sounds (Ryuuko's clip for each kana in
+        // the pool + the damage sound) before the first block arrives, so a
+        // catch plays from memory instead of loading the mp3 mid-frame
         const c = center(sizeRef.current.w, sizeRef.current.h)
         setMoveRequest(r => ({ x: c.x, y: c.y + PLAYER_GAP, key: (r?.key ?? 0) + 1 }))
         setPhase(level === 0 ? 'play1' : 'play2')

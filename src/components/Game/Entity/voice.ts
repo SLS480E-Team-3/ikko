@@ -8,27 +8,91 @@ const VOLUME = 0.6
 // ignores <audio>.volume (only the hardware buttons set it), so there they
 // stay at full volume
 
+let ctx: AudioContext | undefined
+const buffers = new Map<string, AudioBuffer>()
+const loads = new Map<string, Promise<void>>()
+
+const audioCtx = () => {
+    if (typeof window === 'undefined' || typeof AudioContext === 'undefined') return undefined
+    if (!ctx) {
+        ctx = new AudioContext()
+        const c = ctx
+        const unlock = () => { c.resume().then(() => { if (c.state === 'running') window.removeEventListener('pointerdown', unlock) }).catch(() => {}) }
+        window.addEventListener('pointerdown', unlock)
+    }
+    return ctx
+}
+// one shared Web Audio context, made on first use. Phones keep it suspended
+// until a tap, so each pointerdown tries resume() until it is running.
+// Fetching and decoding work while suspended; only playback waits
+
+const load = (url: string) => {
+    const c = audioCtx()
+    if (!c) return
+    if (!loads.has(url)) loads.set(url, fetch(url)
+        .then(r => r.ok ? r.arrayBuffer() : Promise.reject(r.status))
+        .then(bytes => c.decodeAudioData(bytes))
+        .then(buf => { buffers.set(url, buf) })
+        .catch(() => {}))
+}
+// fetches and decodes one clip into buffers. loads keeps the promise, so a
+// url is only ever requested once, even when it failed (a line with no mp3)
+
+export const preloadClips = (urls: string[]) => { urls.forEach(load) }
+// usage: preloadClips([dialogUrl('ryuuko', 'あ'), '/_SFX/hit.mp3'])
+// called ahead of time (GameScene for a scene's NPC lines, the trainings for
+// their catch sounds), so playLine / playSfx find the decoded buffer ready
+
+const startBuffer = (url: string) => {
+    const buf = buffers.get(url)
+    if (!ctx || !buf || ctx.state !== 'running') return undefined
+    const src = ctx.createBufferSource()
+    const gain = ctx.createGain()
+    gain.gain.value = VOLUME
+    src.buffer = buf
+    src.connect(gain).connect(ctx.destination)
+    src.start()
+    return src
+}
+// plays a decoded clip: no fetch, no decode and no <audio> element at play
+// time, which is what made a catch hitch on phones. The gain node sets the
+// volume, and unlike <audio>.volume it also works on iOS. Returns undefined
+// when the buffer isn't ready or the context is still suspended, so the
+// caller falls back to <audio>
+
 let clip: HTMLAudioElement | undefined
+let voice: AudioBufferSourceNode | undefined
 let current: string | undefined
+
+const stopVoice = () => {
+    try { voice?.stop() } catch {}
+    voice = undefined
+    clip?.pause()
+}
+// silences the running line on both paths (buffer source and <audio>)
 
 export const playLine = (url: string) => {
     if (typeof Audio === 'undefined') return
+    stopVoice()
+    current = url
+    voice = startBuffer(url) // play: **always <audio> src swap** -> **decoded buffer first**, mechanism: a preloaded clip starts from memory, so the line isn't delayed by a fetch + decode
+    if (voice) return
+    load(url)
     clip ??= new Audio()
     clip.volume = VOLUME // volume: **1 (default)** -> **VOLUME (0.85)**, reason: clips were too loud, mechanism: set on the shared <audio> before each play
-    clip.pause()
     clip.src = url
-    current = url
     clip.play().catch(() => {})
 }
-// one shared <audio>, so a new line cuts off the one before instead of
-// overlapping. play() rejects with NotAllowedError until the page has had a
-// tap / click (so an in-range greeting is silent before that) and with
-// AbortError when the src is swapped mid-load; both are fine to ignore
+// one line at a time: a new line cuts off the one before instead of
+// overlapping. A url that wasn't preloaded falls back to the shared <audio>
+// and is loaded for next time. play() rejects with NotAllowedError until the
+// page has had a tap / click (so an in-range greeting is silent before that)
+// and with AbortError when the src is swapped mid-load; both are fine to ignore
 
 export const stopLine = (url?: string) => {
-    if (!clip || (url && url !== current)) return
-    clip.pause()
-    clip.currentTime = 0
+    if (url && url !== current) return
+    stopVoice() // stop: **clip.pause()** -> **stopVoice()**, mechanism: also stops a line playing from a buffer
+    if (clip) clip.currentTime = 0
     current = undefined
 }
 // stops the clip, but only if it's still the one this caller started: when a
@@ -38,13 +102,16 @@ export const stopLine = (url?: string) => {
 
 export const playSfx = (url: string) => {
     if (typeof Audio === 'undefined') return
+    if (startBuffer(url)) return // play: **new Audio(url) each time** -> **decoded buffer first**, mechanism: a buffer source per call is cheap and still overlaps other sounds
+    load(url)
     const sfx = new Audio(url)
     sfx.volume = VOLUME
     sfx.play().catch(() => {})
 }
-// a fresh <audio> per effect, separate from the dialog clip, so a sound
+// its own source per effect, separate from the dialog line, so a sound
 // effect plays over (and never cuts off) the line that's talking, and two
-// quick hits overlap instead of restarting each other
+// quick hits overlap instead of restarting each other. Falls back to a fresh
+// <audio> while the buffer isn't ready
 
 const BGM_VOLUME = VOLUME * 0.2
 // background music sits at 20% of the dialog volume, so it never covers a
