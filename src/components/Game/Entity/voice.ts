@@ -9,8 +9,8 @@ const VOLUME = 0.6
 // stay at full volume
 
 const MUTE_KEY = 'ikko-muted'
-let muted = false
-try { muted = typeof localStorage !== 'undefined' && localStorage.getItem(MUTE_KEY) === '1' } catch {}
+let muted = true // default: **false** -> **true**, mechanism: sound starts off; it only plays once the player unmutes
+try { muted = typeof localStorage === 'undefined' || localStorage.getItem(MUTE_KEY) !== '0' } catch {} // read: **=== '1' (muted only if saved as muted)** -> **!== '0' (muted unless saved as unmuted)**, mechanism: with nothing saved (first visit) the flag stays true; '0' is what setMuted(false) stores
 const muteListeners = new Set<() => void>()
 const elements = new Set<HTMLAudioElement>()
 let master: GainNode | undefined

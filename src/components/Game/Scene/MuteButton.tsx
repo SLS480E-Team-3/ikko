@@ -4,10 +4,10 @@ import { useSyncExternalStore } from "react"
 import { isMuted, onMuteChange, setMuted } from "../Entity/voice"
 
 export default function MuteButton() {
-    const muted = useSyncExternalStore(onMuteChange, isMuted, () => false)
+    const muted = useSyncExternalStore(onMuteChange, isMuted, () => true) // server snapshot: **false** -> **true**, mechanism: matches the new default (muted), so a first visit shows 🔇 from the first paint
     // the mute flag lives in voice.ts, outside React: onMuteChange subscribes,
     // isMuted is the snapshot, so every MuteButton on screen follows the same
-    // flag. The server snapshot is false (no localStorage there); React
+    // flag. The server snapshot is true (no localStorage there); React
     // re-renders with the stored value right after hydration
 
     return (
