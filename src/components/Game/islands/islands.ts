@@ -84,3 +84,12 @@ export const ISLAND_2: PlacedObject[] = [
 // the volcano's foot. Nothing is within 120 px of the spawn. The first
 // placement of each prop carries the sign with its word; the repeats are
 // silent. Ids of the trees are tree-2-N because tree-1 is on island 1
+
+export const ISLAND_3: PlacedObject[] = [
+    place('volcano-3-1', 'volcano', 0, -630, 2, { kind: 'sign', text: 'かざん (kazan) = volcano' }),
+]
+// island 3's map, the volcano scene (docs/scenes/volcano.md): the same
+// volcano as island 2, at the same place and scale (base 630 px above the
+// spawn, 512x264 world px). The id is volcano-3-1 because volcano-1 is on
+// island 2. The ground is red soil down to the magma (ISLAND_SECTIONS[3] in
+// gameScene.tsx)

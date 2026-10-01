@@ -58,7 +58,7 @@ if fix
 
 ## Compact instructions
 
-Auto-compact threshold is 120k (60% of 200K), set by the user with `/autocompact 120k`. Before every compact, a `PreCompact` hook (`.claude/hooks/archive-transcript.sh`) saves the full transcript to `.claude/history/`.
+Auto-compact threshold is 120k (60% of 200K), set by the user with `/autocompact 120k`. Before every compact, a `PreCompact` hook (`.claude/hooks/archive-transcript.sh`) saves the full transcript to `.claude/history/` and keeps only the newest 2 archives (`KEEP` in the script); older ones are deleted.
 
 Skip the archive for a manual compact with `/compact nosave`. Plain `/compact` and auto compacts always archive.
 

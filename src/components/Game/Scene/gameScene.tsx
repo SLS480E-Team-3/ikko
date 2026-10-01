@@ -7,7 +7,7 @@ import { ENT_H, ENT_W } from "../Entity/entityRenderer" // imports: **ENT_H, ENT
 import NPCRenderer, { NPCProps, NPC_TAP_ATTR, pickDialog, talkLines } from "../Entity/npcRenderer" // imports: **+ pickDialog**, mechanism: reads the talk's choices
 import { dialogUrl, preloadClips } from "../Entity/voice"
 // voice preload: the scene decodes its NPC lines up front (see voiceUrls)
-import { BUBBLE_BG, BUBBLE_BOARDER, BUBBLE_BORDER_W, CHOICE_TAP_ATTR } from "../Entity/dialogBubble" // imports: **CHOICE_TAP_ATTR** -> **+ BUBBLE_BG**, mechanism: QUEST_BG ground color // imports: **+ BUBBLE_BOARDER, BUBBLE_BORDER_W**, mechanism: the border BGProps.border draws
+import { BUBBLE_BOARDER, BUBBLE_BORDER_W, CHOICE_TAP_ATTR } from "../Entity/dialogBubble" // imports: **with BUBBLE_BG** -> **without**, mechanism: questBg's ground is SHRINE_SAND now, so nothing in this file reads BUBBLE_BG // imports: **CHOICE_TAP_ATTR** -> **+ BUBBLE_BG**, mechanism: QUEST_BG ground color // imports: **+ BUBBLE_BOARDER, BUBBLE_BORDER_W**, mechanism: the border BGProps.border draws
 import ObjectRenderer from "../Object/ObjectRenderer"
 import { HitBox, ObjectDef, PlacedObject, applyScale } from "../Object/gameObject"
 import { OBJECTS } from "../Object/objects"
@@ -76,6 +76,11 @@ const SECTION_TILE_PX = 256
 const MERGE_MASK = '/img/bg/merge.webp'
 const MERGE_H = 160
 const MERGE_SHIFT = 388
+const MERGE_SEAM = 4
+// world px a merged section's div reaches up under its own merge strip (one
+// art pixel). The strip's bottom rows are full color, so the overlap is not
+// seen; it only closes the hairline gap that sub-pixel rounding leaves
+// between the two divs when the world is zoomed
 const SHORE_IN = 85 // SHORE_IN: **40** -> **85**, mechanism: the blocking box of the water starts 45 px higher, so the player stops further up the shore, above the loose water pixels
 // world px a solid merged section's blocking box reaches up into its merge
 // strip: about where the mask's wavy full part starts, so the player's feet
@@ -118,6 +123,15 @@ export const ISLAND_SECTIONS: Record<number, BgSection[]> = {
         // bottom edge through the mask, so the shore is an uneven, dithered
         // line like the other borders
     ],
+    3: [
+        { id: 'volcano', x: 0, y: 0, w: 1400, h: 1700, color: '#7a3f2e' }, // color: **#8f4a36** -> **#7a3f2e**, mechanism: the same red-brown about 15% darker; island 2's volcano section keeps #8f4a36
+        { id: 'magma', x: 0, y: 1700, w: 1400, h: 300, color: '#f08a24', merge: true, solid: true, wave: true },
+    ],
+    // island 3, the volcano scene (docs/scenes/volcano.md): island 2's
+    // red-brown volcano soil from the top down to y 1700, and magma (orange)
+    // over the bottom 300 px. The magma is island 2's ocean in another color:
+    // merge gives it the dithered shore, solid stops the player at its edge,
+    // and wave makes it rise and fall and push the player up
 } // sections: **{}** -> **island 2's three sections**, mechanism: the tropical-island scene (docs/scenes/tropical-island.md): three full-width bands that cover the 1400 x 2000 world top to bottom; each is one plain color with no tile (moss light green, sand off-white and a bit yellow, volcano sand red-brown)
 // the ground sections of each island, keyed by island id. The /make-scene
 // skill adds an island's entry when it builds that scene. An island with no
@@ -129,7 +143,79 @@ export const islandBg = (islandId: number): BGProps => ({ ...TEMP_BG, color: ISL
 // back to BG_COLOR). GameScene reads bgProps once at mount, so callers
 // switching islands remount it with key={islandId}
 
-export const questBg = (w: number, h: number): BGProps => ({ x: w / 2, y: h / 4 + 300, w, h, color: BUBBLE_BG, border: true }) // QUEST_BG: **fixed 1000 x 700 const** -> **questBg(w, h)**, reason: the island is 2x the screen, mechanism: the caller measures the window and passes the size; color is BUBBLE_BG ('#fffff2') and border: true draws the bubble's black edge
+const SHRINE_ROOF = 48
+const SHRINE_FACE = 56
+const SHRINE_LINE = 4
+const SHRINE_POST_W = 8
+const SHRINE_POST_GAP = 96
+const SHRINE_PATH_W = 96
+const SHRINE_SAND = '#e6dcc0'
+const SHRINE_ROOF_COLOR = '#b5382e'
+const SHRINE_RIDGE_COLOR = '#8a2620'
+const SHRINE_EAVE_COLOR = '#6e1e19'
+const SHRINE_FACE_COLOR = '#f4efe2'
+const SHRINE_PATH_COLOR = '#d3cdbf'
+// the shrine yard's sizes (world px, all multiples of 4 = one art pixel) and
+// colors. SHRINE_ROOF is how thick the roof strip of each wall is, SHRINE_FACE
+// how tall the plaster wall under the top roof is, SHRINE_LINE the width of
+// the ridge and eave lines. A post stands on the top wall about every
+// SHRINE_POST_GAP. SHRINE_ROOF must stay above 18 (the player's longest step
+// in one frame), or a wall could be stepped over
+
+export const shrineSections = (w: number, h: number): BgSection[] => {
+    const iw = w - BUBBLE_BORDER_W * 2
+    const ih = h - BUBBLE_BORDER_W * 2
+    const ring = (id: string, inset: number, color: string): BgSection[] => [
+        { id: `${id}-top`, x: inset, y: inset, w: iw - inset * 2, h: SHRINE_LINE, color },
+        { id: `${id}-bottom`, x: inset, y: ih - inset - SHRINE_LINE, w: iw - inset * 2, h: SHRINE_LINE, color },
+        { id: `${id}-left`, x: inset, y: inset, w: SHRINE_LINE, h: ih - inset * 2, color },
+        { id: `${id}-right`, x: iw - inset - SHRINE_LINE, y: inset, w: SHRINE_LINE, h: ih - inset * 2, color },
+    ]
+    const inner = iw - SHRINE_ROOF * 2
+    const gaps = Math.max(1, Math.round(inner / SHRINE_POST_GAP))
+    const posts: BgSection[] = Array.from({ length: gaps - 1 }, (_, i) => ({
+        id: `post-${i + 1}`,
+        x: Math.round(SHRINE_ROOF + (inner / gaps) * (i + 1) - SHRINE_POST_W / 2),
+        y: SHRINE_ROOF,
+        w: SHRINE_POST_W,
+        h: SHRINE_FACE,
+        color: SHRINE_ROOF_COLOR,
+    }))
+    return [
+        { id: 'path', x: Math.round((iw - SHRINE_PATH_W) / 2), y: 0, w: SHRINE_PATH_W, h: ih, color: SHRINE_PATH_COLOR },
+        { id: 'wall-top', x: 0, y: 0, w: iw, h: SHRINE_ROOF + SHRINE_FACE, color: SHRINE_FACE_COLOR, solid: true },
+        ...posts,
+        { id: 'roof-top', x: 0, y: 0, w: iw, h: SHRINE_ROOF, color: SHRINE_ROOF_COLOR },
+        { id: 'roof-left', x: 0, y: 0, w: SHRINE_ROOF, h: ih, color: SHRINE_ROOF_COLOR, solid: true },
+        { id: 'roof-right', x: iw - SHRINE_ROOF, y: 0, w: SHRINE_ROOF, h: ih, color: SHRINE_ROOF_COLOR, solid: true },
+        { id: 'roof-bottom', x: 0, y: ih - SHRINE_ROOF, w: iw, h: SHRINE_ROOF, color: SHRINE_ROOF_COLOR, solid: true },
+        ...ring('ridge', (SHRINE_ROOF - SHRINE_LINE) / 2, SHRINE_RIDGE_COLOR),
+        ...ring('eave', SHRINE_ROOF - SHRINE_LINE, SHRINE_EAVE_COLOR),
+    ]
+}
+// the ground sections of the Quest Island's shrine yard (docs/scenes/shrine.md):
+// a sand courtyard closed in by a red-roofed wall on all four sides, seen
+// from above. Everything is a plain-color rectangle worked out from the
+// island's measured size, so the yard fits any screen and needs no image.
+// - iw / ih: the world div has a BUBBLE_BORDER_W border and its children are
+//   placed from inside that border, so the room for sections is the size
+//   minus the border on both sides. Using it keeps the roofs off the black
+//   edge on the right and the bottom
+// - paint order is the array order (later over earlier): the stone path
+//   first, then the top wall (plaster face, posts, roof), the side and bottom
+//   roofs, and last the ridge and eave lines
+// - the top wall shows its face under its roof because it is the far wall;
+//   the other three show only their roof
+// - ring(): four thin lines that form a rectangle `inset` px inside the
+//   yard's edge. One ring down the middle of the roofs is the ridge, one on
+//   their inner edge is the eave
+// - posts: the wall between the side roofs is cut into equal gaps close to
+//   SHRINE_POST_GAP, with one post on each inner cut
+// - solid: true on the top wall and the three roofs puts their rectangles in
+//   GameScene's blocking boxes, so the player stops at the walls. The path,
+//   posts and lines don't block
+
+export const questBg = (w: number, h: number): BGProps => ({ x: w / 2, y: h / 4 + 300, w, h, color: SHRINE_SAND, sections: shrineSections(w, h), border: true }) // color, sections: **BUBBLE_BG, none** -> **SHRINE_SAND, shrineSections(w, h)**, mechanism: the ground is sand and the shrine's walls and path ride along as sections; GameScene already draws sections and blocks on the solid ones, so every quest scene that uses questBg gets the yard with no other change // QUEST_BG: **fixed 1000 x 700 const** -> **questBg(w, h)**, reason: the island is 2x the screen, mechanism: the caller measures the window and passes the size; color is BUBBLE_BG ('#fffff2') and border: true draws the bubble's black edge
 // the Quest Island a quest opens on, painted the dialog bubble's bg color.
 // x/y is where the player spawns and the camera starts // spawn: **island center (h / 2)** -> **bottom middle (h - 80)**, reason: Ryuuko throws from the top middle, mechanism: bgProps.x/y is only read as the player's spawn and the camera's start, so moving it moves just those // spawn: **bottom middle (h - 80)** -> **partway up (h * 3 / 4)**, reason: the walk to Ryuuko was ~25s, mechanism: half the island (one screen) below her at h / 4, about a 7s walk // spawn: **h * 3 / 4** -> **h / 4 + 300**, reason: arrive 300px from Ryuuko, mechanism: h / 4 is her y (throwSpot), so the player starts 300px straight below her; throwSpot isn't imported here since training.ts already imports gameScene
 
@@ -836,9 +922,9 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
                         style={{
                             position: 'absolute',
                             left: sec.x,
-                            top: sec.y + (sec.wave ? waveRef.current : 0), // top: **sec.y** -> **sec.y + the wave offset**, mechanism: a wave section is drawn at where the tick put the wave this frame (the tick re-renders every frame)
+                            top: sec.y + (sec.wave ? waveRef.current : 0) - (sec.merge ? MERGE_SEAM : 0), // top: **sec.y** -> **sec.y - MERGE_SEAM for a merged section**, mechanism: the section starts MERGE_SEAM px under the full bottom rows of its merge strip, so at a fractional zoom no gap opens between the strip's bottom edge and the section's top and the world color can't show as a thin line // top: **sec.y** -> **sec.y + the wave offset**, mechanism: a wave section is drawn at where the tick put the wave this frame (the tick re-renders every frame)
                             width: sec.w,
-                            height: sec.h - (sec.wave ? waveRef.current : 0), // height: **sec.h** -> **sec.h - the wave offset**, mechanism: the offset is 0 or negative, so the div grows by as much as it moved up and its bottom stays on the world's edge
+                            height: sec.h - (sec.wave ? waveRef.current : 0) + (sec.merge ? MERGE_SEAM : 0), // height: **sec.h** -> **sec.h + MERGE_SEAM for a merged section**, mechanism: the div grows by as much as its top moved up, so its bottom stays in place // height: **sec.h** -> **sec.h - the wave offset**, mechanism: the offset is 0 or negative, so the div grows by as much as it moved up and its bottom stays on the world's edge
                             zIndex: 0,
                             pointerEvents: 'none',
                             backgroundColor: sec.color,
@@ -846,6 +932,7 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
                                 backgroundImage: `url(${sec.tile})`,
                                 backgroundRepeat: 'repeat',
                                 backgroundSize: SECTION_TILE_PX,
+                                backgroundPosition: `0 ${sec.merge ? MERGE_SEAM : 0}px`, // backgroundPosition: **none** -> **MERGE_SEAM down for a merged section**, mechanism: the tile pattern still starts at sec.y, so it lines up with the strip above
                                 imageRendering: 'pixelated' as const,
                             }),
                         }}

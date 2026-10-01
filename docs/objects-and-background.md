@@ -4,7 +4,8 @@ How the island scenes draw their ground, borders, waves and objects, and which f
 
 - All sizes and positions are in **world px**. The world is `BG_W` 1400 x `BG_H` 2000. The player spawns at the center (700, 1000).
 - One art pixel is 4 world px (sprites and tiles are drawn 4x, pixelated).
-- A built scene, as an example: [scenes/tropical-island.md](scenes/tropical-island.md) (island 2).
+- Built scenes: [scenes/tropical-island.md](scenes/tropical-island.md) (island 2), [scenes/volcano.md](scenes/volcano.md) (island 3), [scenes/shrine.md](scenes/shrine.md) (Quest Island).
+- The Quest Island is not 1400 x 2000. Its size is measured from the screen, so its sections are computed by `shrineSections(w, h)` and not listed in `ISLAND_SECTIONS`.
 - Making the images: [python/README.md](../python/README.md) (`sprite.py make`, `tile`, `merge`).
 
 ## Files
@@ -14,7 +15,7 @@ How the island scenes draw their ground, borders, waves and objects, and which f
 | `src/components/Game/Object/gameObject.ts` | Object types, `applyScale` |
 | `src/components/Game/Object/objects.ts` | `OBJECTS`, the catalog of object kinds |
 | `src/components/Game/Object/ObjectRenderer.tsx` | Draws one placed object |
-| `src/components/Game/islands/islands.ts` | `place`, `scatter`, the maps `ISLAND_1`, `ISLAND_2` |
+| `src/components/Game/islands/islands.ts` | `place`, `scatter`, the maps `ISLAND_1`, `ISLAND_2`, `ISLAND_3` |
 | `src/components/Game/islands/index.ts` | `ISLAND_MAPS`, map by island id |
 | `src/components/Game/Scene/gameScene.tsx` | Background types, sections, borders, waves, blocking, the frame tick |
 
@@ -65,7 +66,7 @@ How the island scenes draw their ground, borders, waves and objects, and which f
 | `color` | The flat ground color |
 | `img?` | An overlay image that does not affect entities |
 | `sections?` | Ground areas drawn over `color`, under every object and entity |
-| `border?` | A black square edge around the world (Quest Island) |
+| `border?` | A black square edge around the world, `BUBBLE_BORDER_W` (2) wide (Quest Island). Sections are placed from inside this edge |
 
 `BgSection`: one rectangle of ground.
 
@@ -86,7 +87,8 @@ How the island scenes draw their ground, borders, waves and objects, and which f
 | `ISLAND_BG` | Flat ground color per island id |
 | `ISLAND_SECTIONS` | Ground sections per island id. An island with no entry keeps its flat color |
 | `islandBg(islandId)` | The `BGProps` of one island: the shared world size, its color and its sections |
-| `questBg(w, h)` | The `BGProps` of a quest scene |
+| `questBg(w, h)` | The `BGProps` of a quest scene: the measured size, sand ground, the shrine's sections and the black edge |
+| `shrineSections(w, h)` | The Quest Island's sections: four red-roofed walls (solid) around a sand yard. See [scenes/shrine.md](scenes/shrine.md) |
 | `ISLAND_COUNT` | 5 |
 
 ### Draw order, bottom to top
@@ -107,6 +109,7 @@ A section with `merge: true` draws its color (or tile) again in a strip above it
 
 - **Mask:** `MERGE_MASK` (`/img/bg/merge.webp`), made by `python sprite.py merge`. It is full at the bottom and breaks into loose pixels toward the top. One mask works for every pair of grounds.
 - **Strip:** `MERGE_H` (160) tall, placed at `sec.y - MERGE_H`.
+- **Seam:** the section itself starts `MERGE_SEAM` (4) above its top edge, under the strip. Without this overlap, sub-pixel rounding leaves a thin line of the world color between the strip and the section when the world is zoomed.
 - **Variation:** each next merged border moves the mask left by `MERGE_SHIFT` (388), so two borders do not show the same line.
 - **Limit:** full-width top borders only. The section needs another section above it.
 
@@ -165,6 +168,7 @@ All in `gameScene.tsx`, unless noted.
 | `WAVE_STEP` | 4 | Keep at 4 (one art pixel). 1 gives smooth motion |
 | `SHORE_IN` | 85 | Stop the player higher (larger) or lower (smaller) on the shore |
 | `MERGE_H` | 160 | Must match the mask's height printed by `sprite.py merge` |
+| `MERGE_SEAM` | 4 | How far a merged section reaches up under its own strip, so no gap shows at the join. Keep at 4 (one art pixel) |
 | `MERGE_SHIFT` | 388 | How different two borders look. Keep it a multiple of 4 |
 | `SECTION_TILE_PX` | 256 | World px one ground tile covers |
 | `SIGN_RANGE` | 16 | How near the player must be for a sign to show |
