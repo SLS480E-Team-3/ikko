@@ -141,6 +141,7 @@ What `make` does:
 | `--scale` | 4 | World px per sprite pixel, used for `w`, `h` and `hitBox` in the printed entry. |
 | `--background` | `magenta` | What Gemini paints behind the object. `transparent` asks for real transparency, but the model usually paints a checkerboard instead, which can't be removed. |
 | `--bg-tol` | 12 | Color tolerance when removing a painted background that is not magenta (only used with `--background transparent`). |
+| `--max-kb` | 20 | Largest allowed `.webp` file, in KB. Over it, nothing is written and the script stops. A 64 px, 16 color sprite is 1–3 KB. |
 | `--force` | off | Ignore the cache and ask Gemini again. |
 
 The raw Gemini image is cached in `.cache/` by reference, prompt and model, so changing `-w`, `-c` or `--scale` makes no new request. A copy is saved to `output/<name>_raw.png`.

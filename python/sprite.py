@@ -140,9 +140,18 @@ def make(args) -> None:
     sprite = pixelize(cut, args.width, grid_h, colors=args.colors)
     IMG_DIR.mkdir(parents=True, exist_ok=True)
     out = IMG_DIR / f"{args.name}.webp"
-    sprite.save(out, "WEBP", lossless=True)
+    buf = io.BytesIO()
+    sprite.save(buf, "WEBP", lossless=True)
+    kb = buf.tell() / 1024
+    if kb > args.max_kb:
+        die(f"{out.name} would be {kb:.1f} KB, over the {args.max_kb} KB limit — lower -w or -c, or raise --max-kb")
+    out.write_bytes(buf.getvalue())
+    # the webp is encoded into memory first and only written when it is within
+    # --max-kb, so an oversized sprite never lands in public/img. A 64 px wide,
+    # 16 color sprite is 1-3 KB; the default 20 KB leaves room for tall or
+    # wider objects and still stops a wrong -w (e.g. 640)
     hb = hitbox(sprite, args.scale)
-    print(f"wrote {out.relative_to(ROOT.parent)} ({sprite.width}x{sprite.height})")
+    print(f"wrote {out.relative_to(ROOT.parent)} ({sprite.width}x{sprite.height}, {kb:.1f} KB)")
     print("add to src/components/Game/Object/objects.ts:")
     print(f"    {args.name}: {{")
     print(f"        sprite: {{ src: '/img/{args.name}.webp', w: {sprite.width * args.scale}, h: {sprite.height * args.scale}, alt: '{args.name}' }},")
@@ -165,6 +174,7 @@ def main() -> None:
     m.add_argument("--scale", type=int, default=4, help="world px per sprite pixel in the printed entry (default 4)")
     m.add_argument("--background", choices=list(BACKGROUNDS), default="magenta", help="what Gemini is asked to paint behind the object (default magenta)")
     m.add_argument("--bg-tol", type=int, default=12, help="color tolerance when removing a painted background (default 12)")
+    m.add_argument("--max-kb", type=float, default=20, help="largest allowed webp file in KB (default 20)")
     m.add_argument("--force", action="store_true", help="ignore the cache")
     m.set_defaults(func=make)
     args = ap.parse_args()
