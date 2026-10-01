@@ -11,6 +11,8 @@ import { BUBBLE_BG, BUBBLE_BOARDER, BUBBLE_BORDER_W, CHOICE_TAP_ATTR } from "../
 import ObjectRenderer from "../Object/ObjectRenderer"
 import { HitBox, ObjectDef, PlacedObject, applyScale } from "../Object/gameObject"
 import { OBJECTS } from "../Object/objects"
+import MuteButton from "./MuteButton"
+// mute toggle drawn over the scene (see the end of the render)
 
 
 export type BGProps = {
@@ -837,6 +839,11 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
                 none stops a long press from selecting text. Ring and knob are
                 centered on their points and have pointerEvents none so they
                 never steal the drag */}
+            <MuteButton />
+            {/* sound on/off in the top-right corner, above the stick overlay.
+                It is a sibling of the overlay, so a press never starts the
+                stick, and it stops its own pointer events before they reach
+                the pinch handlers on this div */}
         </div>
     )
     // zoom is applied once, here: everything inside this div is in world px

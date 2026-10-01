@@ -8,6 +8,32 @@ const VOLUME = 0.6
 // ignores <audio>.volume (only the hardware buttons set it), so there they
 // stay at full volume
 
+const MUTE_KEY = 'ikko-muted'
+let muted = false
+try { muted = typeof localStorage !== 'undefined' && localStorage.getItem(MUTE_KEY) === '1' } catch {}
+const muteListeners = new Set<() => void>()
+const elements = new Set<HTMLAudioElement>()
+let master: GainNode | undefined
+// mute state for the whole module: one flag, read back from localStorage so
+// it survives a reload (try/catch: storage throws in private mode). elements
+// holds every live <audio> (the dialog clip + running BGMs) and master is the
+// gain node all buffer sources pass through, so a toggle reaches both paths
+
+export const isMuted = () => muted
+export const onMuteChange = (fn: () => void) => { muteListeners.add(fn); return () => { muteListeners.delete(fn) } }
+export const setMuted = (m: boolean) => {
+    muted = m
+    try { localStorage.setItem(MUTE_KEY, m ? '1' : '0') } catch {}
+    if (master) master.gain.value = m ? 0 : 1
+    elements.forEach(a => { a.muted = m })
+    muteListeners.forEach(fn => fn())
+}
+// usage: setMuted(!isMuted()); onMuteChange + isMuted are the subscribe /
+// snapshot pair for useSyncExternalStore (see MuteButton). <audio> elements
+// are silenced with .muted, not volume 0, because iOS Safari ignores
+// <audio>.volume; the sounds keep running while muted, so unmuting brings
+// the BGM back mid-track instead of restarting it
+
 let ctx: AudioContext | undefined
 const buffers = new Map<string, AudioBuffer>()
 const loads = new Map<string, Promise<void>>()
@@ -17,6 +43,10 @@ const audioCtx = () => {
     if (!ctx) {
         ctx = new AudioContext()
         const c = ctx
+        master = c.createGain()
+        master.gain.value = muted ? 0 : 1
+        master.connect(c.destination)
+        // master gain between every buffer source and the speakers: 1 normally, 0 while muted
         const unlock = () => { c.resume().then(() => { if (c.state === 'running') window.removeEventListener('pointerdown', unlock) }).catch(() => {}) }
         window.addEventListener('pointerdown', unlock)
     }
@@ -50,7 +80,7 @@ const startBuffer = (url: string) => {
     const gain = ctx.createGain()
     gain.gain.value = VOLUME
     src.buffer = buf
-    src.connect(gain).connect(ctx.destination)
+    src.connect(gain).connect(master ?? ctx.destination) // output: **ctx.destination** -> **master gain**, mechanism: setMuted sets master's gain to 0, which silences every buffer source, including ones already playing
     src.start()
     return src
 }
@@ -79,6 +109,8 @@ export const playLine = (url: string) => {
     if (voice) return
     load(url)
     clip ??= new Audio()
+    elements.add(clip)
+    clip.muted = muted // mute: **none** -> **clip.muted = muted**, mechanism: the shared <audio> is in elements, so setMuted also flips it mid-line
     clip.volume = VOLUME // volume: **1 (default)** -> **VOLUME (0.85)**, reason: clips were too loud, mechanism: set on the shared <audio> before each play
     clip.src = url
     clip.play().catch(() => {})
@@ -106,6 +138,7 @@ export const playSfx = (url: string) => {
     load(url)
     const sfx = new Audio(url)
     sfx.volume = VOLUME
+    sfx.muted = muted // mute: **none** -> **sfx.muted = muted**, mechanism: a short one-shot, so it only reads the flag at start and isn't tracked in elements
     sfx.play().catch(() => {})
 }
 // its own source per effect, separate from the dialog line, so a sound
@@ -139,11 +172,14 @@ export const playBgm = (url: string) => {
     const bgm = new Audio(url)
     bgm.loop = true
     bgm.volume = BGM_VOLUME
+    bgm.muted = muted
+    elements.add(bgm) // mute: **none** -> **bgm.muted + elements**, mechanism: the track keeps looping silently while muted and setMuted unmutes it in place
     let stopped = false
     const start = () => { if (!stopped) bgm.play().then(() => { if (stopped) bgm.pause(); else window.removeEventListener('pointerdown', start) }).catch(() => {}) } // start: **play, then drop the listener** -> **skip / re-pause once stopped**, mechanism: a play() that resolves after the cleanup ran (a tap racing the scene change) pauses right away instead of looping on under the next scene
     const stop = () => {
         stopped = true
         playing.delete(stop)
+        elements.delete(bgm)
         window.removeEventListener('pointerdown', start)
         bgm.pause()
         bgm.removeAttribute('src') // src: **bgm.src = ''** -> **removeAttribute('src')**, mechanism: '' resolves to the page URL and starts loading it as media; removing the attribute just empties the element
