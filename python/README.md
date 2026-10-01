@@ -121,6 +121,8 @@ pip install -e /path/to/image_pixelizer
 
 `image_pixelizer` is a separate local repo, not on PyPI.
 
+The reference image comes from a browser search. The Claude Code skill `/make-sprite <object>` (`../.claude/skills/make-sprite/SKILL.md`) runs that search and then this script.
+
 ```bash
 python sprite.py make tree --ref output/refs/tree.jpg
 ```
