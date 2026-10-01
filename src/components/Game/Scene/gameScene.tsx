@@ -723,7 +723,14 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
                 {renderWorld?.()}
                 {/* renderWorld: extra world-px children (training blocks), redrawn
                     every frame since the tick force()-renders */}
-                {placed.map(({ obj, def }) => <ObjectRenderer key={obj.id} obj={obj} def={def} />)}
+                {placed.map(({ obj, def }) => <ObjectRenderer key={obj.id} obj={obj} def={def} faded={!!pEnt && (pEnt.y ?? 0) + pEnt.h / 2 < obj.y + def.sprite.h && overlaps(pEnt.x ?? 0, pEnt.y ?? 0, pEnt.w, pEnt.h, { x: obj.x, y: obj.y, w: def.sprite.w, h: def.sprite.h })} />)}
+                {/* faded = the player is behind this object: the player's
+                    feet (center y + h/2) are above the sprite's bottom edge,
+                    which is the same comparison the zIndexes use, so the
+                    object draws in front, and the player's box overlaps the
+                    sprite's box, so the object actually covers the player.
+                    The scene re-renders every frame, so this follows the
+                    player; ObjectRenderer eases the opacity */}
                 {/* objects, each with a zIndex of its bottom edge */}
                 <div style={{ position: 'absolute', left: 0, top: 0, zIndex: 0 }}>
                 <FootPrintRenderer velocity={velocityRef.current} maxSpeed={PLAYER_SPEED} x={pEnt?.x} y={pEnt?.y} h={pEnt?.h ?? ENT_H} />

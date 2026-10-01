@@ -3,7 +3,11 @@
 import { ObjectDef, PlacedObject } from "./gameObject"
 import Image from "next/image"
 
-export default function ObjectRenderer({ obj, def }: { obj: PlacedObject, def: ObjectDef }) { // props: **{ obj: GameObjectProps }** -> **{ obj: PlacedObject, def: ObjectDef }**, mechanism: the placement saves only where + which kind; the sprite comes from the catalog def GameScene resolved
+const FADED_OPACITY = 0.4
+// how see-through a sprite gets while the player is behind it: the player
+// shows through, and the object is still readable
+
+export default function ObjectRenderer({ obj, def, faded = false }: { obj: PlacedObject, def: ObjectDef, faded?: boolean }) { // props: **{ obj, def }** -> **+ faded?**, mechanism: GameScene sets it while the player stands behind this object, so the sprite turns see-through // props: **{ obj: GameObjectProps }** -> **{ obj: PlacedObject, def: ObjectDef }**, mechanism: the placement saves only where + which kind; the sprite comes from the catalog def GameScene resolved
     return (
         <div
             style={{
@@ -14,6 +18,10 @@ export default function ObjectRenderer({ obj, def }: { obj: PlacedObject, def: O
                 width: def.sprite.w,
                 zIndex: Math.round(obj.y + def.sprite.h), // layer: **DOM order** -> **bottom edge**, mechanism: GameScene gives the player the same bottom-edge zIndex, so the lower one on screen draws in front and the player can walk behind the tower
                 pointerEvents: 'none',
+                opacity: faded ? FADED_OPACITY : 1,
+                transition: 'opacity 0.25s ease-in-out',
+                // the css transition eases between the two opacities over
+                // 0.25s in both directions, so GameScene only flips a boolean
             }}
         >
             <Image
