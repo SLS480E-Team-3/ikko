@@ -1,0 +1,105 @@
+{
+  "npc": "ryuuko",
+  "name": "Ryuuko",
+  "color": "crimson",
+  "dialog": [
+    {
+      "condition": "quest",
+      "choices": [
+        ["はい", "Yes"],
+        ["いいえ", "No"]
+      ],
+      "lines": [
+        {
+          "kana": "こんかいのおだいは「{target}」よ！",
+          "en": "This time's target is \"{target}\"!"
+        },
+        {
+          "kana": "じゅんびはできてる？",
+          "text": "準備はできてる？",
+          "en": "Ready?",
+          "style": "confident trainer, a teasing challenge before the drill starts"
+        },
+        {
+          "kana": "いくわよ！",
+          "text": "いくわよ！",
+          "en": "Here I go!",
+          "style": "energetic and sure of herself, kicking off the drill"
+        }
+      ]
+    },
+    {
+      "condition": ["level1-start", "level2-start"],
+      "lines": [
+        {
+          "kana": "いくわよ！",
+          "text": "いくわよ！",
+          "en": "Here I go!",
+          "style": "energetic and sure of herself, kicking off the drill"
+        }
+      ]
+    },
+    {
+      "condition": "level1-clear",
+      "choices": [
+        ["はい", "Yes"],
+        ["いいえ", "No"]
+      ],
+      "lines": [
+        {
+          "kana": "よゆうそうね。",
+          "text": "余裕そうね。",
+          "en": "Looks easy for you.",
+          "style": "amused and teasing, a little impressed but not showing it"
+        },
+        {
+          "kana": "ちょっと早くするわよ",
+          "text": "ちょっと早くするわよ",
+          "en": "Let me speed it up",
+          "style": "playful smirk, raising the pace as a challenge"
+        }
+      ]
+    },
+    {
+      "condition": "level2-clear",
+      "lines": [
+        {
+          "kana": "おつかれさま！",
+          "text": "お疲れ様！",
+          "en": "Good job!",
+          "style": "warm and satisfied, praising the player after the drill"
+        }
+      ]
+    },
+    {
+      "condition": ["level1-fail", "level2-fail"],
+      "choices": [
+        ["はい", "Yes"],
+        ["いいえ", "No"]
+      ],
+      "lines": [
+        {
+          "kana": "まだまだいけるでしょ？",
+          "text": "まだまだいけるでしょ？",
+          "en": "You can keep going, right?",
+          "style": "teasing but encouraging, pushing the player to try again"
+        }
+      ]
+    },
+    {
+      "condition": "retry",
+      "choices": [
+        ["レベル1", "Level 1"],
+        ["レベル2", "Level 2"]
+      ],
+      "lines": [
+        {
+          "kana": "どこから始める？",
+          "text": "どこから始める？",
+          "en": "Where are we starting?",
+          "style": "calm and inviting, letting the player pick a level"
+        }
+      ]
+    }
+  ]
+}

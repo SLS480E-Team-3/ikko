@@ -53,7 +53,7 @@ function Hud({ getHud }: { getHud: () => TrainingHud }) {
 function Training({ w, h, onLeave, kana, sensitivity, children }: { w: number, h: number, onLeave: () => void, kana?: string, sensitivity?: number, children?: ReactNode }) {
     const t = useDodgeTraining({ w, h, onLeave, kana })
     const c = center(w, h)
-    const npcs = questIslandNpcs(w, h, t.phase, t.getHud().target).map(n => ({ ...n, ent: { ...n.ent, y: c.y } })) // args: **(w, h, phase)** -> **+ getHud().target**, mechanism: the level target kana, so Ryuuko's intro names it
+    const npcs = questIslandNpcs(w, h, t.phase, t.getHud().target, t.failedLevel).map(n => ({ ...n, ent: { ...n.ent, y: c.y } })) // args: **(w, h, phase)** -> **+ getHud().target**, mechanism: the level target kana, so Ryuuko's intro names it // args: **no failedLevel** -> **+ t.failedLevel**, mechanism: the lost level picks Ryuuko's and Elena's level<N>-fail lines
     // the shared cast moved to the center row: a shallow copy of each ent
     // with y = h / 2, so npcs.ts keeps its throwSpot y for the other quests.
     // x is untouched, so Ryuuko stays at w / 2 (+40 in fail) and Elena beside her

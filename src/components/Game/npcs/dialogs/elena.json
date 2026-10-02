@@ -1,0 +1,58 @@
+{
+  "npc": "elena",
+  "name": "Elena",
+  "color": "seagreen",
+  "dialog": [
+    {
+      "condition": "level1-clear",
+      "choices": [
+        ["はい", "Yes"],
+        ["いいえ", "No"]
+      ],
+      "lines": [
+        {
+          "kana": "しまにもどる？",
+          "text": "島に戻る？",
+          "en": "Go back to the island?",
+          "style": "calm and matter-of-fact, a plain question, light rise at the end"
+        }
+      ]
+    },
+    {
+      "condition": ["level1-fail", "level2-fail"],
+      "choices": [
+        ["はい", "Yes"],
+        ["いいえ", "No"]
+      ],
+      "lines": [
+        {
+          "kana": "あきらめますか？",
+          "text": "諦めますか？",
+          "en": "Give up?",
+          "style": "cool and level, asking seriously without judging"
+        }
+      ]
+    },
+    {
+      "condition": ["level2-clear", "retry"],
+      "choices": [
+        ["はい", "Yes"],
+        ["いいえ", "No"]
+      ],
+      "lines": [
+        {
+          "kana": "おめでとう！",
+          "text": "おめでとう！",
+          "en": "GOOD JOB!",
+          "style": "composed but sincere, a small warm smile in the voice"
+        },
+        {
+          "kana": "しまにもどる？",
+          "text": "島に戻る？",
+          "en": "Go back to the island?",
+          "style": "calm and matter-of-fact, a plain question, light rise at the end"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "npc": "jordi",
+  "name": "Jordi",
+  "color": "plum",
+  "kana": "い",
+  "dialog": [
+    {
+      "condition": "greeting",
+      "lines": [
+        {
+          "kana": "こんにちは！",
+          "text": "こんにちは！",
+          "en": "Hello!"
+        }
+      ]
+    },
+    {
+      "condition": "default",
+      "lines": [
+        {
+          "kana": "わたしはおすしがだいすき！",
+          "text": "私はお寿司が大好き！",
+          "en": "I love sushi!",
+          "style": "happy, enthusiastic"
+        },
+        {
+          "kana": "とくにサーモンがすき！",
+          "text": "とくにサーモンがすき！",
+          "en": "Salmon is my favorite",
+          "style": "dreamy, fond"
+        },
+        {
+          "kana": "あなたもおすしすき？",
+          "text": "あなたもお寿司好き？",
+          "en": "Are you also a sushi muncher?",
+          "style": "curious, playful"
+        }
+      ]
+    },
+    {
+      "condition": "quest",
+      "choices": [
+        ["はい", "Yes"],
+        ["いいえ", "No"]
+      ],
+      "lines": [
+        {
+          "kana": "「い」のクエストだよ！",
+          "text": "「い」のクエストだよ！",
+          "en": "It's the い quest!",
+          "style": "upbeat and playful, announcing a fun challenge"
+        },
+        {
+          "kana": "じゅんびはいい？",
+          "text": "準備はいい？",
+          "en": "Ready?",
+          "style": "friendly, eager, light rise at the end"
+        }
+      ]
+    },
+    {
+      "condition": "spoken",
+      "lines": [
+        {
+          "kana": "またおすしのはなししよ！",
+          "text": "またお寿司の話しよ！",
+          "en": "Let's talk sushi again",
+          "style": "warm, friendly goodbye"
+        }
+      ]
+    }
+  ]
+}

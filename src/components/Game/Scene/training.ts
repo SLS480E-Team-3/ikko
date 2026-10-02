@@ -271,7 +271,7 @@ export function useTraining({ w, h, onLeave, kana = 'あ' }: { w: number, h: num
     // the line GameScene keeps the player below; only while a level runs, so
     // it goes away on levelUp / success / fail and Ryuuko can be reached again
 
-    return { phase, wallY, onTick, onChoice, onTalkEnd, renderWorld, getHud, playerLabel, talkRequest, moveRequest } // return: **no playerLabel** -> **+ playerLabel**, mechanism: questIsland.tsx passes it to GameScene for the current/quota tag // return: **no onTalkEnd** -> **+ onTalkEnd**, mechanism: passed to GameScene by questIsland.tsx
+    return { phase, failedLevel, wallY, onTick, onChoice, onTalkEnd, renderWorld, getHud, playerLabel, talkRequest, moveRequest } // return: **no playerLabel** -> **+ playerLabel**, mechanism: questIsland.tsx passes it to GameScene for the current/quota tag // return: **no onTalkEnd** -> **+ onTalkEnd**, mechanism: passed to GameScene by questIsland.tsx // return: **no failedLevel** -> **+ failedLevel**, mechanism: the level (0-based) that was lost, so questIslandNpcs can pick level1-fail or level2-fail
 }
 // usage: pass onTick / onChoice / renderWorld / talkRequest straight to
 // GameScene and build the NPC list with questIslandNpcs(w, h, phase)

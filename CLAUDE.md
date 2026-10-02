@@ -58,7 +58,7 @@ if fix
 
 ## Compact instructions
 
-Auto-compact threshold is 120k (60% of 200K), set by the user with `/autocompact 120k`. Before every compact, a `PreCompact` hook (`.claude/hooks/archive-transcript.sh`) saves the full transcript to `.claude/history/` and keeps only the newest 2 archives (`KEEP` in the script); older ones are deleted.
+Auto-compact threshold is 650k (65% of 1M), set by the user with `/autocompact 650k`. Before every compact, a `PreCompact` hook (`.claude/hooks/archive-transcript.sh`) saves the full transcript to `.claude/history/` and keeps only the newest 2 archives (`KEEP` in the script); older ones are deleted.
 
 Skip the archive for a manual compact with `/compact nosave`. Plain `/compact` and auto compacts always archive.
 
@@ -82,12 +82,12 @@ For NPC dialog or voice work, read `docs/dialogs-and-voice.md` first, then follo
 | Request | Section |
 |---|---|
 | New character voice | [Creating New Voice](docs/dialogs-and-voice.md#creating-new-voice) |
-| New or edited NPC lines | [Scripting](docs/dialogs-and-voice.md#scripting) |
+| New or edited NPC lines | `/make-dialog <npc>` skill, [Scripting](docs/dialogs-and-voice.md#scripting) |
 | Generate audio for lines | [Speech Generation](docs/dialogs-and-voice.md#speech-generation) |
 
 A new NPC usually needs all three, in the order: voice → scripting → speech generation.
 
-Yaml lines are trivial: the main session writes them first, then a background sub-agent runs `dialog.py render` while the rest of the work continues. Don't estimate or flag the ondoku character budget.
+An NPC's lines live in one file, `src/components/Game/npcs/dialogs/<npc>.json`; never write them in `npcs.ts`. The json is trivial: the main session writes it first, then a background sub-agent runs `dialog.py render` on it while the rest of the work continues. Don't estimate or flag the ondoku character budget.
 
 ## SQL
 

@@ -57,7 +57,7 @@ function Hud({ getHud }: { getHud: () => TrainingHud }) {
 
 function Training({ w, h, onLeave, kana, sensitivity, children }: { w: number, h: number, onLeave: () => void, kana?: string, sensitivity?: number, children?: ReactNode }) {
     const t = useTraining({ w, h, onLeave, kana }) // args: **no kana** -> **kana**, mechanism: the quest's kana picks the training's target
-    const npcs = questIslandNpcs(w, h, t.phase, t.getHud().target) // args: **(w, h, phase)** -> **+ getHud().target**, mechanism: the level target kana, so Ryuuko's intro names it
+    const npcs = questIslandNpcs(w, h, t.phase, t.getHud().target, t.failedLevel) // args: **(w, h, phase)** -> **+ getHud().target**, mechanism: the level target kana, so Ryuuko's intro names it // args: **no failedLevel** -> **+ t.failedLevel**, mechanism: the lost level picks Ryuuko's and Elena's level<N>-fail lines
     const bgm = t.phase === 'success' || t.phase === 'again' ? QUEST_BGM.clear : t.phase === 'fail' ? QUEST_BGM.fail : undefined
     useEffect(() => bgm ? playBgm(bgm) : undefined, [bgm])
     // result music: the clear track through 'success' and Ryuuko's replay

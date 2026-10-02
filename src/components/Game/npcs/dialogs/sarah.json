@@ -1,0 +1,73 @@
+{
+  "npc": "sarah",
+  "name": "Sarah",
+  "color": "lightpink",
+  "kana": "お",
+  "dialog": [
+    {
+      "condition": "greeting",
+      "lines": [
+        {
+          "kana": "こんにちは〜",
+          "text": "こんにちは〜",
+          "en": "Hi there~"
+        }
+      ]
+    },
+    {
+      "condition": "default",
+      "lines": [
+        {
+          "kana": "わたしはおにぎりがすき",
+          "text": "私はおにぎりが好き",
+          "en": "I like onigiri",
+          "style": "cheerful, easygoing"
+        },
+        {
+          "kana": "うめぼしがすっぱい！",
+          "text": "梅干しが酸っぱい！",
+          "en": "Umeboshi is sour!",
+          "style": "puckered, playful"
+        },
+        {
+          "kana": "でも、おいしいよ",
+          "text": "でも、美味しいよ",
+          "en": "But it's delicious",
+          "style": "warm, reassuring"
+        }
+      ]
+    },
+    {
+      "condition": "quest",
+      "choices": [
+        ["はい", "Yes"],
+        ["いいえ", "No"]
+      ],
+      "lines": [
+        {
+          "kana": "「お」のクエストだよ",
+          "text": "「お」のクエストだよ",
+          "en": "This is the お quest",
+          "style": "cheerful and easygoing, bright"
+        },
+        {
+          "kana": "がんばってね！",
+          "text": "頑張ってね！",
+          "en": "Good luck!",
+          "style": "warm, bright cheer"
+        }
+      ]
+    },
+    {
+      "condition": "spoken",
+      "lines": [
+        {
+          "kana": "またね〜",
+          "text": "またね〜",
+          "en": "See you~",
+          "style": "bright, sing-song goodbye"
+        }
+      ]
+    }
+  ]
+}

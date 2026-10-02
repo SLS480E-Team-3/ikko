@@ -286,7 +286,7 @@ export function useShootTraining({ w, h, onLeave, kana = 'あ' }: { w: number, h
 
     const wallY = phase === 'play1' || phase === 'play2' ? throwSpot(w, h).y + WALL_GAP : undefined
 
-    return { phase, wallY, onTick, onChoice, onTalkEnd, renderWorld, getHud, playerLabel, talkRequest, moveRequest, onShoot, getRyuukoX }
+    return { phase, failedLevel, wallY, onTick, onChoice, onTalkEnd, renderWorld, getHud, playerLabel, talkRequest, moveRequest, onShoot, getRyuukoX } // return: **no failedLevel** -> **+ failedLevel**, mechanism: the level (0-based) that was lost, so questIslandNpcs can pick level1-fail or level2-fail
 }
 // useTraining's return plus onShoot, which shootQuestIsland.tsx passes to
 // GameScene's onShoot prop

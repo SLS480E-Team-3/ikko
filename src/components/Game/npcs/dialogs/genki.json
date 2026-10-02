@@ -1,0 +1,73 @@
+{
+  "npc": "genki",
+  "name": "Genki",
+  "color": "gray",
+  "kana": "え",
+  "dialog": [
+    {
+      "condition": "greeting",
+      "lines": [
+        {
+          "kana": "よう！",
+          "text": "よう！",
+          "en": "Yo!"
+        }
+      ]
+    },
+    {
+      "condition": "default",
+      "lines": [
+        {
+          "kana": "おれはカレーがすきだ",
+          "text": "俺はカレーが好きだ",
+          "en": "I like curry",
+          "style": "warm, relaxed"
+        },
+        {
+          "kana": "からいカレーがいい",
+          "text": "辛いカレーがいい",
+          "en": "Spicy curry is good",
+          "style": "confident, a little grin"
+        },
+        {
+          "kana": "やっぱまいにちたべたいよね！",
+          "text": "やっぱ毎日食べたいよね！",
+          "en": "I want it every day!",
+          "style": "cheerful, like sharing a secret"
+        }
+      ]
+    },
+    {
+      "condition": "quest",
+      "choices": [
+        ["はい", "Yes"],
+        ["いいえ", "No"]
+      ],
+      "lines": [
+        {
+          "kana": "「え」のクエストだ！",
+          "text": "「え」のクエストだ！",
+          "en": "The え quest!",
+          "style": "calm, warm older-brother, steady announcement"
+        },
+        {
+          "kana": "いけるか？",
+          "text": "いけるか？",
+          "en": "Can you do it?",
+          "style": "encouraging older-brother check, quietly confident"
+        }
+      ]
+    },
+    {
+      "condition": "spoken",
+      "lines": [
+        {
+          "kana": "カレー、たべたか？",
+          "text": "カレー、食べたか？",
+          "en": "Did you eat curry?",
+          "style": "caring older-brother check-in"
+        }
+      ]
+    }
+  ]
+}

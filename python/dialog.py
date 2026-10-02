@@ -1,4 +1,4 @@
-"""Dialog scenes: python dialog.py write "<idea>" --speakers A,B | render dialogs/<scene>.yaml"""
+"""Dialog scenes: python dialog.py write "<idea>" --speakers A,B | render dialogs/<scene>.yaml | render ../src/components/Game/npcs/dialogs/<npc>.json"""
 
 import argparse
 import json
@@ -58,6 +58,71 @@ def resolve_voices(scene: dict, src: str) -> dict[str, str]:
     return out
 # speaker -> voice, in order: custom voice from voices.json, the scene's
 # voices map, then the speaker name itself if it's a prebuilt voice
+
+
+# ---------- npc files ----------
+
+CONDITION = re.compile(r"^(greeting|default|spoken|quest|questCleared|retry|level\d+-(start|clear|fail))$")
+
+
+def is_npc(scene) -> bool:
+    return isinstance(scene, dict) and "npc" in scene and "dialog" in scene
+
+
+def validate_npc(script: dict, src: str) -> None:
+    extra = set(script) - {"npc", "name", "color", "kana", "dialog"}
+    if extra:
+        g.die(f"{src}: unknown keys {sorted(extra)} (allowed: npc, name, color, kana, dialog)")
+    for key in ("npc", "name", "color"):
+        if not str(script.get(key, "")).strip():
+            g.die(f"{src}: needs '{key}'")
+    if not isinstance(script["dialog"], list) or not script["dialog"]:
+        g.die(f"{src}: 'dialog' must be a non-empty list")
+    for i, entry in enumerate(script["dialog"], 1):
+        if not isinstance(entry, dict):
+            g.die(f"{src}: dialog {i} must be a mapping")
+        extra = set(entry) - {"condition", "choices", "lines"}
+        if extra:
+            g.die(f"{src}: dialog {i} has unknown keys {sorted(extra)} (allowed: condition, choices, lines)")
+        labels = entry.get("condition")
+        labels = labels if isinstance(labels, list) else [labels]
+        for label in labels:
+            if not isinstance(label, str) or not CONDITION.match(label):
+                g.die(f"{src}: dialog {i} has unknown condition '{label}' (greeting, default, spoken, quest, "
+                      f"questCleared, retry, level<N>-start, level<N>-clear, level<N>-fail)")
+        for c in entry.get("choices") or []:
+            if not isinstance(c, list) or len(c) != 2:
+                g.die(f"{src}: dialog {i} choices must be [kana, en] pairs")
+        if not isinstance(entry.get("lines"), list) or not entry["lines"]:
+            g.die(f"{src}: dialog {i} needs a non-empty 'lines' list")
+        for j, line in enumerate(entry["lines"], 1):
+            where = f"{src}: dialog {i} line {j}"
+            if not isinstance(line, dict) or not str(line.get("kana", "")).strip() or not str(line.get("en", "")).strip():
+                g.die(f"{where} needs 'kana' and 'en'")
+            extra = set(line) - {"kana", "text", "en", "style"}
+            if extra:
+                g.die(f"{where} has unknown keys {sorted(extra)} (allowed: kana, text, en, style)")
+            if "{target}" in line["kana"] and line.get("text"):
+                g.die(f"{where} has {{target}}, so it can't have 'text' (it is filled in at play time and stays silent)")
+# the schema of src/components/Game/npcs/dialogs/<npc>.json, the file the
+# /make-dialog skill writes and toNPCProps.ts reads. CONDITION is the same
+# label pattern as the Condition type in dialogBubble.tsx
+
+
+def npc_scene(script: dict) -> dict:
+    lines = {}
+    for entry in script["dialog"]:
+        for line in entry["lines"]:
+            text = str(line.get("text") or "").strip()
+            if text:
+                lines.setdefault(text, {"speaker": script["npc"], "text": text,
+                                        **({"style": line["style"]} if line.get("style") else {})})
+    if not lines:
+        g.die(f"npc '{script['npc']}' has no line with 'text', nothing to render")
+    return {"scene": script["npc"], "lines": list(lines.values())}
+# an npc file as a scene: one line per different 'text' (the first style
+# wins), spoken by the npc. Lines with no 'text' are silent in the game and
+# are skipped. render() then treats it like any scene yaml
 
 
 # ---------- write ----------
@@ -141,6 +206,13 @@ def render(args) -> None:
     if not path.exists():
         g.die(f"{path} not found")
     scene = yaml().safe_load(path.read_text(encoding="utf-8"))
+    if is_npc(scene):
+        validate_npc(scene, str(path))
+        scene = npc_scene(scene)
+        args.per_line = True
+    # an npc json (JSON is valid yaml, so safe_load reads it) is turned into
+    # a scene first. Every line needs its own game file, so it is rendered
+    # line by line
     validate(scene, str(path))
     voices = resolve_voices(scene, str(path))
     lines = [{"speaker": l["speaker"], "text": str(l["text"]).strip(), "style": (l.get("style") or None)}
@@ -199,7 +271,7 @@ def main() -> None:
     w.add_argument("--force", action="store_true", help="overwrite an existing file")
     w.add_argument("--model", default=g.TEXT_MODEL)
     w.set_defaults(func=write)
-    r = sub.add_parser("render", help="render a scene YAML: per-line mp3s to public/dialog/<speaker>/, whole scene to output/<scene>.mp3")
+    r = sub.add_parser("render", help="render a scene YAML or an npc json: per-line mp3s to public/dialog/<speaker>/, whole scene to output/<scene>.mp3")
     r.add_argument("scene")
     r.add_argument("--per-line", action="store_true",
                    help="skip the multi-speaker request so every line gets its own game file")

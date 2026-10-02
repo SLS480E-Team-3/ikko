@@ -52,7 +52,7 @@ function Hud({ getHud }: { getHud: () => TrainingHud }) {
 
 function Training({ w, h, onLeave, kana, sensitivity, children }: { w: number, h: number, onLeave: () => void, kana?: string, sensitivity?: number, children?: ReactNode }) {
     const t = useShootTraining({ w, h, onLeave, kana })
-    const npcs = questIslandNpcs(w, h, t.phase, t.getHud().target).map((n, i) => { // args: **(w, h, phase)** -> **+ getHud().target**, mechanism: the level target kana, so Ryuuko's intro names it
+    const npcs = questIslandNpcs(w, h, t.phase, t.getHud().target, t.failedLevel).map((n, i) => { // args: **(w, h, phase)** -> **+ getHud().target**, mechanism: the level target kana, so Ryuuko's intro names it // args: **no failedLevel** -> **+ t.failedLevel**, mechanism: the lost level picks Ryuuko's and Elena's level<N>-fail lines
         if (i !== 0) return n
         const x = n.ent.x
         return { ...n, ent: { ...n.ent, w: RYUUKO_W, h: RYUUKO_H, get x() { return t.getRyuukoX() ?? x } } }

@@ -211,7 +211,7 @@ export function useDodgeTraining({ w, h, onLeave, kana = 'あ' }: { w: number, h
     }, [])
     // current/quota on the player's name tag while a level runs
 
-    return { phase, onTick, onChoice, onTalkEnd, renderWorld, getHud, playerLabel, talkRequest, moveRequest }
+    return { phase, failedLevel, onTick, onChoice, onTalkEnd, renderWorld, getHud, playerLabel, talkRequest, moveRequest } // return: **no failedLevel** -> **+ failedLevel**, mechanism: the level (0-based) that was lost, so questIslandNpcs can pick level1-fail or level2-fail
 }
 // usage: like useTraining, but no wallY is returned, so GameScene never
 // clamps the player; the island builds its NPCs at center(w, h)

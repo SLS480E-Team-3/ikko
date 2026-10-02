@@ -3,8 +3,17 @@
 import { useEffect, useState } from "react"
 import { playLine, stopLine } from "./voice" // import: **speech (speakJa / stopSpeech)** -> **voice (playLine / stopLine)**, reason: lines play recorded mp3s now
 
+export type Condition =
+    | 'greeting' | 'default' | 'spoken' | 'quest' | 'questCleared' | 'retry'
+    | `level${number}-${'start' | 'clear' | 'fail'}`
+// when a Dialog is said. Island NPCs use the first five (picked by
+// pickDialog in npcRenderer.tsx). The Quest Island uses 'quest' (before the
+// quest), 'retry' and the level labels: level1-start, level2-clear,
+// level2-fail... The level is a number inside the label, so a new level
+// needs no new name, and a label that isn't one of these is a type error
+
 export type Dialog = {
-    condition: 'greeting' | 'spoken' | 'questCleared' | 'quest' | 'default' // so on // condition: **no quest** -> **+ quest**, reason: an NPC offers the island's next quest, mechanism: pickDialog plays it while a quest is open // condition: **spoken | questCleared | default** -> **+ greeting**, reason: NPC data is one Dialog[] now, mechanism: the greeting shown in range is just the entry tagged 'greeting'
+    condition: Condition // condition: **closed union of five names** -> **Condition**, mechanism: the same five plus 'retry' and the level labels, see the type above // condition: **no quest** -> **+ quest**, reason: an NPC offers the island's next quest, mechanism: pickDialog plays it while a quest is open // condition: **spoken | questCleared | default** -> **+ greeting**, reason: NPC data is one Dialog[] now, mechanism: the greeting shown in range is just the entry tagged 'greeting'
     jp: string | string[], en: string | string[]
     choices?: { jp: string, en: string }[] // choices: **none** -> **choices?**, reason: a quest offer ends in はい / いいえ, mechanism: shown as buttons under the entry's last line; GameScene decides what each index does
     audio?: string | string[] // audio: **none** -> **audio?**, reason: lines play recorded mp3s, mechanism: file name (no .mp3) per jp line, index-aligned; missing = silent. NPCRenderer turns it into a URL with the NPC's voice folder

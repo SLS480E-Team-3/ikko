@@ -43,11 +43,12 @@ Then open `.env` in an editor and paste your key as `GEMINI_API_KEY=...`.
   - `description`, the text sent to Voice design
   - `voice_id`, `model`, `created`
 - **`dialogs/<scene>.yaml`**: one scene per file.
+- **`../src/components/Game/npcs/dialogs/<npc>.json`**: one NPC's whole dialog, written by the `/make-dialog` skill and read by the game too. `python dialog.py render <that file>` renders every line that has a `text`. See `docs/dialogs-and-voice.md`.
   - Each line has `speaker`, `text` and an optional `style`.
   - `text` is spoken exactly as written.
   - `style` is only the mood of the moment, like `excited` or `teasing, quiet`. Put age, gender and accent in the profile instead.
   - A speaker that isn't in `voices.json` needs a prebuilt voice, set in `voices:` (for example `kaito: Charon`). If the speaker's name is itself a prebuilt voice (for example `Puck`), it doesn't need an entry.
-- **`../public/dialog/<voice name>/`**: the game's audio. Each line is `<line>.mp3`, named like the third item of a `say()` line in `npcs.ts`: the text with ！ 、 〜 。 and spaces dropped, and ？ kept. The folder name is the `name` in `voices.json` (e.g. `jordi`), or the speaker name for a prebuilt voice.
+- **`../public/dialog/<voice name>/`**: the game's audio. Each line is `<line>.mp3`, named from the line's `text` (the same rule as `audioName()` in `npcs/toNPCProps.ts`): the text with ！ 、 〜 。 and spaces dropped, and ？ kept. The folder name is the `name` in `voices.json` (e.g. `jordi`), or the speaker name for a prebuilt voice.
 - **`output/`**: whole-scene preview mp3s. This folder is gitignored.
 
 ## Voice profile

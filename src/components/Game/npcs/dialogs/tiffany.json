@@ -1,0 +1,73 @@
+{
+  "npc": "tiffany",
+  "name": "Tiffany",
+  "color": "khaki",
+  "kana": "う",
+  "dialog": [
+    {
+      "condition": "greeting",
+      "lines": [
+        {
+          "kana": "おはよう！",
+          "text": "おはよう！",
+          "en": "Good morning!"
+        }
+      ]
+    },
+    {
+      "condition": "default",
+      "lines": [
+        {
+          "kana": "わたしはあまいものがすき",
+          "text": "私は甘い物が好き",
+          "en": "I like sweet things",
+          "style": "soft, content"
+        },
+        {
+          "kana": "おもちがいちばんすき！",
+          "text": "お餅が一番好き！",
+          "en": "Mochi is my favorite!",
+          "style": "happy, a little shy"
+        },
+        {
+          "kana": "やわらかくておいしいよね！",
+          "text": "柔らかくて美味しいよね！",
+          "en": "It's soft and tasty",
+          "style": "dreamy, savoring"
+        }
+      ]
+    },
+    {
+      "condition": "quest",
+      "choices": [
+        ["はい", "Yes"],
+        ["いいえ", "No"]
+      ],
+      "lines": [
+        {
+          "kana": "「う」のクエストよ！",
+          "text": "「う」のクエストよ！",
+          "en": "The う quest!",
+          "style": "sweet and dreamy, presenting it like a treat"
+        },
+        {
+          "kana": "じゅんびできた？",
+          "text": "準備できた？",
+          "en": "All set?",
+          "style": "soft, gentle check-in"
+        }
+      ]
+    },
+    {
+      "condition": "spoken",
+      "lines": [
+        {
+          "kana": "もち、たべたいな〜",
+          "text": "餅、食べたいな〜",
+          "en": "I want some mochi",
+          "style": "wistful, trailing off"
+        }
+      ]
+    }
+  ]
+}

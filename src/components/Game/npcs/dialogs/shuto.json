@@ -1,0 +1,73 @@
+{
+  "npc": "shuto",
+  "name": "Shuto",
+  "color": "steelblue",
+  "kana": "あ",
+  "dialog": [
+    {
+      "condition": "greeting",
+      "lines": [
+        {
+          "kana": "やあ",
+          "text": "やあ",
+          "en": "Hey"
+        }
+      ]
+    },
+    {
+      "condition": "default",
+      "lines": [
+        {
+          "kana": "おれはラーメンがすきやで",
+          "text": "俺はラーメンが好きやで",
+          "en": "I really love ramen",
+          "style": "fond, relaxed"
+        },
+        {
+          "kana": "いちばんはとんこつやな",
+          "text": "一番は豚骨やな",
+          "en": "Tonkotsu ramen is the best",
+          "style": "matter-of-fact, a little proud"
+        },
+        {
+          "kana": "いっしょにたべいこうぜ！",
+          "text": "一緒に食べ行こうぜ！",
+          "en": "Let's eat together!",
+          "style": "lazy but friendly invitation"
+        }
+      ]
+    },
+    {
+      "condition": "quest",
+      "choices": [
+        ["はい", "Yes"],
+        ["いいえ", "No"]
+      ],
+      "lines": [
+        {
+          "kana": "さいしょのクエストだ！",
+          "text": "最初のクエストだ！",
+          "en": "It's your first quest!",
+          "style": "calm but a little upbeat, handing the player their first quest"
+        },
+        {
+          "kana": "じゅんびはできてるか？",
+          "text": "準備はできてるか？",
+          "en": "Are you ready?",
+          "style": "easygoing check-in, a relaxed question with a light rise at the end"
+        }
+      ]
+    },
+    {
+      "condition": "spoken",
+      "lines": [
+        {
+          "kana": "はらへったなあ",
+          "text": "腹減ったなあ",
+          "en": "I'm getting hungry",
+          "style": "sleepy, sighing"
+        }
+      ]
+    }
+  ]
+}
