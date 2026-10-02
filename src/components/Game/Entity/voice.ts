@@ -3,6 +3,14 @@ export const dialogUrl = (voice: string, file: string) => `/dialog/${encodeURICo
 // encoded since file names are Japanese and may hold '？', which would
 // otherwise end the path and start a query string
 
+export const CLIP_SEP = '|'
+export const lineUrl = (voice: string, file: string) => file.split(CLIP_SEP).map(f => dialogUrl(voice, f)).join('\n')
+// a line said as several clips in a row: its file is the clip names joined
+// by CLIP_SEP ('今回のお題は|あ'), and lineUrl gives their urls joined by '\n',
+// the form playLine plays one after the other. A plain file name gives the
+// same url as dialogUrl. Used for a line with the quest's kana in it: the
+// fixed words are one clip and the kana is the kana clip that already exists
+
 const VOLUME = 0.6
 // dialog clips play 15% quieter than the recordings (0..1 scale). iOS Safari
 // ignores <audio>.volume (only the hardware buttons set it), so there they
@@ -94,26 +102,44 @@ let clip: HTMLAudioElement | undefined
 let voice: AudioBufferSourceNode | undefined
 let current: string | undefined
 
+let queue: string[] = []
+// the clips still to play after the running one, for a line made of several
+// clips (see lineUrl)
+
 const stopVoice = () => {
+    queue = [] // queue: **none** -> **emptied**, mechanism: a cut-off line must not go on to its next clip
+    if (voice) voice.onended = null // onended: **none** -> **detached before stop()**, mechanism: stop() fires 'ended', which would start the next clip of the line being cut off
     try { voice?.stop() } catch {}
     voice = undefined
+    if (clip) clip.onended = null
     clip?.pause()
 }
 // silences the running line on both paths (buffer source and <audio>)
 
-export const playLine = (url: string) => {
-    if (typeof Audio === 'undefined') return
-    stopVoice()
-    current = url
+const startClip = (url: string) => {
+    const next = () => { const n = queue.shift(); if (n) startClip(n) }
     voice = startBuffer(url) // play: **always <audio> src swap** -> **decoded buffer first**, mechanism: a preloaded clip starts from memory, so the line isn't delayed by a fetch + decode
-    if (voice) return
+    if (voice) { voice.onended = next; return }
     load(url)
     clip ??= new Audio()
     elements.add(clip)
     clip.muted = muted // mute: **none** -> **clip.muted = muted**, mechanism: the shared <audio> is in elements, so setMuted also flips it mid-line
     clip.volume = VOLUME // volume: **1 (default)** -> **VOLUME (0.85)**, reason: clips were too loud, mechanism: set on the shared <audio> before each play
+    clip.onended = next
     clip.src = url
     clip.play().catch(() => {})
+}
+// plays one clip and, when it ends, the next one in queue. Both paths (buffer
+// source and <audio>) call next on 'ended'. A clip that fails to load never
+// ends, so the rest of its line stays silent
+
+export const playLine = (url: string) => { // url: **one clip** -> **one clip, or several joined by '\n'**, mechanism: the first starts now and the rest wait in queue, each started by the one before ending; a single url has an empty queue, so every old caller plays as before
+    if (typeof Audio === 'undefined') return
+    stopVoice()
+    current = url
+    const [first, ...rest] = url.split('\n')
+    queue = rest
+    startClip(first)
 }
 // one line at a time: a new line cuts off the one before instead of
 // overlapping. A url that wasn't preloaded falls back to the shared <audio>

@@ -5,7 +5,7 @@ import PlayerRenderer, { PlayerProps } from "../Entity/playerRenderer"
 import FootPrintRenderer from "../Entity/footPrintRenderer"
 import { ENT_H, ENT_W } from "../Entity/entityRenderer" // imports: **ENT_H, ENT_W, EntityRenderer, EntityProps** -> **ENT_H, ENT_W**, reason: NPCs draw through NPCRenderer now, mechanism: NPCProps carries the EntityProps, so neither is used here
 import NPCRenderer, { NPCProps, NPC_TAP_ATTR, pickDialog, talkLines } from "../Entity/npcRenderer" // imports: **+ pickDialog**, mechanism: reads the talk's choices
-import { dialogUrl, preloadClips } from "../Entity/voice"
+import { lineUrl, preloadClips } from "../Entity/voice"
 // voice preload: the scene decodes its NPC lines up front (see voiceUrls)
 import { BUBBLE_BOARDER, BUBBLE_BORDER_W, CHOICE_TAP_ATTR } from "../Entity/dialogBubble" // imports: **with BUBBLE_BG** -> **without**, mechanism: questBg's ground is its own floor color (DOJO_FLOOR) now, so nothing in this file reads BUBBLE_BG // imports: **CHOICE_TAP_ATTR** -> **+ BUBBLE_BG**, mechanism: QUEST_BG ground color // imports: **+ BUBBLE_BOARDER, BUBBLE_BORDER_W**, mechanism: the border BGProps.border draws
 import ObjectRenderer from "../Object/ObjectRenderer"
@@ -500,7 +500,7 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
     const talkRef = useRef<Talk | null>(null)
     const npcsRef = useRef<SceneNPC[]>(npcs)
     npcsRef.current = npcs
-    const voiceUrls = npcs.flatMap(n => n.voice ? (n.dialog ?? []).flatMap(d => [d.audio ?? []].flat().filter(Boolean).map(f => dialogUrl(n.voice!, f))) : []).join('\n')
+    const voiceUrls = npcs.flatMap(n => n.voice ? (n.dialog ?? []).flatMap(d => [d.audio ?? []].flat().filter(Boolean).map(f => lineUrl(n.voice!, f))) : []).join('\n') // url: **dialogUrl** -> **lineUrl**, mechanism: a several-clip file gives its urls joined by '\n', the same separator this list is joined and split by, so every clip of the line is preloaded
     useEffect(() => { if (voiceUrls) preloadClips(voiceUrls.split('\n')) }, [voiceUrls])
     // preloads every voice line of this scene's NPCs: the same url rule as
     // NPCRenderer (dialogUrl(npc.voice, file) per non-empty audio entry).

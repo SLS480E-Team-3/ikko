@@ -1,6 +1,7 @@
 import type { Condition, Dialog } from "../Entity/dialogBubble"
 import type { NPCProps } from "../Entity/npcRenderer"
 import { ENT_H, ENT_W } from "../Entity/entityRenderer"
+import { CLIP_SEP } from "../Entity/voice"
 
 export type ScriptLine = { kana: string, text?: string, en: string, style?: string }
 export type ScriptEntry = { condition: string | string[], choices?: string[][], lines: ScriptLine[] }
@@ -28,6 +29,16 @@ export const audioName = (text: string) => text.replace(/[！!、,〜~。.／/\\
 export type SceneDialog = Dialog & { jp: string[], en: string[], audio: string[] }
 // a Dialog whose jp / en / audio are always arrays, index-aligned per line
 
+const clipsOf = (text: string, target?: string) => text.split('{target}')
+    .flatMap((piece, i, all) => [piece.trim() ? audioName(piece) : '', i < all.length - 1 ? target ?? '' : ''])
+    .filter(Boolean).join(CLIP_SEP)
+// the mp3 name(s) of a line's text. {target} cuts the text into pieces: each
+// piece is its own clip (named by audioName, the same pieces dialog.py
+// renders) and {target} itself is the kana's own clip (<kana>.mp3 in the same
+// voice folder). The names are joined by CLIP_SEP, which lineUrl (voice.ts)
+// turns into urls played in a row: '今回のお題は{target}' with target あ gives
+// '今回のお題は|あ'
+
 const fill = (s: string, target?: string) => target === undefined ? s : s.split('{target}').join(target)
 
 export const toDialogs = (script: NpcScript, target?: string): SceneDialog[] => script.dialog.flatMap(entry => {
@@ -37,16 +48,16 @@ export const toDialogs = (script: NpcScript, target?: string): SceneDialog[] => 
         condition: conditionOf(label, script.npc),
         jp: lines.map(l => fill(l.kana, target)),
         en: lines.map(l => fill(l.en, target)),
-        audio: lines.map(l => l.text ? audioName(l.text) : ''),
+        audio: lines.map(l => l.text ? clipsOf(l.text, target) : ''), // audio: **audioName(text)** -> **clipsOf(text, target)**, mechanism: a text with {target} becomes several clip names joined by CLIP_SEP; a plain text gives audioName(text) as before
         ...(entry.choices && { choices: entry.choices.map(([jp, en]) => ({ jp, en })) }),
     }))
 })
 // every entry of the file as a Dialog, in file order. An entry with a list
 // of conditions gives one Dialog per label, with the same lines. jp is the
 // kana line (what the player reads), audio the mp3 name made from the kanji
-// text; a line with no text is silent (''). {target} in kana / en is
-// replaced by the quest's kana, and such a line is left out when no target
-// is given
+// text (see clipsOf); a line with no text is silent (''). {target} in kana
+// / en is replaced by the quest's kana, and such a line is left out when no
+// target is given
 
 export const toNPCProps = (script: NpcScript, x = 0, y = 0, dialog: Dialog[] = toDialogs(script)): NPCProps => ({
     voice: script.npc,
@@ -62,15 +73,15 @@ export const toNPCProps = (script: NpcScript, x = 0, y = 0, dialog: Dialog[] = t
 export const sceneDialog = (script: NpcScript, condition: Condition, target?: string): Dialog[] => {
     const d = toDialogs(script, target).find(e => e.condition === condition)
     if (!d) return []
-    const i = Math.max(0, d.audio.findIndex(a => a !== ''))
+    const i = Math.max(0, d.audio.findIndex(a => a !== '' && !a.includes(CLIP_SEP))) // greeting: **first line with an mp3** -> **first line with one whole clip**, mechanism: a {target} line is voiced now (several clips), and it stays out of the greeting as before
     const greeting: Dialog = { condition: 'greeting', jp: [d.jp[i]], en: [d.en[i]], audio: [d.audio[i]] }
     return condition.endsWith('-start') ? [greeting] : [greeting, { ...d, condition: d.choices ? 'quest' : 'default' }]
 }
 // the Dialogs of one Quest Island scene (a level<N>-... / retry / quest
 // entry), relabelled to the conditions pickDialog and greeting already read
 // (npcRenderer.tsx), so the renderer and GameScene do not change:
-// - greeting (shown in range): the entry's first spoken line, i.e. the first
-//   with an mp3, so a silent {target} line is skipped
+// - greeting (shown in range): the entry's first line said as one clip, so
+//   a {target} line is skipped
 // - the talk: the whole entry as 'quest' when it has choices (GameScene
 //   sends the picked choice to onChoice), else as 'default'
 // - a level<N>-start entry is said while the level runs, so it is the

@@ -102,19 +102,28 @@ def validate_npc(script: dict, src: str) -> None:
             extra = set(line) - {"kana", "text", "en", "style"}
             if extra:
                 g.die(f"{where} has unknown keys {sorted(extra)} (allowed: kana, text, en, style)")
-            if "{target}" in line["kana"] and line.get("text"):
-                g.die(f"{where} has {{target}}, so it can't have 'text' (it is filled in at play time and stays silent)")
+            for piece in pieces(line.get("text")):
+                if "{target}" in str(line.get("text")) and len(g.audio_name(piece)) <= 2:
+                    g.die(f"{where}: the piece '{piece}' next to {{target}} is too short, its mp3 would replace "
+                          f"a kana clip — reword 'text' so each piece is a phrase")
 # the schema of src/components/Game/npcs/dialogs/<npc>.json, the file the
 # /make-dialog skill writes and toNPCProps.ts reads. CONDITION is the same
 # label pattern as the Condition type in dialogBubble.tsx
+
+
+def pieces(text) -> list[str]:
+    return [p.strip() for p in str(text or "").split("{target}") if p.strip()]
+# the parts of a line's text that are rendered: the whole text, or, when it
+# holds {target}, what is before and after it. {target} itself is not
+# rendered: the game plays the kana's own clip (<kana>.mp3) in its place.
+# Same cut as clipsOf in toNPCProps.ts
 
 
 def npc_scene(script: dict) -> dict:
     lines = {}
     for entry in script["dialog"]:
         for line in entry["lines"]:
-            text = str(line.get("text") or "").strip()
-            if text:
+            for text in pieces(line.get("text")):
                 lines.setdefault(text, {"speaker": script["npc"], "text": text,
                                         **({"style": line["style"]} if line.get("style") else {})})
     if not lines:
@@ -122,7 +131,7 @@ def npc_scene(script: dict) -> dict:
     return {"scene": script["npc"], "lines": list(lines.values())}
 # an npc file as a scene: one line per different 'text' (the first style
 # wins), spoken by the npc. Lines with no 'text' are silent in the game and
-# are skipped. render() then treats it like any scene yaml
+# are skipped; a text with {target} gives one line per piece (see pieces). render() then treats it like any scene yaml
 
 
 # ---------- write ----------

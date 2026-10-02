@@ -12,7 +12,9 @@
       "lines": [
         {
           "kana": "こんかいのおだいは「{target}」よ！",
-          "en": "This time's target is \"{target}\"!"
+          "text": "今回のお題は{target}",
+          "en": "This time's target is \"{target}\"!",
+          "style": "confident trainer, announcing the target, the voice stays up at the end because a word follows"
         },
         {
           "kana": "じゅんびはできてる？",
@@ -53,7 +55,7 @@
           "style": "amused and teasing, a little impressed but not showing it"
         },
         {
-          "kana": "ちょっと早くするわよ",
+          "kana": "ちょっとはやくするわよ",
           "text": "ちょっと早くするわよ",
           "en": "Let me speed it up",
           "style": "playful smirk, raising the pace as a challenge"
@@ -94,7 +96,7 @@
       ],
       "lines": [
         {
-          "kana": "どこから始める？",
+          "kana": "どこからはじめる？",
           "text": "どこから始める？",
           "en": "Where are we starting?",
           "style": "calm and inviting, letting the player pick a level"

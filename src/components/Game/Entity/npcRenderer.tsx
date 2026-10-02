@@ -3,7 +3,7 @@
 import { QuestsProps } from "@/utils/schema"
 import EntityRenderer, { EntityProps } from "./entityRenderer"
 import DialogBubble, { Dialog } from "./dialogBubble"
-import { dialogUrl } from "./voice" // import: **NPCVoice from speech** -> **dialogUrl from voice**, reason: speechSynthesis removed
+import { lineUrl } from "./voice" // import: **NPCVoice from speech** -> **dialogUrl from voice**, reason: speechSynthesis removed
 
 export type NPCProps = {
     voice?: string, // voice: **NPCVoice (speech voice)** -> **voice?: string (mp3 folder)**, reason: lines play recorded mp3s, mechanism: the folder under public/dialog/ (e.g. 'Aoi'); left out = the NPC is silent
@@ -69,7 +69,7 @@ export default function NPCRenderer({ npc, index, velocity, inRange, selected = 
     // current line of the picked entry (one line per tap); in range = the
     // whole greeting entry; otherwise no bubble
     const file = selected ? cur?.audio : inRange ? toList(greeting(npc).audio ?? [])[0] : undefined
-    const audio = npc.voice && file ? dialogUrl(npc.voice, file) : undefined
+    const audio = npc.voice && file ? lineUrl(npc.voice, file) : undefined // url: **dialogUrl** -> **lineUrl**, mechanism: a file made of several clips ('a|b') becomes their urls joined by '\n', which playLine plays in a row; a plain file gives the same url as before
     // the clip for what the bubble shows: the current talk line, or the
     // greeting's (first) recording while in range. Silent when the NPC has no
     // voice folder or the line has no file

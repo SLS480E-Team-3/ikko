@@ -128,7 +128,7 @@ Lines are not written in `npcs.ts`.
 
 - There is no x / y: island NPCs get their spot from `placeNpcs`, Quest Island NPCs from `questIslandNpcs`.
 - **mp3 name:** `text` with `！ ! 、 , 〜 ~ 。 . ／ /` and spaces dropped, `？` kept (`またお寿司の話しよ！` → `またお寿司の話しよ.mp3`). `audioName()` in `toNPCProps.ts` and `audio_name()` in `python/gemini_tts.py` are the same rule. A missing file = the line stays silent.
-- **`{target}`** in `kana` / `en` is replaced by the quest's kana (Ryuuko's intro). Such a line has no `text`.
+- **`{target}`** in `kana` / `en` is replaced by the quest's kana (Ryuuko's intro). In `text` it cuts the line into pieces: `今回のお題は{target}` is rendered as `今回のお題は.mp3`, and in the game the line plays that clip and then the kana's own clip (`ryuuko/あ.mp3`), one after the other. A piece must be 3 characters or more, or its mp3 would replace a kana clip (`dialog.py render` stops). With no `text`, the line is silent.
 
 ### Conditions
 
@@ -158,9 +158,9 @@ export const ISLAND_1_NPC: NPCProps[] = [jordi, shuto, tiffany, genki, sarah].ma
 
 | Function (`toNPCProps.ts`) | What it gives |
 |---|---|
-| `toDialogs(script, target?)` | Every entry as a `Dialog` (`jp` = kana, `en`, `audio` = mp3 name, `choices`) |
+| `toDialogs(script, target?)` | Every entry as a `Dialog` (`jp` = kana, `en`, `audio` = mp3 name, `choices`). A `{target}` text gives several clip names joined by `\|` (`今回のお題は\|あ`); `lineUrl` and `playLine` in `Entity/voice.ts` play them in a row |
 | `toNPCProps(script, x?, y?, dialog?)` | One `NPCProps` with the default body size |
-| `sceneDialog(script, condition, target?)` | Quest Island: the entry of one condition as `[greeting, talk]`. The greeting is the entry's first spoken line; the talk is `quest` when it has choices, else `default`; a `level<N>-start` entry is the greeting only |
+| `sceneDialog(script, condition, target?)` | Quest Island: the entry of one condition as `[greeting, talk]`. The greeting is the entry's first line said as one clip; the talk is `quest` when it has choices, else `default`; a `level<N>-start` entry is the greeting only |
 
 Quest Island: `questIslandNpcs(w, h, phase, target, failedLevel)` turns the training phase into a condition (`phaseCondition`) and builds Ryuuko and Elena with `sceneDialog`.
 
@@ -179,7 +179,7 @@ python dialog.py render ../src/components/Game/npcs/dialogs/jordi.json
 - Each line with a `text` → `public/dialog/<npc>/<file_name>.mp3` (what the game plays). The same `text` twice is rendered once.
 - Whole file → `python/output/<npc>.mp3` (preview only, gitignored).
 - Each line is cached in `python/.cache/` on (voice, text, style, model), so re-rendering only calls the API for new or edited lines. `--force` ignores the cache.
-- The file is checked first: unknown keys, a wrong condition label, or a `{target}` line with a `text` stop the render.
+- The file is checked first: unknown keys, a wrong condition label, or a 1-2 character piece next to `{target}` stop the render.
 
 ### yaml scenes
 
