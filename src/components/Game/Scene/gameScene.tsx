@@ -7,7 +7,7 @@ import { ENT_H, ENT_W } from "../Entity/entityRenderer" // imports: **ENT_H, ENT
 import NPCRenderer, { NPCProps, NPC_TAP_ATTR, pickDialog, talkLines } from "../Entity/npcRenderer" // imports: **+ pickDialog**, mechanism: reads the talk's choices
 import { dialogUrl, preloadClips } from "../Entity/voice"
 // voice preload: the scene decodes its NPC lines up front (see voiceUrls)
-import { BUBBLE_BOARDER, BUBBLE_BORDER_W, CHOICE_TAP_ATTR } from "../Entity/dialogBubble" // imports: **with BUBBLE_BG** -> **without**, mechanism: questBg's ground is SHRINE_SAND now, so nothing in this file reads BUBBLE_BG // imports: **CHOICE_TAP_ATTR** -> **+ BUBBLE_BG**, mechanism: QUEST_BG ground color // imports: **+ BUBBLE_BOARDER, BUBBLE_BORDER_W**, mechanism: the border BGProps.border draws
+import { BUBBLE_BOARDER, BUBBLE_BORDER_W, CHOICE_TAP_ATTR } from "../Entity/dialogBubble" // imports: **with BUBBLE_BG** -> **without**, mechanism: questBg's ground is its own floor color (DOJO_FLOOR) now, so nothing in this file reads BUBBLE_BG // imports: **CHOICE_TAP_ATTR** -> **+ BUBBLE_BG**, mechanism: QUEST_BG ground color // imports: **+ BUBBLE_BOARDER, BUBBLE_BORDER_W**, mechanism: the border BGProps.border draws
 import ObjectRenderer from "../Object/ObjectRenderer"
 import { HitBox, ObjectDef, PlacedObject, applyScale } from "../Object/gameObject"
 import { OBJECTS } from "../Object/objects"
@@ -143,79 +143,152 @@ export const islandBg = (islandId: number): BGProps => ({ ...TEMP_BG, color: ISL
 // back to BG_COLOR). GameScene reads bgProps once at mount, so callers
 // switching islands remount it with key={islandId}
 
-const SHRINE_ROOF = 48
-const SHRINE_FACE = 56
-const SHRINE_LINE = 4
-const SHRINE_POST_W = 8
-const SHRINE_POST_GAP = 96
-const SHRINE_PATH_W = 96
-const SHRINE_SAND = '#e6dcc0'
-const SHRINE_ROOF_COLOR = '#b5382e'
-const SHRINE_RIDGE_COLOR = '#8a2620'
-const SHRINE_EAVE_COLOR = '#6e1e19'
-const SHRINE_FACE_COLOR = '#f4efe2'
-const SHRINE_PATH_COLOR = '#d3cdbf'
-// the shrine yard's sizes (world px, all multiples of 4 = one art pixel) and
-// colors. SHRINE_ROOF is how thick the roof strip of each wall is, SHRINE_FACE
-// how tall the plaster wall under the top roof is, SHRINE_LINE the width of
-// the ridge and eave lines. A post stands on the top wall about every
-// SHRINE_POST_GAP. SHRINE_ROOF must stay above 18 (the player's longest step
-// in one frame), or a wall could be stepped over
+const DOJO_SIDE = 48
+const DOJO_CAP = 16
+const DOJO_TOP = 104
+const DOJO_PANEL = 40
+const DOJO_BOTTOM = 88
+const DOJO_BAND = 12
+const DOJO_BASE = 8
+const DOJO_LINE = 4
+const DOJO_POST_W = 8
+const DOJO_POST_GAP = 96
+const DOJO_FLOOR = '#d8c877' // color: **#a9743f (wood)** -> **#d8c877 (straw)**, mechanism: the floor is tatami now; questBg's ground and the floor section both read this
+const DOJO_SEAM = '#b3a255' // color: **#7d5229** -> **#b3a255**, mechanism: a darker straw, for the seam on a mat's short side
+const DOJO_HERI = '#2f3b55'
+// the navy cloth border (heri) on the long sides of a tatami mat
+const DOJO_WOOD = '#8a5a2e'
+const DOJO_WALL = '#6b4424'
+const DOJO_POST = '#5a3a1e'
+const DOJO_SHADOW = '#3d2a18'
+const DOJO_PLASTER = '#f4efe2'
+const DOJO_DOOR = '#c79a5e'
+const DOJO_GLASS = '#bcd3d8'
+const DOJO_STONE = '#9a9a94'
+const DOJO_CURTAIN = '#5b3a8c'
+const DOJO_FLAG_RED = '#c8302a'
+// the dojo's sizes (world px, all multiples of 4 = one art pixel) and colors.
+// DOJO_SIDE is how thick the left and right walls are, DOJO_CAP the top edge
+// of the far and near walls seen from above, DOJO_TOP the whole far wall (cap
+// + inside face), DOJO_PANEL the wood panels at the foot of that face,
+// DOJO_BOTTOM the whole near wall (cap + outside face), DOJO_BAND its white
+// plaster band and DOJO_BASE its stone base. A post stands on both faces
+// about every DOJO_POST_GAP. Every solid wall must stay above 18 (the
+// player's longest step in one frame), or it could be stepped over
 
-export const shrineSections = (w: number, h: number): BgSection[] => {
+const svgTile = (color: string, rects: [number, number, number, number, string?][]) => // rects: **[x, y, w, h]** -> **[x, y, w, h, fill?]**, mechanism: a rect with a 5th value gets its own fill, the others keep the tile's color, so one tile can have two line colors
+    'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${SECTION_TILE_PX}" height="${SECTION_TILE_PX}" viewBox="0 0 64 64" shape-rendering="crispEdges" fill="${color}">${rects.map(([x, y, w, h, fill]) => `<rect x="${x}" y="${y}" width="${w}" height="${h}"${fill ? ` fill="${fill}"` : ''}/>`).join('')}</svg>`)
+// a ground tile drawn in code: an SVG of plain rectangles as a data URI,
+// so BgSection.tile takes it like an image file and the renderer does not
+// change. The viewBox is 64 x 64 and a tile covers SECTION_TILE_PX (256)
+// world px, so 1 unit = 4 world px = one art pixel. crispEdges keeps the
+// lines hard. width / height give the SVG a real size of one tile; with only
+// a viewBox the browser draws it small and scales it up, and the lines come
+// out in uneven widths. encodeURIComponent makes the string safe inside url()
+const DOJO_FLOOR_TILE = svgTile(DOJO_HERI, [[15, 0, 2, 64], [47, 0, 2, 64], [17, 16, 30, 1, DOJO_SEAM], [49, 48, 15, 1, DOJO_SEAM], [0, 48, 15, 1, DOJO_SEAM]]) // tile: **8 planks with seams and end joints** -> **2 columns of tatami mats**, mechanism: same svgTile, other rectangles
+// the tatami floor: upright mats of 32 x 64 units (128 x 256 world px, the
+// 1:2 shape of a real mat), two columns across one tile.
+// - heri: a 2 unit navy band on each column border (x 16 and x 48), the
+//   cloth edges of the two mats that meet there. The borders are 16 units in
+//   from the tile's edge, because a line on the edge is drawn thicker where
+//   two tiles meet
+// - seam: a 1 unit line where one mat ends and the next starts, at y 16 in
+//   one column and y 48 in the other, so the mats are laid like bricks. The
+//   second column runs over the tile's right edge, so its seam is two pieces
+const DOJO_PANEL_TILE = svgTile(DOJO_WALL, Array.from({ length: 8 }, (_, i): [number, number, number, number] => [i * 8 + 4, 0, 1, 64]))
+const DOJO_SIDING_TILE = svgTile(DOJO_WALL, Array.from({ length: 16 }, (_, i): [number, number, number, number] => [0, i * 4 + 1, 64, 1]))
+// the wall boards: upright lines every 32 world px for the panels of the
+// inside face, level lines every 16 world px for the siding of the outside
+// face
+
+export const dojoSections = (w: number, h: number): BgSection[] => {
     const iw = w - BUBBLE_BORDER_W * 2
     const ih = h - BUBBLE_BORDER_W * 2
-    const ring = (id: string, inset: number, color: string): BgSection[] => [
-        { id: `${id}-top`, x: inset, y: inset, w: iw - inset * 2, h: SHRINE_LINE, color },
-        { id: `${id}-bottom`, x: inset, y: ih - inset - SHRINE_LINE, w: iw - inset * 2, h: SHRINE_LINE, color },
-        { id: `${id}-left`, x: inset, y: inset, w: SHRINE_LINE, h: ih - inset * 2, color },
-        { id: `${id}-right`, x: iw - inset - SHRINE_LINE, y: inset, w: SHRINE_LINE, h: ih - inset * 2, color },
-    ]
-    const inner = iw - SHRINE_ROOF * 2
-    const gaps = Math.max(1, Math.round(inner / SHRINE_POST_GAP))
-    const posts: BgSection[] = Array.from({ length: gaps - 1 }, (_, i) => ({
-        id: `post-${i + 1}`,
-        x: Math.round(SHRINE_ROOF + (inner / gaps) * (i + 1) - SHRINE_POST_W / 2),
-        y: SHRINE_ROOF,
-        w: SHRINE_POST_W,
-        h: SHRINE_FACE,
-        color: SHRINE_ROOF_COLOR,
+    const snap = (v: number) => Math.round(v / DOJO_LINE) * DOJO_LINE
+    const cx = snap(iw / 2)
+    const inner = iw - DOJO_SIDE * 2
+    const gaps = Math.max(1, Math.round(inner / DOJO_POST_GAP))
+    const gapW = inner / gaps
+    const posts = (id: string, y: number, ph: number): BgSection[] => Array.from({ length: gaps - 1 }, (_, i) => ({
+        id: `${id}-${i + 1}`,
+        x: Math.round(DOJO_SIDE + gapW * (i + 1) - DOJO_POST_W / 2),
+        y,
+        w: DOJO_POST_W,
+        h: ph,
+        color: DOJO_POST,
     }))
+    const by = ih - DOJO_BOTTOM
+    const faceY = by + DOJO_CAP + DOJO_BAND
+    const faceH = DOJO_BOTTOM - DOJO_CAP - DOJO_BAND - DOJO_BASE
+    const windows: BgSection[] = Array.from({ length: gaps }, (_, i) => snap(DOJO_SIDE + gapW * (i + 0.5)))
+        .filter(x => Math.abs(x - cx) > 80)
+        .flatMap((x, i) => [
+            { id: `window-${i}`, x: x - 20, y: faceY + 8, w: 40, h: 32, color: DOJO_POST },
+            { id: `glass-${i}-l`, x: x - 16, y: faceY + 12, w: 14, h: 24, color: DOJO_GLASS },
+            { id: `glass-${i}-r`, x: x + 2, y: faceY + 12, w: 14, h: 24, color: DOJO_GLASS },
+        ])
+    const doorX = snap(iw * 0.75)
     return [
-        { id: 'path', x: Math.round((iw - SHRINE_PATH_W) / 2), y: 0, w: SHRINE_PATH_W, h: ih, color: SHRINE_PATH_COLOR },
-        { id: 'wall-top', x: 0, y: 0, w: iw, h: SHRINE_ROOF + SHRINE_FACE, color: SHRINE_FACE_COLOR, solid: true },
-        ...posts,
-        { id: 'roof-top', x: 0, y: 0, w: iw, h: SHRINE_ROOF, color: SHRINE_ROOF_COLOR },
-        { id: 'roof-left', x: 0, y: 0, w: SHRINE_ROOF, h: ih, color: SHRINE_ROOF_COLOR, solid: true },
-        { id: 'roof-right', x: iw - SHRINE_ROOF, y: 0, w: SHRINE_ROOF, h: ih, color: SHRINE_ROOF_COLOR, solid: true },
-        { id: 'roof-bottom', x: 0, y: ih - SHRINE_ROOF, w: iw, h: SHRINE_ROOF, color: SHRINE_ROOF_COLOR, solid: true },
-        ...ring('ridge', (SHRINE_ROOF - SHRINE_LINE) / 2, SHRINE_RIDGE_COLOR),
-        ...ring('eave', SHRINE_ROOF - SHRINE_LINE, SHRINE_EAVE_COLOR),
+        { id: 'floor', x: 0, y: 0, w: iw, h: ih, color: DOJO_FLOOR, tile: DOJO_FLOOR_TILE },
+        { id: 'wall-top', x: 0, y: 0, w: iw, h: DOJO_TOP, color: DOJO_PLASTER, solid: true },
+        { id: 'panel-top', x: DOJO_SIDE, y: DOJO_TOP - DOJO_PANEL, w: inner, h: DOJO_PANEL, color: DOJO_WOOD, tile: DOJO_PANEL_TILE },
+        ...posts('post', DOJO_CAP, DOJO_TOP - DOJO_CAP),
+        { id: 'kamidana', x: cx - 48, y: DOJO_CAP, w: 96, h: DOJO_TOP - DOJO_CAP - 16, color: DOJO_SHADOW },
+        { id: 'kamidana-step', x: cx - 56, y: DOJO_TOP - 16, w: 112, h: 16, color: DOJO_WALL },
+        { id: 'flag', x: cx - 20, y: 48, w: 40, h: 28, color: '#ffffff' },
+        { id: 'flag-dot', x: cx - 6, y: 56, w: 12, h: 12, color: DOJO_FLAG_RED },
+        { id: 'curtain', x: cx - 48, y: DOJO_CAP, w: 96, h: 24, color: DOJO_CURTAIN },
+        { id: 'crest-l', x: cx - 32, y: DOJO_CAP + 8, w: 8, h: 8, color: DOJO_PLASTER },
+        { id: 'crest-r', x: cx + 24, y: DOJO_CAP + 8, w: 8, h: 8, color: DOJO_PLASTER },
+        { id: 'door-frame', x: doorX - 36, y: DOJO_TOP - 76, w: 72, h: 76, color: DOJO_POST },
+        { id: 'door', x: doorX - 32, y: DOJO_TOP - 72, w: 64, h: 72, color: DOJO_DOOR },
+        { id: 'door-split', x: doorX - 2, y: DOJO_TOP - 72, w: DOJO_LINE, h: 72, color: DOJO_POST },
+        { id: 'wall-left', x: 0, y: 0, w: DOJO_SIDE, h: ih, color: DOJO_WALL, solid: true },
+        { id: 'wall-right', x: iw - DOJO_SIDE, y: 0, w: DOJO_SIDE, h: ih, color: DOJO_WALL, solid: true },
+        { id: 'cap-top', x: 0, y: 0, w: iw, h: DOJO_CAP, color: DOJO_WALL },
+        { id: 'edge-top', x: DOJO_SIDE, y: DOJO_CAP - DOJO_LINE, w: inner, h: DOJO_LINE, color: DOJO_SHADOW },
+        { id: 'edge-left', x: DOJO_SIDE - DOJO_LINE, y: DOJO_CAP - DOJO_LINE, w: DOJO_LINE, h: by - DOJO_CAP + DOJO_LINE, color: DOJO_SHADOW },
+        { id: 'edge-right', x: iw - DOJO_SIDE, y: DOJO_CAP - DOJO_LINE, w: DOJO_LINE, h: by - DOJO_CAP + DOJO_LINE, color: DOJO_SHADOW },
+        { id: 'wall-bottom', x: 0, y: by, w: iw, h: DOJO_BOTTOM, color: DOJO_WOOD, tile: DOJO_SIDING_TILE, solid: true },
+        { id: 'cap-bottom', x: 0, y: by, w: iw, h: DOJO_CAP, color: DOJO_WALL },
+        { id: 'edge-bottom', x: DOJO_SIDE, y: by, w: inner, h: DOJO_LINE, color: DOJO_SHADOW },
+        { id: 'band-bottom', x: 0, y: by + DOJO_CAP, w: iw, h: DOJO_BAND, color: DOJO_PLASTER },
+        ...posts('post-out', by + DOJO_CAP, DOJO_BOTTOM - DOJO_CAP),
+        ...windows,
+        { id: 'entry-frame', x: cx - 36, y: faceY, w: 72, h: faceH, color: DOJO_POST },
+        { id: 'entry', x: cx - 28, y: faceY + 8, w: 56, h: faceH - 8, color: DOJO_SHADOW },
+        { id: 'base-bottom', x: 0, y: ih - DOJO_BASE, w: iw, h: DOJO_BASE, color: DOJO_STONE },
     ]
 }
-// the ground sections of the Quest Island's shrine yard (docs/scenes/shrine.md):
-// a sand courtyard closed in by a red-roofed wall on all four sides, seen
-// from above. Everything is a plain-color rectangle worked out from the
-// island's measured size, so the yard fits any screen and needs no image.
+// the ground sections of the Quest Island's kendo dojo (docs/scenes/dojo.md):
+// a tatami floor closed in by four wooden walls, seen from above with the roof
+// off. Everything is a plain-color rectangle (three of them with a code-made
+// line tile) worked out from the island's measured size, so the dojo fits
+// any screen and needs no image file.
 // - iw / ih: the world div has a BUBBLE_BORDER_W border and its children are
 //   placed from inside that border, so the room for sections is the size
-//   minus the border on both sides. Using it keeps the roofs off the black
-//   edge on the right and the bottom
-// - paint order is the array order (later over earlier): the stone path
-//   first, then the top wall (plaster face, posts, roof), the side and bottom
-//   roofs, and last the ridge and eave lines
-// - the top wall shows its face under its roof because it is the far wall;
-//   the other three show only their roof
-// - ring(): four thin lines that form a rectangle `inset` px inside the
-//   yard's edge. One ring down the middle of the roofs is the ridge, one on
-//   their inner edge is the eave
-// - posts: the wall between the side roofs is cut into equal gaps close to
-//   SHRINE_POST_GAP, with one post on each inner cut
-// - solid: true on the top wall and the three roofs puts their rectangles in
-//   GameScene's blocking boxes, so the player stops at the walls. The path,
-//   posts and lines don't block
+//   minus the border on both sides
+// - paint order is the array order (later over earlier): floor, the far
+//   wall's inside face and what hangs on it, the side walls, the far wall's
+//   cap, and last the near wall's outside face, which is in front of
+//   everything
+// - far (top) wall = inside face: plaster above, wood panels below, posts,
+//   the kamidana in the middle (dark alcove on a raised step, a white flag
+//   with a red dot, a purple curtain with two crests) and a sliding door at
+//   3/4 of the width. Things painted after the posts cover the post behind
+// - side walls: only their top is seen, a DOJO_SIDE wide strip
+// - near (bottom) wall = outside face: cap, plaster band, siding with posts,
+//   a window in every post gap except the ones by the entrance, the entrance
+//   in the middle, and the stone base
+// - posts(): the wall between the side walls is cut into equal gaps close to
+//   DOJO_POST_GAP, with one post on each inner cut; used for both faces
+// - snap(): rounds to DOJO_LINE, so centered things stay on the art grid
+// - edge-*: a dark line on the inner side of each wall, where it meets the
+//   floor
+// - solid: true on the four walls puts their rectangles in GameScene's
+//   blocking boxes, so the player stops at them. Everything else is paint
 
-export const questBg = (w: number, h: number): BGProps => ({ x: w / 2, y: h / 4 + 300, w, h, color: SHRINE_SAND, sections: shrineSections(w, h), border: true }) // color, sections: **BUBBLE_BG, none** -> **SHRINE_SAND, shrineSections(w, h)**, mechanism: the ground is sand and the shrine's walls and path ride along as sections; GameScene already draws sections and blocks on the solid ones, so every quest scene that uses questBg gets the yard with no other change // QUEST_BG: **fixed 1000 x 700 const** -> **questBg(w, h)**, reason: the island is 2x the screen, mechanism: the caller measures the window and passes the size; color is BUBBLE_BG ('#fffff2') and border: true draws the bubble's black edge
+export const questBg = (w: number, h: number): BGProps => ({ x: w / 2, y: h / 4 + 300, w, h, color: DOJO_FLOOR, sections: dojoSections(w, h), border: true }) // color, sections: **SHRINE_SAND, shrineSections(w, h)** -> **DOJO_FLOOR, dojoSections(w, h)**, mechanism: the Quest Island is the kendo dojo now; same BGProps shape, so the three quest scenes change with no edit // color, sections: **BUBBLE_BG, none** -> **SHRINE_SAND, shrineSections(w, h)**, mechanism: the ground is sand and the shrine's walls and path ride along as sections; GameScene already draws sections and blocks on the solid ones, so every quest scene that uses questBg gets the yard with no other change // QUEST_BG: **fixed 1000 x 700 const** -> **questBg(w, h)**, reason: the island is 2x the screen, mechanism: the caller measures the window and passes the size; color is BUBBLE_BG ('#fffff2') and border: true draws the bubble's black edge
 // the Quest Island a quest opens on, painted the dialog bubble's bg color.
 // x/y is where the player spawns and the camera starts // spawn: **island center (h / 2)** -> **bottom middle (h - 80)**, reason: Ryuuko throws from the top middle, mechanism: bgProps.x/y is only read as the player's spawn and the camera's start, so moving it moves just those // spawn: **bottom middle (h - 80)** -> **partway up (h * 3 / 4)**, reason: the walk to Ryuuko was ~25s, mechanism: half the island (one screen) below her at h / 4, about a 7s walk // spawn: **h * 3 / 4** -> **h / 4 + 300**, reason: arrive 300px from Ryuuko, mechanism: h / 4 is her y (throwSpot), so the player starts 300px straight below her; throwSpot isn't imported here since training.ts already imports gameScene
 

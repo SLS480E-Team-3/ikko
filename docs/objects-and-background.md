@@ -4,8 +4,8 @@ How the island scenes draw their ground, borders, waves and objects, and which f
 
 - All sizes and positions are in **world px**. The world is `BG_W` 1400 x `BG_H` 2000. The player spawns at the center (700, 1000).
 - One art pixel is 4 world px (sprites and tiles are drawn 4x, pixelated).
-- Built scenes: [scenes/tropical-island.md](scenes/tropical-island.md) (island 2), [scenes/volcano.md](scenes/volcano.md) (island 3), [scenes/shrine.md](scenes/shrine.md) (Quest Island).
-- The Quest Island is not 1400 x 2000. Its size is measured from the screen, so its sections are computed by `shrineSections(w, h)` and not listed in `ISLAND_SECTIONS`.
+- Built scenes: [scenes/tropical-island.md](scenes/tropical-island.md) (island 2), [scenes/volcano.md](scenes/volcano.md) (island 3), [scenes/dojo.md](scenes/dojo.md) (Quest Island).
+- The Quest Island is not 1400 x 2000. Its size is measured from the screen, so its sections are computed by `dojoSections(w, h)` and not listed in `ISLAND_SECTIONS`.
 - Making the images: [python/README.md](../python/README.md) (`sprite.py make`, `tile`, `merge`).
 
 ## Files
@@ -87,8 +87,9 @@ How the island scenes draw their ground, borders, waves and objects, and which f
 | `ISLAND_BG` | Flat ground color per island id |
 | `ISLAND_SECTIONS` | Ground sections per island id. An island with no entry keeps its flat color |
 | `islandBg(islandId)` | The `BGProps` of one island: the shared world size, its color and its sections |
-| `questBg(w, h)` | The `BGProps` of a quest scene: the measured size, sand ground, the shrine's sections and the black edge |
-| `shrineSections(w, h)` | The Quest Island's sections: four red-roofed walls (solid) around a sand yard. See [scenes/shrine.md](scenes/shrine.md) |
+| `questBg(w, h)` | The `BGProps` of a quest scene: the measured size, straw-color ground, the dojo's sections and the black edge |
+| `dojoSections(w, h)` | The Quest Island's sections: a tatami floor and four wooden walls (solid), roof off. See [scenes/dojo.md](scenes/dojo.md) |
+| `svgTile(color, rects)` | A tile made in code: plain rectangles on a 64 x 64 grid as an SVG data URI. Goes in `BgSection.tile` like an image file (the dojo's tatami, panel and siding lines) |
 | `ISLAND_COUNT` | 5 |
 
 ### Draw order, bottom to top
