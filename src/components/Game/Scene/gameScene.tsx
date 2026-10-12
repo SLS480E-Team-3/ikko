@@ -24,6 +24,10 @@ export type BgSection = {
 
     color: string,
     tile?: string,
+    tileX?: number,
+    // tileX: world px the tile pattern is shifted right inside the section
+    // (default 0 = the pattern starts at the section's left edge). Used to
+    // center a pattern on something, like the dojo's tatami on its middle
     merge?: boolean,
     // merge: this section's tile reaches up over its top border in an uneven,
     // dithered strip (MERGE_H tall), so the two soils mix. Needs a section
@@ -229,7 +233,7 @@ export const dojoSections = (w: number, h: number): BgSection[] => {
         ])
     const doorX = snap(iw * 0.75)
     return [
-        { id: 'floor', x: 0, y: 0, w: iw, h: ih, color: DOJO_FLOOR, tile: DOJO_FLOOR_TILE },
+        { id: 'floor', x: 0, y: 0, w: iw, h: ih, color: DOJO_FLOOR, tile: DOJO_FLOOR_TILE, tileX: cx - SECTION_TILE_PX / 4 }, // tileX: **none (0)** -> **cx - SECTION_TILE_PX / 4**, reason: the mats sat off center, mechanism: the tile's first heri is centered at 16 of 64 units (a quarter tile = 64 px), so shifting by cx - 64 puts a heri on the dojo's center line; the heri repeat every 128 px, so the rest sit in pairs on both sides of it
         { id: 'wall-top', x: 0, y: 0, w: iw, h: DOJO_TOP, color: DOJO_PLASTER, solid: true },
         { id: 'panel-top', x: DOJO_SIDE, y: DOJO_TOP - DOJO_PANEL, w: inner, h: DOJO_PANEL, color: DOJO_WOOD, tile: DOJO_PANEL_TILE },
         ...posts('post', DOJO_CAP, DOJO_TOP - DOJO_CAP),
@@ -302,7 +306,7 @@ type SceneProps = {
 
 }
 
-export const ZOOM_DEF = 1 // export: **local** -> **exported**, reason: the pinch starts its zoom ref here, mechanism: named export next to the default GameScene export
+export const ZOOM_DEF = 1.5 // export: **local** -> **exported**, reason: the pinch starts its zoom ref here, mechanism: named export next to the default GameScene export
 const ZOOM_MIN = 0.5
 const ZOOM_MAX = 4
 
@@ -1005,7 +1009,7 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
                                 backgroundImage: `url(${sec.tile})`,
                                 backgroundRepeat: 'repeat',
                                 backgroundSize: SECTION_TILE_PX,
-                                backgroundPosition: `0 ${sec.merge ? MERGE_SEAM : 0}px`, // backgroundPosition: **none** -> **MERGE_SEAM down for a merged section**, mechanism: the tile pattern still starts at sec.y, so it lines up with the strip above
+                                backgroundPosition: `${sec.tileX ?? 0}px ${sec.merge ? MERGE_SEAM : 0}px`, // x: **0** -> **sec.tileX ?? 0**, mechanism: a section can shift its pattern sideways; the others keep 0 // backgroundPosition: **none** -> **MERGE_SEAM down for a merged section**, mechanism: the tile pattern still starts at sec.y, so it lines up with the strip above
                                 imageRendering: 'pixelated' as const,
                             }),
                         }}

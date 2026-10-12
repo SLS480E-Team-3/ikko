@@ -39,7 +39,7 @@ import QuestIsland from "@/components/Game/Scene/questIsland"
 import { ShootQuestIsland } from "@/components/Game/Scene/shootQuestIsland" // imports: **none** -> **ShootQuestIsland**, mechanism: the quest island copy with shooting, for its own tab
 import { DodgeQuestIsland } from "@/components/Game/Scene/dodgeQuestIsland" // imports: **none** -> **DodgeQuestIsland**, mechanism: the square dodging-quest island, for its own tab
 import { ISLAND_NPCS } from "@/components/Game/npcs" // imports: **none** -> **ISLAND_NPCS**, mechanism: seeded per-island NPC spots for IslandPreview // imports: **none** -> **ISLAND_1_NPC**, mechanism: see the game scene page
-import EntityRenderer, { ENT_H } from "@/components/Game/Entity/entityRenderer"
+import EntityRenderer, { ENT_H, ENT_W } from "@/components/Game/Entity/entityRenderer" // imports: **ENT_H** -> **ENT_H, ENT_W**, mechanism: the hard-coded 12 px width below follows the shared entity width
 import { KANA_ROWS } from "@/components/Game/kana"
 // imports: **none** -> **KANA_ROWS**, mechanism: bounds and labels for the row buttons
 
@@ -94,15 +94,17 @@ const NPC_COLORS = ['gray', 'steelblue', 'plum', 'khaki']
 const NPC_MIN_DIST = 20
 const NPC_MAX_DIST = 120
 const apart = (a: { dx: number, dy: number }, b: { dx: number, dy: number }) =>
-    Math.abs(a.dx - b.dx) >= 12 + 4 || Math.abs(a.dy - b.dy) >= ENT_H + 4
-// two 12 x ENT_H bodies (centers dx/dy) don't touch when they're a full body
+    Math.abs(a.dx - b.dx) >= ENT_W + 4 || // apart: **12 + 4** -> **ENT_W + 4**, mechanism: body width from the shared constant (24 now)
+    Math.abs(a.dy - b.dy) >= ENT_H + 4
+// two ENT_W x ENT_H bodies (centers dx/dy) don't touch when they're a full body
 // width apart on x or height apart on y; + 4 leaves a small gap to walk into
 const MAP_BOXES = objectHitBoxes(ISLAND_MAPS[1])
 const clearOfObjects = (n: { dx: number, dy: number }) => MAP_BOXES.every(b => {
     const x = BG_W / 2 + n.dx, y = BG_H / 2 + n.dy
-    return x + 6 + 4 <= b.x || x - 6 - 4 >= b.x + b.w || y + ENT_H / 2 + 4 <= b.y || y - ENT_H / 2 - 4 >= b.y + b.h
+    return x + ENT_W / 2 + 4 <= b.x || x - ENT_W / 2 - 4 >= b.x + b.w || // half width: **6** -> **ENT_W / 2**, mechanism: same as apart
+        y + ENT_H / 2 + 4 <= b.y || y - ENT_H / 2 - 4 >= b.y + b.h
 })
-// the NPC body (12 x ENT_H, centered on the spot in world px) plus the same
+// the NPC body (ENT_W x ENT_H, centered on the spot in world px) plus the same
 // 4 px gap lies fully left, right, above or below each object hitBox of the
 // map the scene draws (ISLAND_MAPS[1])
 const npcSpots: { dx: number, dy: number }[] = []
@@ -118,7 +120,7 @@ while (npcSpots.length < NPC_COLORS.length) {
 // inside someone else. Module-level, so it runs once per page load
 const TEST_NPCS: SceneNPC[] = npcSpots.map((n, i) => ({ // spots: **fixed ±60 / -40,+50 box** -> **random npcSpots 20..120 px away**, mechanism: see npcSpots
     ent: { name: names[i], // name: **`NPC ${i + 1}`** -> **names[i]**, mechanism: random name from NPC_NAMES, no repeats
-         x: BG_W / 2 + n.dx, y: BG_H / 2 + n.dy, w: 12, h: ENT_H, color: NPC_COLORS[i], facing: 'none' },
+         x: BG_W / 2 + n.dx, y: BG_H / 2 + n.dy, w: ENT_W, h: ENT_H, color: NPC_COLORS[i], facing: 'none' },
     dialog: i % 2 === 0 ? [{ condition: 'default', jp: ['おい', '頼みがあるんだが', '聞いてくれるか？'], en: [] }] : undefined, // dialog: **greeting + string[]** -> **Dialog[]**, mechanism: no greeting entry = GREETING_DEF; every other NPC has no dialog, so tapping it just repeats the greeting (pickDialog fallback) and zooms back out
 }))
 // four entities at random spots near the player spawn (world center);
@@ -179,7 +181,7 @@ function BubblePreview() {
     return (
         <div style={{ position: 'relative', width: 130, height: 265, transform: 'scale(3)', transformOrigin: 'top left' }}> {/* height: **205** -> **265**, mechanism: room for the translated NPC below */}
             {spots.map((s) => (
-                <EntityRenderer key={s.text} velocity={{ x: 0, y: 0 }} ent={{ name: s.name, x: s.x, y: s.y, w: 12, h: ENT_H, color: 'gray', facing: 'none' }} dialog={s.text} /> // preview: **EntityRenderer + DialogBubble side by side** -> **EntityRenderer dialog prop**, mechanism: the bubble is wired inside EntityRenderer now, so the preview goes through the same path the game will
+                <EntityRenderer key={s.text} velocity={{ x: 0, y: 0 }} ent={{ name: s.name, x: s.x, y: s.y, w: ENT_W, h: ENT_H, color: 'gray', facing: 'none' }} dialog={s.text} /> // preview: **EntityRenderer + DialogBubble side by side** -> **EntityRenderer dialog prop**, mechanism: the bubble is wired inside EntityRenderer now, so the preview goes through the same path the game will
             ))}
             <NPCRenderer npc={{ ...ISLAND_1_NPC[0], ent: { ...ISLAND_1_NPC[0].ent, x: 25, y: 245 } }} index={0} velocity={{ x: 0, y: 0 }} inRange selected line={0} />
             {/* translated NPC: Hana's first talk line with its English
