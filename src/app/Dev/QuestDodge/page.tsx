@@ -8,7 +8,7 @@ export default function QuestDodge() {
     const router = useRouter()
     return (
         <div style={{ width: '100%', height: '100lvh' }}>
-            <DodgeQuestIsland onLeave={() => router.push('/')} />
+            <DodgeQuestIsland onLeave={() => router.push('/Dev?Island=1')} />
         </div>
     )
 }

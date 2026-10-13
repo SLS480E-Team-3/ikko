@@ -8,7 +8,7 @@ export default function QuestShoot() {
     const router = useRouter()
     return (
         <div style={{ width: '100%', height: '100lvh' }}>
-            <ShootQuestIsland onLeave={() => router.push('/')} />
+            <ShootQuestIsland onLeave={() => router.push('/Dev?Island=1')} />
         </div>
     )
 }

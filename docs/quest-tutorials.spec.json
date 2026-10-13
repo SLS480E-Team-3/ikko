@@ -1,0 +1,201 @@
+{
+  "$schema": "./.claude/spec.schema.json",
+  "status": "draft",
+  "title": "Quest tutorials",
+  "idea": "Before each quest, a new NPC, Hiroko, stands next to Ryuuko and explains that quest type in dialog.",
+  "glossary": [
+    {
+      "term": "quest type",
+      "meaning": "One of the four quest games: original (catch the falling kana), dodge, shoot, door (Left or Right)."
+    },
+    {
+      "term": "tutorial",
+      "meaning": "Hiroko's dialog explaining how one quest type is played. Dialog only, one per quest type; no practice room for now."
+    },
+    {
+      "term": "Hiroko",
+      "meaning": "A new NPC who stands next to Ryuuko before a quest starts and talks about that quest's tutorial."
+    }
+  ],
+  "features": [
+    {
+      "id": "F-1",
+      "name": "Hiroko",
+      "whatItDoes": "A new NPC standing next to Ryuuko before the quest; talking to her gives the tutorial for that quest type.",
+      "details": [
+        "Stands next to Ryuuko before the run only; gone during play and at the end.",
+        "Her talk opens by itself when the quest loads (auto talk) and asks whether the player wants the tutorial (yes / no); no = skip.",
+        "The auto question only comes the first time the player meets each quest type.",
+        "After that she still stands next to Ryuuko before the run; tapping her plays the tutorial again."
+      ]
+    },
+    {
+      "id": "F-2",
+      "name": "Per-quest tutorial dialog",
+      "whatItDoes": "Hiroko's lines for each of the four quest types, explaining its rules and controls.",
+      "details": [
+        "3-5 short lines: the goal, how you win and lose, then the controls.",
+        "Controls lines depend on the device: keys on a PC, touch on a phone. Under 768 px screen width counts as a phone.",
+        "Her last line points the player to Ryuuko (e.g. \"Talk to Ryuuko when you're ready.\"), also after a no.",
+        "In English, voiced with an English version of the hiroko voice."
+      ]
+    },
+    {
+      "id": "F-3",
+      "name": "Tutorial seen flag",
+      "whatItDoes": "Remembers per account in Supabase which quest types' tutorials the player has been asked about, so the auto question only comes once.",
+      "details": [
+        "Needs a small SQL change, added to docs/SQL-query.md.",
+        "Without an account (/Dev, MobileTester) nothing is remembered, so Hiroko asks every time."
+      ]
+    },
+    {
+      "id": "F-4",
+      "name": "Hiroko English voice",
+      "whatItDoes": "A new English voice entry copied from the existing Japanese 'hiroko' profile (same age, timbre and calm manner).",
+      "details": []
+    }
+  ],
+  "flows": [
+    {
+      "name": "First visit to a quest type",
+      "steps": [
+        "The quest loads; Ryuuko and Hiroko stand in front of the player.",
+        "Hiroko's talk opens by itself and asks if the player wants to learn how to play.",
+        "Yes: 3-5 lines on the rules, then the controls for this device, ending with 'talk to Ryuuko'.",
+        "No: she just says to talk to Ryuuko.",
+        "The quest type is marked as seen in Supabase.",
+        "The player talks to Ryuuko to start the run; Hiroko is gone during play."
+      ]
+    },
+    {
+      "name": "Later visit",
+      "steps": [
+        "The quest loads with Hiroko next to Ryuuko; no auto talk.",
+        "The player can tap Hiroko to hear the tutorial again, or go straight to Ryuuko."
+      ]
+    }
+  ],
+  "examples": [
+    {
+      "situation": "A player on a phone opens the shoot quest for the first time and says yes.",
+      "whatHappens": "Hiroko explains: shoot the blocks with the wrong kana and catch the right one, lose HP on a mistake; drag to move, tap or add a second finger to shoot. Then: talk to Ryuuko when you're ready."
+    },
+    {
+      "situation": "The same player opens the shoot quest again a week later on a laptop.",
+      "whatHappens": "No auto talk; Hiroko stands next to Ryuuko. Tapping her plays the tutorial with keyboard lines (arrow keys / WASD to move, Space to shoot)."
+    },
+    {
+      "situation": "A first-time player says no to the door quest tutorial.",
+      "whatHappens": "Hiroko says to talk to Ryuuko; the door quest is marked as seen."
+    },
+    {
+      "situation": "A tester opens /Dev/QuestDoor without logging in.",
+      "whatHappens": "Hiroko asks every time, since there is no account to remember it."
+    }
+  ],
+  "leftOut": [
+    "A separate tutorial room / practice plane (maybe later).",
+    "Hiroko during the run or at the end of a quest.",
+    "Japanese tutorial lines."
+  ],
+  "decisions": [
+    {
+      "id": "D-1",
+      "date": "2026-10-12",
+      "decision": "There is one tutorial for each quest type."
+    },
+    {
+      "id": "D-2",
+      "date": "2026-10-12",
+      "decision": "Tutorials are dialog only for now, for all four quests; no separate tutorial room (individual plane)."
+    },
+    {
+      "id": "D-3",
+      "date": "2026-10-12",
+      "decision": "A new NPC, Hiroko, stands next to Ryuuko before the quest and gives the tutorial."
+    },
+    {
+      "id": "D-4",
+      "date": "2026-10-12",
+      "decision": "The tutorial is skippable."
+    },
+    {
+      "id": "D-5",
+      "date": "2026-10-12",
+      "decision": "Skipping: Hiroko asks first whether the player wants the tutorial; saying no skips it."
+    },
+    {
+      "id": "D-6",
+      "date": "2026-10-12",
+      "decision": "Hiroko explains both the rules and the controls."
+    },
+    {
+      "id": "D-7",
+      "date": "2026-10-12",
+      "decision": "Hiroko's lines are in English and voiced."
+    },
+    {
+      "id": "D-8",
+      "date": "2026-10-12",
+      "decision": "Hiroko is in the scene before the run only."
+    },
+    {
+      "id": "D-9",
+      "date": "2026-10-12",
+      "decision": "Hiroko's talk opens by itself when the quest loads."
+    },
+    {
+      "id": "D-10",
+      "date": "2026-10-12",
+      "decision": "Hiroko asks only the first time per quest type."
+    },
+    {
+      "id": "D-11",
+      "date": "2026-10-12",
+      "decision": "Controls are explained per device: keyboard keys on PC, touch on phone."
+    },
+    {
+      "id": "D-12",
+      "date": "2026-10-12",
+      "decision": "Hiroko's lines use a new English version of her existing voice profile."
+    },
+    {
+      "id": "D-13",
+      "date": "2026-10-12",
+      "decision": "'Tutorial seen' is stored per account in Supabase."
+    },
+    {
+      "id": "D-14",
+      "date": "2026-10-12",
+      "decision": "After the first time, tapping Hiroko replays the tutorial."
+    },
+    {
+      "id": "D-15",
+      "date": "2026-10-12",
+      "decision": "PC vs phone is told apart by screen width."
+    },
+    {
+      "id": "D-16",
+      "date": "2026-10-12",
+      "decision": "A tutorial is 3-5 short lines."
+    },
+    {
+      "id": "D-17",
+      "date": "2026-10-12",
+      "decision": "Without an account, Hiroko asks every time."
+    },
+    {
+      "id": "D-18",
+      "date": "2026-10-12",
+      "decision": "Under 768 px screen width counts as a phone."
+    },
+    {
+      "id": "D-19",
+      "date": "2026-10-12",
+      "decision": "Hiroko's last line points the player to Ryuuko, after the tutorial or a no."
+    }
+  ],
+  "assumptions": [],
+  "openQuestions": []
+}
