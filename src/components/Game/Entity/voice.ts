@@ -147,6 +147,11 @@ export const playLine = (url: string) => { // url: **one clip** -> **one clip, o
 // page has had a tap / click (so an in-range greeting is silent before that)
 // and with AbortError when the src is swapped mid-load; both are fine to ignore
 
+export const lineMs = (url: string) => url.split('\n').reduce((ms, u) => ms + (buffers.get(u)?.duration ?? 0) * 1000, 0)
+// how long a line (one clip, or several joined by '\n') plays, in ms, from
+// the decoded buffers; a clip not decoded yet counts as 0, so callers keep
+// their own minimum wait
+
 export const stopLine = (url?: string) => {
     if (url && url !== current) return
     stopVoice() // stop: **clip.pause()** -> **stopVoice()**, mechanism: also stops a line playing from a buffer

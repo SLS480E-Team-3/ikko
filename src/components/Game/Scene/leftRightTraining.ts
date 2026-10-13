@@ -1,7 +1,7 @@
 'use client'
 
 import { createElement, Fragment, useCallback, useEffect, useRef, useState } from "react"
-import { lineUrl, playLine, playSfx, preloadClips } from "@/components/Game/Entity/voice"
+import { lineMs, lineUrl, playLine, playSfx, preloadClips } from "@/components/Game/Entity/voice" // imports: **+ lineMs**, mechanism: the next word waits for いいね！ / 違うわよ！ to finish
 import { BUBBLE_BORDER_W } from "@/components/Game/Entity/dialogBubble"
 import { toDialogs } from "../npcs/toNPCProps"
 import ryuuko from "../npcs/dialogs/ryuuko.json"
@@ -91,6 +91,8 @@ const maxHP = 3
 const DAMAGE_SFX = '/_SFX/tookDamage.mp3'
 const SUB_MS = 1500
 const NEXT_MS = 800
+const LINE_GAP_MS = 200
+// a short pause between the end of いいね！ / 違うわよ！ and the next word
 // 10 correct to clear, 3 hp, the damage sound (same file as the other
 // trainings), how long a line's text stays on the sign, and the wait between
 // Ryuuko's correct / wrong line and the next word's question
@@ -174,12 +176,14 @@ export function useLeftRightTraining({ w, h, onLeave }: { w: number, h: number, 
     // keeping their x, so they stay in front of the same doors
     // key bumps so GameScene re-opens a talk / re-places the player each time
 
-    const say = (verb: string, cond: RunLine) => {
+    const say = (verb: string, cond: RunLine): number => { // return: **void** -> **the line's length in ms**, mechanism: the door handler waits that long before asking the next word
         const d = lineOf(verb, cond)
-        if (!d) return
-        playLine(lineUrl('ryuuko', d.audio[0]))
+        if (!d) return 0
+        const url = lineUrl('ryuuko', d.audio[0])
+        playLine(url)
         subText.current = d.jp[0]
         subAt.current = performance.now()
+        return lineMs(url)
     }
     // plays one of Ryuuko's in-run lines and puts its kana on the sign for
     // SUB_MS; playLine cuts off whatever she was saying
@@ -229,13 +233,15 @@ export function useLeftRightTraining({ w, h, onLeave }: { w: number, h: number, 
         // one pick per walk-in: until the moveRequest below lands (a render
         // later) the door they're still touching is ignored
 
+        let said = 0
         if (hit === q.correctSide) {
             current.current++
-            say(q.verb, 'lr-correct')
+            said = say(q.verb, 'lr-correct') // said: **ignored** -> **kept**, mechanism: the next word waits for it below
             if (current.current >= quota) {
                 const { w, h } = sizeRef.current
                 const e = spawnSpot(w, h)
-                fadeTo(() => { setPhase('success'); moveTo(e.x, e.y); talkTo(RYUUKO) }) // spot: **endPlayerSpot** -> **spawnSpot**, mechanism: the next room is the same room; Ryuuko and Elena now stand in front of the spawn
+                clearNext()
+                nextTimer.current = setTimeout(() => { nextTimer.current = undefined; fadeTo(() => { setPhase('success'); moveTo(e.x, e.y); talkTo(RYUUKO) }) }, Math.max(0, said + LINE_GAP_MS - FADE_IN)) // start: **at once** -> **so the screen is black LINE_GAP_MS after いいね！ ends**, reason: her clear talk opened 250 ms in and cut いいね！ off, mechanism: the fade starts after the line, minus FADE_IN since the talk opens once the screen is black // spot: **endPlayerSpot** -> **spawnSpot**, mechanism: the next room is the same room; Ryuuko and Elena now stand in front of the spawn
                 return
             }
             fadeTo(toSpawn)
@@ -246,12 +252,12 @@ export function useLeftRightTraining({ w, h, onLeave }: { w: number, h: number, 
             playSfx(DAMAGE_SFX)
             if (hp.current <= 0) { setFailAt({ x: player.x, y: player.y }); setPhase('fail'); talkTo(ELENA); return }
             bounce(player.x)
-            say(q.verb, 'lr-wrong')
+            said = say(q.verb, 'lr-wrong')
         }
         // correct: **toSpawn / 10th -> doors open, walk to Ryuuko** -> **through the black screen: toSpawn / 10th -> into the end room below Ryuuko + her talk**, reason: a wall behind the doors closes off the end room and going through a door fades to black, mechanism: fadeTo runs the move once the screen is black; いいね！ plays first in both cases
         // wrong: **back to spawn** -> **bounce(player.x)**, reason: the door stays shut and the player is pushed back in front of it, mechanism: moveRequest BOUNCE px below the row; at 0 hp failAt keeps the spot so Ryuuko and Elena come there
         clearNext()
-        nextTimer.current = setTimeout(() => { nextTimer.current = undefined; if (phaseRef.current === 'play') ask() }, NEXT_MS)
+        nextTimer.current = setTimeout(() => { nextTimer.current = undefined; if (phaseRef.current === 'play') ask() }, Math.max(NEXT_MS, said + LINE_GAP_MS)) // delay: **NEXT_MS (800)** -> **the longer of NEXT_MS and the line + LINE_GAP_MS**, reason: いいね！ (1.6 s) was cut off by the next word, mechanism: playLine stops the running line, so ask() now waits until it has played
         // correct: next question; wrong: -1 hp with the flash and damage
         // sound, same question again. Ryuuko's いいね！ / 違うわよ！ plays, and
         // NEXT_MS later the (next or same) word is asked. The 10th correct
