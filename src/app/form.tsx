@@ -14,9 +14,10 @@ export default function Form() {
             <div className={styles.temp} onClick={() => router.push('./Dev/QuestOriginal')}>original</div>
             <div className={styles.temp} onClick={() => router.push('./Dev/QuestDodge')}>dodge</div>
             <div className={styles.temp} onClick={() => router.push('./Dev/QuestShoot')}>shoot</div>
-            {/* three dev buttons, one per quest type: each pushes its own
+            <div className={styles.temp} onClick={() => router.push('./Dev/QuestDoor')}>door</div> {/* buttons: **original / dodge / shoot** -> **+ door**, mechanism: pushes Dev/QuestDoor, the Left or Right quest full-screen */}
+            {/* dev buttons, one per quest type: each pushes its own
                 route under src/app/Dev/, whose page renders that quest island
-                full-screen (QuestIsland / DodgeQuestIsland / ShootQuestIsland) */}
+                full-screen (QuestIsland / DodgeQuestIsland / ShootQuestIsland / LeftRightQuestIsland) */}
         </div>
     )
 }
