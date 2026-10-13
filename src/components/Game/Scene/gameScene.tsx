@@ -383,6 +383,9 @@ const RADIUS = 50 // css px the knob can travel from the base center
 const DEADZONE = 0.15 // fraction of RADIUS treated as "not pushed"
 const TAP_MS = 200
 const TAP_PX = 10
+const PINCH_GAP_MS = 150
+// a second finger landing within PINCH_GAP_MS of the stick finger is a pinch,
+// a later one shoots (when onShoot is set)
 // a stick press shorter than TAP_MS that moved less than TAP_PX (screen px)
 // is a tap: it shoots (when onShoot is set) instead of only walking
 const KNOB_SIZE = 44 // css px
@@ -932,7 +935,7 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
     // else, or before the zoom-in settles, do nothing -- movement is frozen
 
     const handleDown = (e: PointerEvent<HTMLDivElement>) => {
-        if (activeIdRef.current !== null && e.pointerId !== activeIdRef.current && onShootRef.current?.()) { e.stopPropagation(); return } // second finger: **ignored, then starts a pinch** -> **shoots when onShoot fires**, mechanism: stopPropagation keeps it out of handlePinchDown on the scene div, so no pinch starts and the stick stays held
+        if (activeIdRef.current !== null && e.pointerId !== activeIdRef.current && tapRef.current && performance.now() - tapRef.current.t > PINCH_GAP_MS && onShootRef.current?.()) { e.stopPropagation(); return } // second finger: **always shoots mid-level** -> **shoots only when it lands PINCH_GAP_MS+ after the stick finger**, reason: pinch zoom didn't work in the shooting quest, mechanism: two fingers landing together skip this line and reach handlePinchDown (pinch); a later second finger still shoots, and stopPropagation keeps it out of the pinch // second finger: **ignored, then starts a pinch** -> **shoots when onShoot fires**, mechanism: stopPropagation keeps it out of handlePinchDown on the scene div, so no pinch starts and the stick stays held
         if (activeIdRef.current !== null || pinchRef.current) return
         if (tapNpc(e.clientX, e.clientY)) return // down: **always starts the stick** -> **NPC tap first**, reason: NPCs are tapped through the stick overlay, mechanism: tapNpc handles talk taps and a consumed tap returns before the pointer is captured, so no stick appears
         activeIdRef.current = e.pointerId
