@@ -62,7 +62,7 @@ def resolve_voices(scene: dict, src: str) -> dict[str, str]:
 
 # ---------- npc files ----------
 
-CONDITION = re.compile(r"^(greeting|default|spoken|quest|questCleared|retry|level\d+-(start|clear|fail)|lr-(intro|word|correct|wrong|clear|fail))$")  # CONDITION: **+ lr-...**, mechanism: the Left or Right quest labels, same as toNPCProps.ts
+CONDITION = re.compile(r"^(greeting|default|spoken|quest|questCleared|retry|level\d+-(start|clear|fail)|lr-(intro|word|correct|wrong|clear|fail)|tut-(ask|bye)|tut-(original|dodge|shoot|door)-(touch|keys))$")  # labels: **+ tut-...**, mechanism: Hiroko's quest tutorials, same labels as the Condition type  # CONDITION: **+ lr-...**, mechanism: the Left or Right quest labels, same as toNPCProps.ts
 
 
 def is_npc(scene) -> bool:
@@ -89,7 +89,7 @@ def validate_npc(script: dict, src: str) -> None:
         for label in labels:
             if not isinstance(label, str) or not CONDITION.match(label):
                 g.die(f"{src}: dialog {i} has unknown condition '{label}' (greeting, default, spoken, quest, "
-                      f"questCleared, retry, level<N>-start, level<N>-clear, level<N>-fail, lr-intro/word/correct/wrong/clear/fail)")
+                      f"questCleared, retry, level<N>-start, level<N>-clear, level<N>-fail, lr-intro/word/correct/wrong/clear/fail, tut-ask/bye, tut-<original|dodge|shoot|door>-<touch|keys>)")
         for c in entry.get("choices") or []:
             if not isinstance(c, list) or len(c) != 2:
                 g.die(f"{src}: dialog {i} choices must be [kana, en] pairs")
@@ -97,8 +97,8 @@ def validate_npc(script: dict, src: str) -> None:
             g.die(f"{src}: dialog {i} needs a non-empty 'lines' list")
         for j, line in enumerate(entry["lines"], 1):
             where = f"{src}: dialog {i} line {j}"
-            if not isinstance(line, dict) or not str(line.get("kana", "")).strip() or not str(line.get("en", "")).strip():
-                g.die(f"{where} needs 'kana' and 'en'")
+            if not isinstance(line, dict) or not (str(line.get("kana", "")).strip() or str(line.get("en", "")).strip()):
+                g.die(f"{where} needs 'kana' or 'en'")  # required: **kana and en** -> **kana or en**, reason: Hiroko's lines are English only, mechanism: an English line has en and no kana; toNPCProps.ts turns a missing one into '' and DialogBubble shows an English-only page
             extra = set(line) - {"kana", "text", "en", "style"}
             if extra:
                 g.die(f"{where} has unknown keys {sorted(extra)} (allowed: kana, text, en, style)")

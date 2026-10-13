@@ -3,7 +3,7 @@ import type { NPCProps } from "../Entity/npcRenderer"
 import { ENT_H, ENT_W } from "../Entity/entityRenderer"
 import { CLIP_SEP } from "../Entity/voice"
 
-export type ScriptLine = { kana: string, text?: string, en: string, style?: string }
+export type ScriptLine = { kana?: string, text?: string, en?: string, style?: string } // kana, en: **required** -> **optional (at least one)**, reason: Hiroko speaks English, mechanism: her lines have en only; a missing one becomes '' in toDialogs and DialogBubble shows an English-only page
 export type ScriptEntry = { condition: string | string[], choices?: string[][], lines: ScriptLine[] }
 export type NpcScript = { npc: string, name: string, color: string, kana?: string, dialog: ScriptEntry[] }
 // the shape of one npcs/dialogs/<npc>.json (written by the /make-dialog
@@ -12,7 +12,7 @@ export type NpcScript = { npc: string, name: string, color: string, kana?: strin
 // imported .json; conditionOf() below checks the labels when the file is
 // turned into Dialogs
 
-const CONDITION = /^(greeting|default|spoken|quest|questCleared|retry|level\d+-(start|clear|fail)|lr-(intro|word|correct|wrong|clear|fail))$/ // CONDITION: **+ lr-...** , mechanism: same labels as the Condition type
+const CONDITION = /^(greeting|default|spoken|quest|questCleared|retry|level\d+-(start|clear|fail)|lr-(intro|word|correct|wrong|clear|fail)|tut-(ask|bye)|tut-(original|dodge|shoot|door)-(touch|keys))$/ // CONDITION: **+ lr-...** , mechanism: same labels as the Condition type
 const conditionOf = (label: string, npc: string): Condition => {
     if (!CONDITION.test(label)) throw new Error(`dialogs/${npc}.json: unknown condition '${label}'`)
     return label as Condition
@@ -42,12 +42,12 @@ const clipsOf = (text: string, target?: string) => text.split('{target}')
 const fill = (s: string, target?: string) => target === undefined ? s : s.split('{target}').join(target)
 
 export const toDialogs = (script: NpcScript, target?: string): SceneDialog[] => script.dialog.flatMap(entry => {
-    const lines = entry.lines.filter(l => target !== undefined || !l.kana.includes('{target}'))
+    const lines = entry.lines.filter(l => target !== undefined || !(l.kana ?? '').includes('{target}')) // kana: **l.kana** -> **l.kana ?? ''**, mechanism: see ScriptLine
     const labels = Array.isArray(entry.condition) ? entry.condition : [entry.condition]
     return labels.map(label => ({
         condition: conditionOf(label, script.npc),
-        jp: lines.map(l => fill(l.kana, target)),
-        en: lines.map(l => fill(l.en, target)),
+        jp: lines.map(l => fill(l.kana ?? '', target)), // jp: **l.kana** -> **l.kana ?? ''**, mechanism: an English-only line has an empty jp
+        en: lines.map(l => fill(l.en ?? '', target)), // en: **l.en** -> **l.en ?? ''**, mechanism: see ScriptLine
         audio: lines.map(l => l.text ? clipsOf(l.text, target) : ''), // audio: **audioName(text)** -> **clipsOf(text, target)**, mechanism: a text with {target} becomes several clip names joined by CLIP_SEP; a plain text gives audioName(text) as before
         ...(entry.choices && { choices: entry.choices.map(([jp, en]) => ({ jp, en })) }),
     }))

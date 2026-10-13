@@ -1,0 +1,277 @@
+{
+  "npc": "hiroko_en",
+  "name": "Hiroko",
+  "color": "cadetblue",
+  "dialog": [
+    {
+      "condition": "tut-ask",
+      "choices": [
+        [
+          "はい",
+          "Yes"
+        ],
+        [
+          "いいえ",
+          "No"
+        ]
+      ],
+      "lines": [
+        {
+          "text": "Want to learn how this quest works?",
+          "en": "Want to learn how this quest works?",
+          "style": "calm, warm, clear"
+        }
+      ]
+    },
+    {
+      "condition": "tut-bye",
+      "lines": [
+        {
+          "text": "Talk to Ryuuko when you are ready.",
+          "en": "Talk to Ryuuko when you are ready.",
+          "style": "calm, warm, clear"
+        }
+      ]
+    },
+    {
+      "condition": "tut-original-touch",
+      "lines": [
+        {
+          "text": "Ryuuko throws kana blocks at you.",
+          "en": "Ryuuko throws kana blocks at you.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Catch the blocks with her target kana. Wrong ones cost you HP.",
+          "en": "Catch the blocks with her target kana. Wrong ones cost you HP.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Catch ten before the timer runs out.",
+          "en": "Catch ten before the timer runs out.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Drag anywhere to move. Pinch to zoom.",
+          "en": "Drag anywhere to move. Pinch to zoom.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Talk to Ryuuko when you are ready.",
+          "en": "Talk to Ryuuko when you are ready.",
+          "style": "calm, warm, clear"
+        }
+      ]
+    },
+    {
+      "condition": "tut-original-keys",
+      "lines": [
+        {
+          "text": "Ryuuko throws kana blocks at you.",
+          "en": "Ryuuko throws kana blocks at you.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Catch the blocks with her target kana. Wrong ones cost you HP.",
+          "en": "Catch the blocks with her target kana. Wrong ones cost you HP.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Catch ten before the timer runs out.",
+          "en": "Catch ten before the timer runs out.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Move with W A S D. Scroll to zoom.",
+          "en": "Move with W A S D. Scroll to zoom.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Talk to Ryuuko when you are ready.",
+          "en": "Talk to Ryuuko when you are ready.",
+          "style": "calm, warm, clear"
+        }
+      ]
+    },
+    {
+      "condition": "tut-dodge-touch",
+      "lines": [
+        {
+          "text": "Kana blocks fly in from every side.",
+          "en": "Kana blocks fly in from every side.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Catch the target kana and dodge the rest. Wrong ones cost you HP.",
+          "en": "Catch the target kana and dodge the rest. Wrong ones cost you HP.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Catch ten before the timer runs out.",
+          "en": "Catch ten before the timer runs out.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Drag anywhere to move. Pinch to zoom.",
+          "en": "Drag anywhere to move. Pinch to zoom.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Talk to Ryuuko when you are ready.",
+          "en": "Talk to Ryuuko when you are ready.",
+          "style": "calm, warm, clear"
+        }
+      ]
+    },
+    {
+      "condition": "tut-dodge-keys",
+      "lines": [
+        {
+          "text": "Kana blocks fly in from every side.",
+          "en": "Kana blocks fly in from every side.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Catch the target kana and dodge the rest. Wrong ones cost you HP.",
+          "en": "Catch the target kana and dodge the rest. Wrong ones cost you HP.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Catch ten before the timer runs out.",
+          "en": "Catch ten before the timer runs out.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Move with W A S D. Scroll to zoom.",
+          "en": "Move with W A S D. Scroll to zoom.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Talk to Ryuuko when you are ready.",
+          "en": "Talk to Ryuuko when you are ready.",
+          "style": "calm, warm, clear"
+        }
+      ]
+    },
+    {
+      "condition": "tut-shoot-touch",
+      "lines": [
+        {
+          "text": "Catch the target kana to get a bullet.",
+          "en": "Catch the target kana to get a bullet.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Shoot Ryuuko to win. Shooting a wrong block gives a bullet back.",
+          "en": "Shoot Ryuuko to win. Shooting a wrong block gives a bullet back.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Hit her enough times before the timer runs out.",
+          "en": "Hit her enough times before the timer runs out.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Drag to move. Tap, or add a second finger, to shoot.",
+          "en": "Drag to move. Tap, or add a second finger, to shoot.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Talk to Ryuuko when you are ready.",
+          "en": "Talk to Ryuuko when you are ready.",
+          "style": "calm, warm, clear"
+        }
+      ]
+    },
+    {
+      "condition": "tut-shoot-keys",
+      "lines": [
+        {
+          "text": "Catch the target kana to get a bullet.",
+          "en": "Catch the target kana to get a bullet.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Shoot Ryuuko to win. Shooting a wrong block gives a bullet back.",
+          "en": "Shoot Ryuuko to win. Shooting a wrong block gives a bullet back.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Hit her enough times before the timer runs out.",
+          "en": "Hit her enough times before the timer runs out.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Move with W A S D. Press Space to shoot.",
+          "en": "Move with W A S D. Press Space to shoot.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Talk to Ryuuko when you are ready.",
+          "en": "Talk to Ryuuko when you are ready.",
+          "style": "calm, warm, clear"
+        }
+      ]
+    },
+    {
+      "condition": "tut-door-touch",
+      "lines": [
+        {
+          "text": "Ryuuko shows a Japanese verb on the sign.",
+          "en": "Ryuuko shows a Japanese verb on the sign.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Walk into the door with its English meaning. Get ten right to clear.",
+          "en": "Walk into the door with its English meaning. Get ten right to clear.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "A wrong door costs one heart. Lose three and it is over.",
+          "en": "A wrong door costs one heart. Lose three and it is over.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Drag anywhere to move.",
+          "en": "Drag anywhere to move.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Talk to Ryuuko when you are ready.",
+          "en": "Talk to Ryuuko when you are ready.",
+          "style": "calm, warm, clear"
+        }
+      ]
+    },
+    {
+      "condition": "tut-door-keys",
+      "lines": [
+        {
+          "text": "Ryuuko shows a Japanese verb on the sign.",
+          "en": "Ryuuko shows a Japanese verb on the sign.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Walk into the door with its English meaning. Get ten right to clear.",
+          "en": "Walk into the door with its English meaning. Get ten right to clear.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "A wrong door costs one heart. Lose three and it is over.",
+          "en": "A wrong door costs one heart. Lose three and it is over.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Move with W A S D.",
+          "en": "Move with W A S D.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Talk to Ryuuko when you are ready.",
+          "en": "Talk to Ryuuko when you are ready.",
+          "style": "calm, warm, clear"
+        }
+      ]
+    }
+  ]
+}

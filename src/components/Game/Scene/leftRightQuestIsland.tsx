@@ -7,6 +7,9 @@ import { FEET_H, HALL_W, hallH, spawnSpot, useLeftRightTraining } from "./leftRi
 import { leftRightNpcs } from "../npcs/npcs"
 import { BUBBLE_BG, BUBBLE_BOARDER, BUBBLE_BORDER_W } from "../Entity/dialogBubble"
 import { QUEST_BGM, playBgm, stopBgm } from "../Entity/voice"
+import { HIROKO_DX, useMergedTalk, useTutorial, type TutorialProps } from "./tutorial"
+// Hiroko's quest tutorial (tutorial.ts): her NPC, her choice / talk-end
+// handlers and her talk request for this quest type
 // a copy of dodgeQuestIsland.tsx for the Left or Right quest: a long, narrow
 // hallway island, the cast from leftRightNpcs, the doors as a wall and no
 // timer strip.
@@ -69,13 +72,23 @@ function Hud({ getHud, getFade, getSign }: { getHud: () => TrainingHud, getFade:
 // dodgeQuestIsland.tsx's HUD without the cyan timer strip: its own rAF
 // re-reads getHud() each frame for the damage flash and the hp bar
 
-function Training({ w, h, onLeave, sensitivity, children }: { w: number, h: number, onLeave: () => void, sensitivity?: number, children?: ReactNode }) {
+function Training({ w, h, onLeave, sensitivity, tutorial, children }: { w: number, h: number, onLeave: () => void, sensitivity?: number, tutorial?: TutorialProps, children?: ReactNode }) { // props: **no tutorial** -> **tutorial?**, mechanism: passed on to useTutorial (seen / onSeen); undefined = no account, so Hiroko asks every time
     const t = useLeftRightTraining({ w, h, onLeave })
+    const tut = useTutorial('door', t.phase === 'intro', tutorial)
+    const talk = useMergedTalk(t.talkRequest, tut.talkRequest)
+    // Hiroko's tutorial is live only in 'intro'; talk is the one talkRequest
+    // GameScene gets (the training's or Hiroko's, whichever changed last).
+    // Both hooks run at the top level, never inside the JSX
+    const npcs = leftRightNpcs(w, h, t.phase, t.failAt)
+    const cast = t.phase === 'intro' ? [...npcs, tut.hiroko((npcs[0].ent.x ?? 0) + HIROKO_DX, npcs[0].ent.y ?? 0)] : npcs
+    // the cast from leftRightNpcs (moved out of the JSX); intro only: Hiroko
+    // appended as index 1 (HIROKO), HIROKO_DX px right of Ryuuko (npcs[0]);
+    // Elena is never out in 'intro'
     const bgm = t.phase === 'success' || t.phase === 'again' ? QUEST_BGM.clear : t.phase === 'fail' ? QUEST_BGM.fail : undefined
     useEffect(() => bgm ? playBgm(bgm) : undefined, [bgm])
     return (
         <>
-            <GameScene bgProps={hallBg(w, h, spawnSpot(w, h).y)} npcs={leftRightNpcs(w, h, t.phase, t.failAt)} feetH={FEET_H} onChoice={t.onChoice} onTalkEnd={t.onTalkEnd} onTick={t.onTick} renderWorld={t.renderWorld} talkRequest={t.talkRequest} moveRequest={t.moveRequest} playerLabel={t.playerLabel} sensitivity={sensitivity} />
+            <GameScene bgProps={hallBg(w, h, spawnSpot(w, h).y)} npcs={cast} feetH={FEET_H} onChoice={(n, c) => tut.onChoice(n, c) || t.onChoice(n, c)} onTalkEnd={n => tut.onTalkEnd(n) || t.onTalkEnd(n)} onTick={t.onTick} renderWorld={t.renderWorld} talkRequest={talk} moveRequest={t.moveRequest} playerLabel={t.playerLabel} sensitivity={sensitivity} /> {/* props: **npcs, t.onChoice, t.onTalkEnd, t.talkRequest** -> **cast with Hiroko, tut handlers first, merged talk**, mechanism: tut.onChoice / onTalkEnd return true when the event was Hiroko's, so || skips the training's (which would read npc 1 as Elena); talk carries whichever request changed last */}
             <Hud getHud={t.getHud} getFade={t.getFade} getSign={t.getSign} />
             {(t.phase === 'success' || t.phase === 'again') && children}
         </>
@@ -87,7 +100,7 @@ function Training({ w, h, onLeave, sensitivity, children }: { w: number, h: numb
 // spawnSpot's y. The cast comes from leftRightNpcs with failAt. BGM: clear on success / again, fail on
 // fail; children fill the success slot
 
-export function LeftRightQuestIsland({ onLeave, sensitivity, children }: { onLeave: () => void, sensitivity?: number, children?: ReactNode }) {
+export function LeftRightQuestIsland({ onLeave, sensitivity, tutorial, children }: { onLeave: () => void, sensitivity?: number, tutorial?: TutorialProps, children?: ReactNode }) { // props: **no tutorial** -> **tutorial?**, mechanism: passed through Training to useTutorial
     const boxRef = useRef<HTMLDivElement>(null)
     const [size, setSize] = useState<{ w: number, h: number }>()
     useEffect(() => { stopBgm() }, [])
@@ -96,7 +109,7 @@ export function LeftRightQuestIsland({ onLeave, sensitivity, children }: { onLea
     }, [])
     return (
         <div ref={boxRef} style={{ position: 'relative', width: '100%', height: '100%', background: DOJO_WALL }}> {/* background: **BUBBLE_BG (cream)** -> **DOJO_WALL**, reason: the screen above and below the small room showed cream, mechanism: the same brown as the room's side walls, so the room sits in its walls */}
-            {size && <Training w={size.w} h={size.h} onLeave={onLeave} sensitivity={sensitivity}>{children}</Training>}
+            {size && <Training w={size.w} h={size.h} onLeave={onLeave} sensitivity={sensitivity} tutorial={tutorial}>{children}</Training>} {/* props: **no tutorial** -> **tutorial**, mechanism: Hiroko's seen / onSeen reach useTutorial */}
         </div>
     )
 }

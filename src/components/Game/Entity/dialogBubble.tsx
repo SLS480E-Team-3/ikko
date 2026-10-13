@@ -6,7 +6,8 @@ import { playLine, stopLine } from "./voice" // import: **speech (speakJa / stop
 export type Condition =
     | 'greeting' | 'default' | 'spoken' | 'quest' | 'questCleared' | 'retry'
     | `level${number}-${'start' | 'clear' | 'fail'}`
-    | `lr-${'intro' | 'word' | 'correct' | 'wrong' | 'clear' | 'fail'}` // labels: **+ lr-...** , reason: the Left or Right quest (docs/left-or-right.spec.json) has its own lines, mechanism: lr-intro / lr-clear / lr-fail are NPC talks (sceneDialog), lr-word / lr-correct / lr-wrong are read by the quest hook and shown on its sign
+    | `lr-${'intro' | 'word' | 'correct' | 'wrong' | 'clear' | 'fail'}`
+    | `tut-${'ask' | 'bye'}` | `tut-${'original' | 'dodge' | 'shoot' | 'door'}-${'touch' | 'keys'}` // labels: **+ tut-...**, reason: Hiroko's quest tutorials (docs/quest-tutorials.spec.json), mechanism: tut-ask is her first-time question, tut-bye her hand-off to Ryuuko, tut-<quest>-<touch|keys> the tutorial for one quest type and device // labels: **+ lr-...** , reason: the Left or Right quest (docs/left-or-right.spec.json) has its own lines, mechanism: lr-intro / lr-clear / lr-fail are NPC talks (sceneDialog), lr-word / lr-correct / lr-wrong are read by the quest hook and shown on its sign
 // when a Dialog is said. Island NPCs use the first five (picked by
 // pickDialog in npcRenderer.tsx). The Quest Island uses 'quest' (before the
 // quest), 'retry' and the level labels: level1-start, level2-clear,
@@ -70,6 +71,12 @@ const BUBBLE_MAX_W = 128 // BUBBLE_MAX_W: **maxWidth 120** -> **128**, mechanism
 
 const JA_FONT = 8
 const EN_FONT = JA_FONT * 0.35
+const EN_ONLY_FONT = JA_FONT * 0.6
+const EN_ONLY_MAX_W = 96
+// an English-only page (Hiroko's tutorial lines) has no Japanese above it, so
+// its English is the main text and is drawn bigger than the 0.35 translation.
+// Its bubble wraps at EN_ONLY_MAX_W instead of BUBBLE_MAX_W: English fills
+// every line, and 128 x the talk zoom (3) ran past a 375 px phone screen
 const EN_TYPE_MS = 30 // English runs ~2x longer than its kana, so it types faster
 // the English sits under the Japanese at 0.35 of its size: small enough to
 // stay secondary, readable once a talk zooms the scene in
@@ -87,7 +94,7 @@ type Page = { chars: string[], en: string[] }
 const toPages = (dialog: Dialog[]): Page[] => { // args: **(text, en)** -> **(dialog)**, mechanism: each entry's jp / en lists are paired up first, then paged the same way
     const lines = dialog.flatMap(d => { const ens = toList(d.en); return toList(d.jp).map((ja, i) => ({ ja, en: ens[i] })) })
     const pages = lines.flatMap(({ ja: line, en }) => {
-        if (line === '') return []
+        if (line === '') return en ? [{ chars: [], en: Array.from(en) }] : [] // empty jp: **skipped** -> **an English-only page when en is set**, reason: Hiroko's tutorial lines are English, mechanism: English isn't cut into PAGE_CHARS pages (it wraps), so the line rides the small en text
         const chars = Array.from(line)
         const n = Math.ceil(chars.length / PAGE_CHARS)
         return Array.from({ length: n }, (_, i) => ({
@@ -170,14 +177,14 @@ export default function DialogBubble({ x, y = 0, h, dialogs, tapId, audio, choic
                     fontSize: JA_FONT, // fontSize: **8** -> **JA_FONT**, mechanism: EN_FONT is derived from it
                     lineHeight: 1.3,
                     width: 'max-content',
-                    maxWidth: BUBBLE_MAX_W, // maxWidth: **120** -> **BUBBLE_MAX_W**, mechanism: see BUBBLE_MAX_W
+                    maxWidth: page.chars.length ? BUBBLE_MAX_W : EN_ONLY_MAX_W, // maxWidth: **BUBBLE_MAX_W** -> **EN_ONLY_MAX_W on an English-only page**, mechanism: see EN_ONLY_MAX_W // maxWidth: **120** -> **BUBBLE_MAX_W**, mechanism: see BUBBLE_MAX_W
                     overflowWrap: 'anywhere',
                 }}
             >
                 {page.chars.slice(0, cur.n).join('')}
                 <span style={{ visibility: 'hidden' }}>{page.chars.slice(cur.n).join('')}</span> {/* text: **text?.map((l,i) => l[i])** -> **typed part + hidden rest of the page**, reason: show PAGE_CHARS characters at a time, typed one by one, mechanism: the untyped rest still takes up space but isn't painted, so the bubble is sized to the whole page from the first character and doesn't grow or shift the tail while typing */}
                 {page.en.length > 0 && (
-                    <div style={{ fontSize: EN_FONT, lineHeight: 1.3 }}>
+                    <div style={{ fontSize: page.chars.length ? EN_FONT : EN_ONLY_FONT, lineHeight: 1.3 }}> {/* fontSize: **EN_FONT** -> **EN_ONLY_FONT on an English-only page**, reason: Hiroko's tutorial text was too small, mechanism: a page with no Japanese chars is English-only */}
                         {page.en.slice(0, cur.e).join('')}
                         <span style={{ visibility: 'hidden' }}>{page.en.slice(cur.e).join('')}</span>
                     </div>

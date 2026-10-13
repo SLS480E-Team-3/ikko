@@ -191,6 +191,30 @@
       "voice_id": "voice_or2upare0tjw",
       "model": "gemini-3.8-flash-tts",
       "created": "2026-09-29T09:42:24+00:00"
+    },
+    {
+      "name": "hiroko_en",
+      "profile": {
+        "language": "English",
+        "accent": "General American",
+        "gender": "female",
+        "age": "52",
+        "personality": "a mature, middle-aged mother figure, calm and warm; she reassures quietly rather than cheering",
+        "timbre": "deep, warm and full, low alto with a rich chest voice and mature weight, still clear",
+        "energy": "calm, steady warmth, softly encouraging",
+        "pitch": "low for a woman, alto range",
+        "pitch_range": "narrow to moderate, settled and grounded; phrases fall gently to a low, calm ending, no rising or sing-song endings except on real questions",
+        "speed": "slightly fast, brisk but never rushed",
+        "volume": "medium",
+        "articulation": "very clear and precise, every word distinct, model pronunciation",
+        "register": "plain, kind spoken English, simple words for beginners",
+        "pauses": "short, clean breaks between phrases",
+        "use_case": "game character, a teacher explaining how to play"
+      },
+      "description": "A 52-year-old female game character, a teacher explaining how to play voice speaking English with a General American accent; a mature, middle-aged mother figure, calm and warm; she reassures quietly rather than cheering. Timbre: deep, warm and full, low alto with a rich chest voice and mature weight, still clear; energy: calm, steady warmth, softly encouraging; pitch: low for a woman, alto range; pitch range: narrow to moderate, settled and grounded; phrases fall gently to a low, calm ending, no rising or sing-song endings except on real questions; speed: slightly fast, brisk but never rushed; volume: medium; articulation: very clear and precise, every word distinct, model pronunciation; register: plain, kind spoken English, simple words for beginners; pauses: short, clean breaks between phrases.",
+      "voice_id": "voice_11khv82n6not",
+      "model": "gemini-3.8-flash-tts",
+      "created": "2026-10-13T02:08:40+00:00"
     }
   ]
 }

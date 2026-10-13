@@ -6,6 +6,9 @@ import { useTraining, TrainingHud } from "./training"
 import { questIslandNpcs } from "../npcs/npcs"
 import { BUBBLE_BG, BUBBLE_BOARDER, BUBBLE_BORDER_W } from "../Entity/dialogBubble"
 import { QUEST_BGM, playBgm, stopBgm } from "../Entity/voice" // imports: **QUEST_BGM, playBgm** -> **+ stopBgm**, mechanism: the island track is stopped on mount // imports: **none** -> **QUEST_BGM, playBgm**, mechanism: clear / fail music in Training
+import { HIROKO_DX, useMergedTalk, useTutorial, type TutorialProps } from "./tutorial"
+// Hiroko's quest tutorial (tutorial.ts): her NPC, her choice / talk-end
+// handlers and her talk request for this quest type
 
 const TIMER_H = 8
 const HP_H = TIMER_H * 3
@@ -55,9 +58,18 @@ function Hud({ getHud }: { getHud: () => TrainingHud }) {
 // redraws, so the HUD runs its own rAF and re-reads getHud() each frame.
 // It draws in screen px over the scene, and only while a level is played
 
-function Training({ w, h, onLeave, kana, sensitivity, children }: { w: number, h: number, onLeave: () => void, kana?: string, sensitivity?: number, children?: ReactNode }) {
+function Training({ w, h, onLeave, kana, sensitivity, tutorial, children }: { w: number, h: number, onLeave: () => void, kana?: string, sensitivity?: number, tutorial?: TutorialProps, children?: ReactNode }) { // props: **no tutorial** -> **tutorial?**, mechanism: passed on to useTutorial (seen / onSeen); undefined = no account, so Hiroko asks every time
     const t = useTraining({ w, h, onLeave, kana }) // args: **no kana** -> **kana**, mechanism: the quest's kana picks the training's target
+    const tut = useTutorial('original', t.phase === 'intro', tutorial)
+    const talk = useMergedTalk(t.talkRequest, tut.talkRequest)
+    // Hiroko's tutorial is live only in 'intro'; talk is the one talkRequest
+    // GameScene gets (the training's or Hiroko's, whichever changed last).
+    // Both hooks run at the top level, never inside the JSX
     const npcs = questIslandNpcs(w, h, t.phase, t.getHud().target, t.failedLevel) // args: **(w, h, phase)** -> **+ getHud().target**, mechanism: the level target kana, so Ryuuko's intro names it // args: **no failedLevel** -> **+ t.failedLevel**, mechanism: the lost level picks Ryuuko's and Elena's level<N>-fail lines
+    const cast = t.phase === 'intro' ? [...npcs, tut.hiroko((npcs[0].ent.x ?? 0) + HIROKO_DX, npcs[0].ent.y ?? 0)] : npcs
+    // intro only: Hiroko appended as index 1 (HIROKO), HIROKO_DX px right of
+    // Ryuuko (npcs[0]); Elena is never out in 'intro', so nothing clashes
+    // (ent x / y are optional; ?? 0 matches how GameScene reads them)
     const bgm = t.phase === 'success' || t.phase === 'again' ? QUEST_BGM.clear : t.phase === 'fail' ? QUEST_BGM.fail : undefined
     useEffect(() => bgm ? playBgm(bgm) : undefined, [bgm])
     // result music: the clear track through 'success' and Ryuuko's replay
@@ -66,7 +78,7 @@ function Training({ w, h, onLeave, kana, sensitivity, children }: { w: number, h
     // playing; starting a level (or leaving) changes it to none and stops it
     return (
         <>
-            <GameScene bgProps={questBg(w, h)} npcs={npcs} onChoice={t.onChoice} onTalkEnd={t.onTalkEnd} onTick={t.onTick} renderWorld={t.renderWorld} talkRequest={t.talkRequest} moveRequest={t.moveRequest} wallY={t.wallY} playerLabel={t.playerLabel} sensitivity={sensitivity} /> {/* props: **no playerLabel** -> **t.playerLabel**, mechanism: current/quota replaces the player's name tag while a level runs */} {/* props: **no moveRequest** -> **t.moveRequest**, mechanism: a level start places the player 350px below Ryuuko */} {/* props: **no onTalkEnd** -> **t.onTalkEnd**, mechanism: Ryuuko's success talk ending switches to 'again' */} {/* props: **no wallY** -> **t.wallY**, mechanism: a line below Ryuuko the player can't cross while a level runs */}
+            <GameScene bgProps={questBg(w, h)} npcs={cast} onChoice={(n, c) => tut.onChoice(n, c) || t.onChoice(n, c)} onTalkEnd={n => tut.onTalkEnd(n) || t.onTalkEnd(n)} onTick={t.onTick} renderWorld={t.renderWorld} talkRequest={talk} moveRequest={t.moveRequest} wallY={t.wallY} playerLabel={t.playerLabel} sensitivity={sensitivity} /> {/* props: **npcs, t.onChoice, t.onTalkEnd, t.talkRequest** -> **cast with Hiroko, tut handlers first, merged talk**, mechanism: tut.onChoice / onTalkEnd return true when the event was Hiroko's, so || skips the training's (which would read npc 1 as Elena); talk carries whichever request changed last */} {/* props: **no playerLabel** -> **t.playerLabel**, mechanism: current/quota replaces the player's name tag while a level runs */} {/* props: **no moveRequest** -> **t.moveRequest**, mechanism: a level start places the player 350px below Ryuuko */} {/* props: **no onTalkEnd** -> **t.onTalkEnd**, mechanism: Ryuuko's success talk ending switches to 'again' */} {/* props: **no wallY** -> **t.wallY**, mechanism: a line below Ryuuko the player can't cross while a level runs */}
             <Hud getHud={t.getHud} />
             {(t.phase === 'success' || t.phase === 'again') && children} {/* slot: **success** -> **success / again**, mechanism: the COMPLETE button stays while Ryuuko offers a replay */}
         </>
@@ -77,7 +89,7 @@ function Training({ w, h, onLeave, kana, sensitivity, children }: { w: number, h
 // the same render she's asked to talk). children = the success slot, shown
 // only once both levels are cleared
 
-export default function QuestIsland({ onLeave, kana, sensitivity, children }: { onLeave: () => void, kana?: string, sensitivity?: number, children?: ReactNode }) { // props: **no kana** -> **kana**, mechanism: passed through Training to useTraining; undefined falls back to あ
+export default function QuestIsland({ onLeave, kana, sensitivity, tutorial, children }: { onLeave: () => void, kana?: string, sensitivity?: number, tutorial?: TutorialProps, children?: ReactNode }) { // props: **no tutorial** -> **tutorial?**, mechanism: passed through Training to useTutorial // props: **no kana** -> **kana**, mechanism: passed through Training to useTraining; undefined falls back to あ
     const boxRef = useRef<HTMLDivElement>(null)
     const [size, setSize] = useState<{ w: number, h: number }>()
     useEffect(() => { stopBgm() }, [])
@@ -92,7 +104,7 @@ export default function QuestIsland({ onLeave, kana, sensitivity, children }: { 
     }, [])
     return (
         <div ref={boxRef} style={{ position: 'relative', width: '100%', height: '100%', background: BUBBLE_BG }}>
-            {size && <Training w={size.w} h={size.h} onLeave={onLeave} kana={kana} sensitivity={sensitivity}>{children}</Training>}
+            {size && <Training w={size.w} h={size.h} onLeave={onLeave} kana={kana} sensitivity={sensitivity} tutorial={tutorial}>{children}</Training>} {/* props: **no tutorial** -> **tutorial**, mechanism: Hiroko's seen / onSeen reach useTutorial */}
         </div>
     )
 }

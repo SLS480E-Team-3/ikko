@@ -7,6 +7,9 @@ import { RYUUKO_W, RYUUKO_H, useShootTraining } from "./shootTraining" // import
 import { questIslandNpcs } from "../npcs/npcs"
 import { BUBBLE_BG, BUBBLE_BOARDER, BUBBLE_BORDER_W } from "../Entity/dialogBubble"
 import { QUEST_BGM, playBgm, stopBgm } from "../Entity/voice"
+import { HIROKO_DX, useMergedTalk, useTutorial, type TutorialProps } from "./tutorial"
+// Hiroko's quest tutorial (tutorial.ts): her NPC, her choice / talk-end
+// handlers and her talk request for this quest type
 // a copy of questIsland.tsx that runs useShootTraining and hands its onShoot
 // to GameScene; questIsland.tsx itself is untouched
 
@@ -50,18 +53,27 @@ function Hud({ getHud }: { getHud: () => TrainingHud }) {
 // questIsland.tsx's HUD: its own rAF re-reads getHud() each frame for the
 // damage flash, the cyan timer strip and the hp bar
 
-function Training({ w, h, onLeave, kana, sensitivity, children }: { w: number, h: number, onLeave: () => void, kana?: string, sensitivity?: number, children?: ReactNode }) {
+function Training({ w, h, onLeave, kana, sensitivity, tutorial, children }: { w: number, h: number, onLeave: () => void, kana?: string, sensitivity?: number, tutorial?: TutorialProps, children?: ReactNode }) { // props: **no tutorial** -> **tutorial?**, mechanism: passed on to useTutorial (seen / onSeen); undefined = no account, so Hiroko asks every time
     const t = useShootTraining({ w, h, onLeave, kana })
+    const tut = useTutorial('shoot', t.phase === 'intro', tutorial)
+    const talk = useMergedTalk(t.talkRequest, tut.talkRequest)
+    // Hiroko's tutorial is live only in 'intro'; talk is the one talkRequest
+    // GameScene gets (the training's or Hiroko's, whichever changed last).
+    // Both hooks run at the top level, never inside the JSX
     const npcs = questIslandNpcs(w, h, t.phase, t.getHud().target, t.failedLevel).map((n, i) => { // args: **(w, h, phase)** -> **+ getHud().target**, mechanism: the level target kana, so Ryuuko's intro names it // args: **no failedLevel** -> **+ t.failedLevel**, mechanism: the lost level picks Ryuuko's and Elena's level<N>-fail lines
         if (i !== 0) return n
         const x = n.ent.x
         return { ...n, ent: { ...n.ent, w: RYUUKO_W, h: RYUUKO_H, get x() { return t.getRyuukoX() ?? x } } }
     }) // Ryuuko: **fixed x** -> **getter reading getRyuukoX()**, mechanism: GameScene force()-renders every frame and reads ent.x each time (drawing, solids, camera), so the getter hands it her walking x without re-rendering Training; outside a level it falls back to npcs.ts's x // npcs: **shared cast** -> **Ryuuko (index 0) resized to 1.5x**, mechanism: a shallow copy of her ent with the new size, so npcs.ts and the original quest keep the default size
+    const cast = t.phase === 'intro' ? [...npcs, tut.hiroko((npcs[0].ent.x ?? 0) + HIROKO_DX, npcs[0].ent.y ?? 0)] : npcs
+    // intro only: Hiroko appended as index 1 (HIROKO), HIROKO_DX px right of
+    // the resized Ryuuko (her x getter falls back to npcs.ts's x outside a
+    // level); Elena is never out in 'intro'
     const bgm = t.phase === 'success' || t.phase === 'again' ? QUEST_BGM.clear : t.phase === 'fail' ? QUEST_BGM.fail : undefined
     useEffect(() => bgm ? playBgm(bgm) : undefined, [bgm])
     return (
         <>
-            <GameScene bgProps={questBg(w, h)} npcs={npcs} onChoice={t.onChoice} onTalkEnd={t.onTalkEnd} onTick={t.onTick} renderWorld={t.renderWorld} talkRequest={t.talkRequest} moveRequest={t.moveRequest} wallY={t.wallY} playerLabel={t.playerLabel} sensitivity={sensitivity} onShoot={t.onShoot} />
+            <GameScene bgProps={questBg(w, h)} npcs={cast} onChoice={(n, c) => tut.onChoice(n, c) || t.onChoice(n, c)} onTalkEnd={n => tut.onTalkEnd(n) || t.onTalkEnd(n)} onTick={t.onTick} renderWorld={t.renderWorld} talkRequest={talk} moveRequest={t.moveRequest} wallY={t.wallY} playerLabel={t.playerLabel} sensitivity={sensitivity} onShoot={t.onShoot} /> {/* props: **npcs, t.onChoice, t.onTalkEnd, t.talkRequest** -> **cast with Hiroko, tut handlers first, merged talk**, mechanism: tut.onChoice / onTalkEnd return true when the event was Hiroko's, so || skips the training's (which would read npc 1 as Elena); talk carries whichever request changed last */}
             <Hud getHud={t.getHud} />
             {(t.phase === 'success' || t.phase === 'again') && children}
         </>
@@ -72,7 +84,7 @@ function Training({ w, h, onLeave, kana, sensitivity, children }: { w: number, h
 // it fires only during a level and returns false otherwise, so Space still
 // talks outside one
 
-export function ShootQuestIsland({ onLeave, kana, sensitivity, children }: { onLeave: () => void, kana?: string, sensitivity?: number, children?: ReactNode }) {
+export function ShootQuestIsland({ onLeave, kana, sensitivity, tutorial, children }: { onLeave: () => void, kana?: string, sensitivity?: number, tutorial?: TutorialProps, children?: ReactNode }) { // props: **no tutorial** -> **tutorial?**, mechanism: passed through Training to useTutorial
     const boxRef = useRef<HTMLDivElement>(null)
     const [size, setSize] = useState<{ w: number, h: number }>()
     useEffect(() => { stopBgm() }, [])
@@ -84,7 +96,7 @@ export function ShootQuestIsland({ onLeave, kana, sensitivity, children }: { onL
     }, [])
     return (
         <div ref={boxRef} style={{ position: 'relative', width: '100%', height: '100%', background: BUBBLE_BG }}>
-            {size && <Training w={size.w} h={size.h} onLeave={onLeave} kana={kana} sensitivity={sensitivity}>{children}</Training>}
+            {size && <Training w={size.w} h={size.h} onLeave={onLeave} kana={kana} sensitivity={sensitivity} tutorial={tutorial}>{children}</Training>} {/* props: **no tutorial** -> **tutorial**, mechanism: Hiroko's seen / onSeen reach useTutorial */}
         </div>
     )
 }

@@ -121,11 +121,12 @@ Lines are not written in `npcs.ts`.
 | `kana` (optional) | The kana an island NPC's quest trains |
 | `dialog[].condition` | One label, or a list of labels that share the same lines |
 | `dialog[].choices` (optional) | `[kana, english]` answer buttons under the last line |
-| `lines[].kana` | Shown on screen. Hiragana/katakana (no furigana yet), 15 characters or fewer, so it fits one bubble page |
+| `lines[].kana` | Shown on screen. Hiragana/katakana (no furigana yet), 15 characters or fewer, so it fits one bubble page. Optional for an English-only line (see below) |
 | `lines[].text` | The same line in kanji (the TTS reads kanji more accurately). The mp3 name comes from it. Left out = the line is silent |
-| `lines[].en` | English typed under the line |
+| `lines[].en` | English typed under the line. A line needs `kana`, `en` or both |
 | `lines[].style` (optional) | The mood of this one line for the TTS, e.g. `teasing, quiet`. Age, gender and accent belong in the voice profile |
 
+- **English-only lines** (Hiroko, `hiroko_en.json`): leave `kana` out and put the English in `en` (shown in the small text, which wraps; the big line is cut every 15 characters, which would split words). `text` is the same English for the TTS; keep apostrophes out of it so the mp3 names stay plain.
 - There is no x / y: island NPCs get their spot from `placeNpcs`, Quest Island NPCs from `questIslandNpcs`.
 - **mp3 name:** `text` with `！ ! 、 , 〜 ~ 。 . ／ /` and spaces dropped, `？` kept (`またお寿司の話しよ！` → `またお寿司の話しよ.mp3`). `audioName()` in `toNPCProps.ts` and `audio_name()` in `python/gemini_tts.py` are the same rule. A missing file = the line stays silent.
 - **`{target}`** in `kana` / `en` is replaced by the quest's kana (Ryuuko's intro). In `text` it cuts the line into pieces: `今回のお題は{target}` is rendered as `今回のお題は.mp3`, and in the game the line plays that clip and then the kana's own clip (`ryuuko/あ.mp3`), one after the other. A piece must be 3 characters or more, or its mp3 would replace a kana clip (`dialog.py render` stops). With no `text`, the line is silent.
@@ -148,6 +149,8 @@ Lines are not written in `npcs.ts`.
 | `lr-intro` | — | Left or Right quest: Ryuuko's rules + start offer (`intro`, `again`) |
 | `lr-word` | — | Left or Right: read when a word appears, `{target}` = the verb (shown on the sign, not a bubble) |
 | `lr-correct` / `lr-wrong` | — | Left or Right: after a door (shown on the sign) |
+| `tut-ask` / `tut-bye` | — | Hiroko (quest tutorials): her first-time question (はい / いいえ) / the hand-off to Ryuuko |
+| `tut-<original\|dodge\|shoot\|door>-<touch\|keys>` | — | Hiroko: the tutorial for one quest type, touch (screen under 768 px) or keys |
 | `lr-clear` / `lr-fail` | — | Left or Right: 10 correct (`success`) / 0 HP (`fail`); Elena shares her level2-clear / fail lines |
 
 The Left or Right quest (`docs/left-or-right.spec.json`) reads `lr-word` / `lr-correct` / `lr-wrong` itself with `toDialogs` and plays them while Ryuuko is off screen. Its 14 verb clips (`ryuuko/<verb>.mp3`, the `{target}` clip) come from `python/dialogs/ryuuko_verbs.yaml`.

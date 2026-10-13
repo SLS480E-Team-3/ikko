@@ -1,6 +1,6 @@
 {
   "$schema": "./.claude/spec.schema.json",
-  "status": "draft",
+  "status": "clear",
   "title": "Quest tutorials",
   "idea": "Before each quest, a new NPC, Hiroko, stands next to Ryuuko and explains that quest type in dialog.",
   "glossary": [
@@ -194,6 +194,12 @@
       "id": "D-19",
       "date": "2026-10-12",
       "decision": "Hiroko's last line points the player to Ryuuko, after the tutorial or a no."
+    },
+    {
+      "id": "D-20",
+      "date": "2026-10-12",
+      "decision": "Hiroko's English lines are shown as the small English text (en) with no kana line.",
+      "reason": "The bubble cuts the big line into 15-character pages, which would split English words; en wraps instead."
     }
   ],
   "assumptions": [],

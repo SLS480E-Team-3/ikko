@@ -7,6 +7,9 @@ import { PLAYER_GAP, center, useDodgeTraining } from "./dodgeTraining"
 import { questIslandNpcs } from "../npcs/npcs"
 import { BUBBLE_BG, BUBBLE_BOARDER, BUBBLE_BORDER_W } from "../Entity/dialogBubble"
 import { QUEST_BGM, playBgm, stopBgm } from "../Entity/voice"
+import { HIROKO_DX, useMergedTalk, useTutorial, type TutorialProps } from "./tutorial"
+// Hiroko's quest tutorial (tutorial.ts): her NPC, her choice / talk-end
+// handlers and her talk request for this quest type
 // a copy of questIsland.tsx for the dodging quest: a square island, Ryuuko
 // and Elena at its center, no wall. questIsland.tsx itself is untouched
 
@@ -50,18 +53,26 @@ function Hud({ getHud }: { getHud: () => TrainingHud }) {
 // questIsland.tsx's HUD: its own rAF re-reads getHud() each frame for the
 // damage flash, the cyan timer strip and the hp bar
 
-function Training({ w, h, onLeave, kana, sensitivity, children }: { w: number, h: number, onLeave: () => void, kana?: string, sensitivity?: number, children?: ReactNode }) {
+function Training({ w, h, onLeave, kana, sensitivity, tutorial, children }: { w: number, h: number, onLeave: () => void, kana?: string, sensitivity?: number, tutorial?: TutorialProps, children?: ReactNode }) { // props: **no tutorial** -> **tutorial?**, mechanism: passed on to useTutorial (seen / onSeen); undefined = no account, so Hiroko asks every time
     const t = useDodgeTraining({ w, h, onLeave, kana })
+    const tut = useTutorial('dodge', t.phase === 'intro', tutorial)
+    const talk = useMergedTalk(t.talkRequest, tut.talkRequest)
+    // Hiroko's tutorial is live only in 'intro'; talk is the one talkRequest
+    // GameScene gets (the training's or Hiroko's, whichever changed last).
+    // Both hooks run at the top level, never inside the JSX
     const c = center(w, h)
     const npcs = questIslandNpcs(w, h, t.phase, t.getHud().target, t.failedLevel).map(n => ({ ...n, ent: { ...n.ent, y: c.y } })) // args: **(w, h, phase)** -> **+ getHud().target**, mechanism: the level target kana, so Ryuuko's intro names it // args: **no failedLevel** -> **+ t.failedLevel**, mechanism: the lost level picks Ryuuko's and Elena's level<N>-fail lines
     // the shared cast moved to the center row: a shallow copy of each ent
     // with y = h / 2, so npcs.ts keeps its throwSpot y for the other quests.
     // x is untouched, so Ryuuko stays at w / 2 (+40 in fail) and Elena beside her
+    const cast = t.phase === 'intro' ? [...npcs, tut.hiroko((npcs[0].ent.x ?? 0) + HIROKO_DX, npcs[0].ent.y ?? 0)] : npcs
+    // intro only: Hiroko appended as index 1 (HIROKO), HIROKO_DX px right of
+    // Ryuuko on her remapped center-row y; Elena is never out in 'intro'
     const bgm = t.phase === 'success' || t.phase === 'again' ? QUEST_BGM.clear : t.phase === 'fail' ? QUEST_BGM.fail : undefined
     useEffect(() => bgm ? playBgm(bgm) : undefined, [bgm])
     return (
         <>
-            <GameScene bgProps={{ ...questBg(w, h), y: c.y + PLAYER_GAP }} npcs={npcs} onChoice={t.onChoice} onTalkEnd={t.onTalkEnd} onTick={t.onTick} renderWorld={t.renderWorld} talkRequest={t.talkRequest} moveRequest={t.moveRequest} playerLabel={t.playerLabel} sensitivity={sensitivity} />
+            <GameScene bgProps={{ ...questBg(w, h), y: c.y + PLAYER_GAP }} npcs={cast} onChoice={(n, c) => tut.onChoice(n, c) || t.onChoice(n, c)} onTalkEnd={n => tut.onTalkEnd(n) || t.onTalkEnd(n)} onTick={t.onTick} renderWorld={t.renderWorld} talkRequest={talk} moveRequest={t.moveRequest} playerLabel={t.playerLabel} sensitivity={sensitivity} /> {/* props: **npcs, t.onChoice, t.onTalkEnd, t.talkRequest** -> **cast with Hiroko, tut handlers first, merged talk**, mechanism: tut.onChoice / onTalkEnd return true when the event was Hiroko's, so || skips the training's (which would read npc 1 as Elena); talk carries whichever request changed last */}
             <Hud getHud={t.getHud} />
             {(t.phase === 'success' || t.phase === 'again') && children}
         </>
@@ -71,7 +82,7 @@ function Training({ w, h, onLeave, kana, sensitivity, children }: { w: number, h
 // player can walk anywhere; bgProps.y (the player's spawn / camera start) is
 // PLAYER_GAP below Ryuuko instead of questBg's tall-island default
 
-export function DodgeQuestIsland({ onLeave, kana, sensitivity, children }: { onLeave: () => void, kana?: string, sensitivity?: number, children?: ReactNode }) {
+export function DodgeQuestIsland({ onLeave, kana, sensitivity, tutorial, children }: { onLeave: () => void, kana?: string, sensitivity?: number, tutorial?: TutorialProps, children?: ReactNode }) { // props: **no tutorial** -> **tutorial?**, mechanism: passed through Training to useTutorial
     const boxRef = useRef<HTMLDivElement>(null)
     const [size, setSize] = useState<{ w: number, h: number }>()
     useEffect(() => { stopBgm() }, [])
@@ -82,7 +93,7 @@ export function DodgeQuestIsland({ onLeave, kana, sensitivity, children }: { onL
     }, [])
     return (
         <div ref={boxRef} style={{ position: 'relative', width: '100%', height: '100%', background: BUBBLE_BG }}>
-            {size && <Training w={size.w} h={size.h} onLeave={onLeave} kana={kana} sensitivity={sensitivity}>{children}</Training>}
+            {size && <Training w={size.w} h={size.h} onLeave={onLeave} kana={kana} sensitivity={sensitivity} tutorial={tutorial}>{children}</Training>} {/* props: **no tutorial** -> **tutorial**, mechanism: Hiroko's seen / onSeen reach useTutorial */}
         </div>
     )
 }

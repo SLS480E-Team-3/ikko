@@ -9,16 +9,26 @@ export type QuestSceneProps = {
     islandId: number
     quest: { id: number, title: string, reward_points: number, kana: string | null } // quest: **no kana** -> **+ kana**, mechanism: handed to QuestIsland as the training target
     cleared: boolean
+    tutorialSeen: boolean
+    // whether Hiroko already asked this player about the catch quest's
+    // tutorial (a user_tutorials row for 'original')
 }
 // what the quest page loaded: the quest itself and whether this player
 // already cleared it. The page (server) checks access and records the
 // start/resume; the scene (client) only renders
 
-export default function QuestScene({ islandId, quest, cleared }: QuestSceneProps) {
+export default function QuestScene({ islandId, quest, cleared, tutorialSeen }: QuestSceneProps) { // params: **no tutorialSeen** -> **+ tutorialSeen**, mechanism: passed on to QuestIsland as tutorial.seen
     const router = useRouter()
     return (
         <div style={{ position: 'relative', width: '100%', height: '100lvh' }}> {/* wrapper: **BUBBLE_BG** -> **no bg**, mechanism: QuestIsland fills this box with the bubble color itself and measures it for the 2x island */}
-            <QuestIsland onLeave={() => router.push(`/Game/${islandId}`)} kana={quest.kana ?? undefined}> {/* props: **no kana** -> **kana**, mechanism: a quest without a kana trains あ */}
+            <QuestIsland
+                onLeave={() => router.push(`/Game/${islandId}`)}
+                kana={quest.kana ?? undefined}
+                tutorial={{
+                    seen: tutorialSeen,
+                    onSeen: () => { fetch('/api/Tutorial', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'original' }) }).catch(() => {}) },
+                }}
+            > {/* props: **no kana** -> **kana**, mechanism: a quest without a kana trains あ; props: **no tutorial** -> **tutorial**, mechanism: onSeen records the answer in user_tutorials via /api/Tutorial, fire-and-forget so a failed save never blocks the run (she just asks again next time) */}
                 {!cleared && <div style={{ position: 'absolute', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 3 }}><QuestComplete quest={quest.id} points={quest.reward_points} /></div>}
             </QuestIsland>
             {/* scene: **<GameScene QUEST_BG> + onQuest** -> **<QuestIsland> + onLeave**, mechanism: Elena's はい on the fail screen goes back to the island; the children are the success slot, so COMPLETE shows only after both levels are cleared */}
