@@ -24,24 +24,21 @@ import {
     PIXEL_10_PRO_SCREEN,
     XIAOMI_15_PRO_SCREEN,
 } from "@/utils/mobileScreenSIze"
-import { CSSProperties, ReactNode, useEffect, useState, useSyncExternalStore } from "react" // imports: **+ useSyncExternalStore** -> **+ useEffect**, mechanism: IslandPreview starts the island BGM // imports: **useState** -> **+ useSyncExternalStore**, mechanism: see mounted
-import { ISLAND_BGM, playBgm } from "@/components/Game/Entity/voice" // imports: **none** -> **ISLAND_BGM, playBgm**, mechanism: same track table and player as IslandScene
-import GameScene, { BG_W, BG_H, SceneNPC, objectHitBoxes, SENSITIVITY_DEF, ISLAND_COUNT, islandBg } from "@/components/Game/Scene/gameScene" // imports: **+ QUEST_BG** -> **removed**, mechanism: the quest island is QuestIsland now, which sizes its own bg // imports: **default only** -> **+ BG_W, BG_H, SceneNPC, objectHitBoxes, SENSITIVITY_DEF**, mechanism: places the test NPCs around the player spawn (world center), clear of the map's object hitBoxes; SENSITIVITY_DEF seeds the sensitivity input (moved here with the MobileGameScene merge)
+import { CSSProperties, ReactNode, useState, useSyncExternalStore } from "react" // imports: **+ useSyncExternalStore** -> **+ useEffect**, mechanism: IslandPreview starts the island BGM // imports: **useState** -> **+ useSyncExternalStore**, mechanism: see mounted // imports: **+ useEffect** -> **removed**, mechanism: IslandPreview (its only user) moved to Scene/islandPreview.tsx
+import GameScene, { BG_W, BG_H, SceneNPC, objectHitBoxes, SENSITIVITY_DEF } from "@/components/Game/Scene/gameScene" // imports: **+ QUEST_BG** -> **removed**, mechanism: the quest island is QuestIsland now, which sizes its own bg // imports: **default only** -> **+ BG_W, BG_H, SceneNPC, objectHitBoxes, SENSITIVITY_DEF**, mechanism: places the test NPCs around the player spawn (world center), clear of the map's object hitBoxes; SENSITIVITY_DEF seeds the sensitivity input (moved here with the MobileGameScene merge) // imports: **+ ISLAND_COUNT, islandBg** -> **removed**, mechanism: see IslandPreview
 import SignUpPage from "@/app/SignUp/page"
 import LogInPage from "@/app/LogIn/page"
 import InfoRecovery from "@/app/InfoRecovery/page"
 import EditInfo from "@/app/EditInfo/page"
 import { ISLAND_MAPS } from "@/components/Game/islands"
-import { BUBBLE_BG } from "@/components/Game/Entity/dialogBubble"
 import NPCRenderer from "@/components/Game/Entity/npcRenderer"
-import { ISLAND_1_NPC, npcsForRow } from "@/components/Game/npcs/npcs" // imports: **ISLAND_1_NPC** -> **+ npcsForRow**, mechanism: the preview moves the NPCs to the chosen kana row // imports: **+ QUEST_ISLAND_NPC** -> **ISLAND_1_NPC**, mechanism: QuestIsland builds its own NPCs from the training phase
+import { ISLAND_1_NPC } from "@/components/Game/npcs/npcs" // imports: **ISLAND_1_NPC** -> **+ npcsForRow**, mechanism: the preview moves the NPCs to the chosen kana row // imports: **+ QUEST_ISLAND_NPC** -> **ISLAND_1_NPC**, mechanism: QuestIsland builds its own NPCs from the training phase // imports: **+ npcsForRow** -> **removed**, mechanism: see IslandPreview
 import QuestIsland from "@/components/Game/Scene/questIsland"
 import { ShootQuestIsland } from "@/components/Game/Scene/shootQuestIsland" // imports: **none** -> **ShootQuestIsland**, mechanism: the quest island copy with shooting, for its own tab
 import { LeftRightQuestIsland } from "@/components/Game/Scene/leftRightQuestIsland" // imports: **none** -> **LeftRightQuestIsland**, mechanism: the Left or Right door quest, for its own tab
 import { DodgeQuestIsland } from "@/components/Game/Scene/dodgeQuestIsland" // imports: **none** -> **DodgeQuestIsland**, mechanism: the square dodging-quest island, for its own tab
-import { ISLAND_NPCS } from "@/components/Game/npcs" // imports: **none** -> **ISLAND_NPCS**, mechanism: seeded per-island NPC spots for IslandPreview // imports: **none** -> **ISLAND_1_NPC**, mechanism: see the game scene page
 import EntityRenderer, { ENT_H, ENT_W } from "@/components/Game/Entity/entityRenderer" // imports: **ENT_H** -> **ENT_H, ENT_W**, mechanism: the hard-coded 12 px width below follows the shared entity width
-import { KANA_ROWS } from "@/components/Game/kana"
+import IslandPreview from "@/components/Game/Scene/islandPreview" // imports: **none** -> **IslandPreview**, mechanism: moved out of this file so /Dev can use it
 // imports: **none** -> **KANA_ROWS**, mechanism: bounds and labels for the row buttons
 
 const PHONES: { label: string; screen: CSSProperties }[] = [
@@ -68,7 +65,7 @@ const PHONES: { label: string; screen: CSSProperties }[] = [
 ]
 
 const PAGES: { label: string; page: (sensitivity: number) => ReactNode }[] = [ // type: **page: ReactNode** -> **page: (sensitivity) => ReactNode**, reason: the sensitivity input must reach GameScene, mechanism: a prebuilt element is frozen with its props, so each page is built at render time from the current input
-    { label: 'game scene', page: (s) => <IslandPreview sensitivity={s} /> }, // page: **<GameScene island 1>** -> **<IslandPreview>**, mechanism: same scene wrapped with prev/next island buttons // npcs: **TEST_NPCS** -> **ISLAND_1_NPC**, reason: test the real island 1 NPCs without logging in to /Game, mechanism: the same list IslandScene passes for island 1
+    { label: 'game scene', page: (s) => <IslandPreview sensitivity={s} /> }, // source: **IslandPreview defined in this file** -> **imported from Scene/islandPreview.tsx**, reason: /Dev?Island=N shows it full-screen too, mechanism: a page file can only export its default, so the component moved out // page: **<GameScene island 1>** -> **<IslandPreview>**, mechanism: same scene wrapped with prev/next island buttons // npcs: **TEST_NPCS** -> **ISLAND_1_NPC**, reason: test the real island 1 NPCs without logging in to /Game, mechanism: the same list IslandScene passes for island 1
     { label: 'quest island', page: (s) => <QuestIsland sensitivity={s} onLeave={() => alert('back to island')} /> }, // page: **<GameScene QUEST_BG>** -> **<QuestIsland>**, mechanism: the 2x-screen bordered island with Ryuuko's training; Elena's はい on the fail screen runs onLeave
     { label: 'quest shoot', page: (s) => <ShootQuestIsland sensitivity={s} onLeave={() => alert('back to island')} /> }, // pages: **no quest shoot** -> **quest shoot tab**, mechanism: same quest island, but Space / a tap (or a second finger while the stick is held) fires red 5x8 bullets during a level
     { label: 'quest dodge', page: (s) => <DodgeQuestIsland sensitivity={s} onLeave={() => alert('back to island')} /> }, // tabs: **no quest dodge** -> **quest dodge tab**, mechanism: a square island (screen height x screen height) with Ryuuko at the center, no wall, blocks flying in from all 4 edges
@@ -128,52 +125,6 @@ const TEST_NPCS: SceneNPC[] = npcSpots.map((n, i) => ({ // spots: **fixed ±60 /
 // four entities at random spots near the player spawn (world center);
 // module-level so the array is the same every render. Bubbles can overlap
 // now that they're close, but only NPCs near the player show one
-
-function IslandPreview({ sensitivity }: { sensitivity: number }) {
-    const [island, setIsland] = useState(1)
-    const [row, setRow] = useState(0)
-    // the kana row the NPCs offer (0 = あ–お): with no login there's no quest
-    // progress, so the row buttons stand in for clearing a row
-    const npcs = npcsForRow(ISLAND_NPCS[island] ?? [], row)
-    const [inQuest, setInQuest] = useState<string | false>(false) // inQuest: **boolean** -> **kana | false**, mechanism: holds the kana of the NPC whose quest was accepted
-    const btn: CSSProperties = { padding: '8px 12px' }
-    useEffect(() => {
-        const url = inQuest ? undefined : ISLAND_BGM[island]
-        return url ? playBgm(url) : undefined
-    }, [island, inQuest])
-    // same island BGM as IslandScene: it loops while the island is shown and
-    // stops for the quest island, like the real game leaving for a quest page.
-    // Placed above the early return so the hook order never changes
-    if (inQuest) return (
-        <div style={{ position: 'relative', width: '100%', height: '100%', background: BUBBLE_BG }}>
-            <QuestIsland key={`quest-${island}`} kana={inQuest} sensitivity={sensitivity} onLeave={() => setInQuest(false)} /> {/* scene: **<GameScene QUEST_BG>** -> **<QuestIsland>**, mechanism: same training island as the tab; onLeave returns to the island in place */}
-            {/* <span style={{ position: 'absolute', top: 16, left: 16, zIndex: 2 }}>quest island (from island {island})</span> */} {/* label: **shown** -> **commented out**, mechanism: hidden for now; uncomment to show which island the quest came from */}
-        </div>
-    )
-    // Shuto's はい swaps in the Quest Island, Kaeru's はい swaps back to the
-    // same island: the no-login stand-in for QuestScene's router.push
-    return (
-        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-            <GameScene key={`${island}-${row}`} sensitivity={sensitivity} bgProps={islandBg(island)} objects={ISLAND_MAPS[island] ?? []} npcs={npcs} onQuest={i => setInQuest(npcs[i]?.kana ?? 'あ')} /> {/* npcs: **ISLAND_NPCS[island]** -> **npcsForRow(..., row)**, mechanism: kana and quest line follow the row; key: **island** -> **island-row**, mechanism: remounts GameScene so the new NPC lines show */} {/* onQuest: **setInQuest(true)** -> **setInQuest(npc kana)**, mechanism: the training targets the kana of the NPC that asked */} {/* onQuest: **alert** -> **setInQuest(true)**, mechanism: はい renders the Quest Island in place instead of only alerting */}
-            <div style={{ position: 'absolute', bottom: 64, left: 16, right: 16, zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', pointerEvents: 'none' }}>
-                <button style={{ ...btn, pointerEvents: 'auto' }} disabled={row <= 0} onClick={() => setRow(r => Math.max(0, r - 1))}>◀ row</button>
-                <span>row {KANA_ROWS[row].join('')}</span>
-                <button style={{ ...btn, pointerEvents: 'auto' }} disabled={row >= KANA_ROWS.length - 1} onClick={() => setRow(r => Math.min(KANA_ROWS.length - 1, r + 1))}>row ▶</button>
-            </div>
-            {/* kana row switcher, one line above the island buttons: same
-                layout, steps row through KANA_ROWS */}
-            <div style={{ position: 'absolute', bottom: 16, left: 16, right: 16, zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', pointerEvents: 'none' }}>
-                <button style={{ ...btn, pointerEvents: 'auto' }} disabled={island <= 1} onClick={() => setIsland(i => Math.max(1, i - 1))}>◀ prev</button>
-                <span>island {island}</span>
-                <button style={{ ...btn, pointerEvents: 'auto' }} disabled={island >= ISLAND_COUNT} onClick={() => setIsland(i => Math.min(ISLAND_COUNT, i + 1))}>next ▶</button>
-            </div>
-        </div>
-    )
-}
-// island traversal without login: the same buttons /Game shows as links,
-// but switching in place. key={island} remounts GameScene so the new
-// bg color and spawn take effect (it reads them once at mount); islands
-// without a map file get an empty field
 
 function BubblePreview() {
     const spots = [
