@@ -6,6 +6,7 @@ import { playLine, stopLine } from "./voice" // import: **speech (speakJa / stop
 export type Condition =
     | 'greeting' | 'default' | 'spoken' | 'quest' | 'questCleared' | 'retry'
     | `level${number}-${'start' | 'clear' | 'fail'}`
+    | `lr-${'intro' | 'word' | 'correct' | 'wrong' | 'clear' | 'fail'}` // labels: **+ lr-...** , reason: the Left or Right quest (docs/left-or-right.spec.json) has its own lines, mechanism: lr-intro / lr-clear / lr-fail are NPC talks (sceneDialog), lr-word / lr-correct / lr-wrong are read by the quest hook and shown on its sign
 // when a Dialog is said. Island NPCs use the first five (picked by
 // pickDialog in npcRenderer.tsx). The Quest Island uses 'quest' (before the
 // quest), 'retry' and the level labels: level1-start, level2-clear,

@@ -1,0 +1,261 @@
+{
+  "$schema": "../.claude/spec.schema.json",
+  "status": "clear",
+  "title": "Quest: Left or Right",
+  "idea": "A dojo quest where a target word hangs on a sign and the player walks through the red or blue door whose English meaning matches it, 10 words, 3 HP.",
+  "glossary": [
+    {
+      "term": "target word",
+      "meaning": "The Japanese word being asked, shown on the sign (e.g. 食べる)."
+    },
+    {
+      "term": "sign",
+      "meaning": "A box at the top of the screen that shows the current target word while a run is going."
+    },
+    {
+      "term": "door",
+      "meaning": "One of two doors below the sign: red on the left, blue on the right. Each carries one English meaning."
+    },
+    {
+      "term": "correct door",
+      "meaning": "The door whose English meaning matches the target word. Exactly one of the two."
+    },
+    {
+      "term": "HP",
+      "meaning": "Hit points. Starts at 3; a wrong door costs 1."
+    },
+    {
+      "term": "question",
+      "meaning": "One target word plus its two doors. A run has 10."
+    },
+    {
+      "term": "decoy",
+      "meaning": "The wrong English meaning on the other door."
+    },
+    {
+      "term": "word pool",
+      "meaning": "14 verbs: 食べる, 飲む, 行く, 来る, 見る, 寝る, 買う, 待つ (Island 1 lesson 10) plus 歩く, 話す, 聞く, 読む, 書く, 起きる. A run picks 10."
+    },
+    {
+      "term": "far decoy",
+      "meaning": "A wrong meaning from an unrelated action (to eat vs to sleep). Used in questions 1-5."
+    },
+    {
+      "term": "close decoy",
+      "meaning": "A wrong meaning that is the right one's partner: come/go, read/write, see/hear, walk/talk, eat/drink. Used in questions 6-10."
+    },
+    {
+      "term": "hallway",
+      "meaning": "The quest's scene: one small wooden room as wide as the door row, with the doors in its back wall."
+    }
+  ],
+  "features": [
+    {
+      "id": "F-1",
+      "name": "Sign",
+      "whatItDoes": "Shows the target word in a box fixed at the top of the screen while a run is going.",
+      "details": [
+        "Shows the target word in kanji with its romaji under it (e.g. 食べる / taberu)",
+        "Ryuuko's in-run lines (correct / wrong / per-word) show briefly as text on the sign while her voice plays"
+      ]
+    },
+    {
+      "id": "F-2",
+      "name": "Two doors",
+      "whatItDoes": "Red (left) and blue (right), each labelled with an English meaning; one is correct.",
+      "details": [
+        "The correct answer is on the red or blue door at random each question",
+        "The player chooses by walking into a door; the doors are one row, used for every question",
+        "Correct (questions 1-9): black screen, back to the start of the hall, walk up again to the next word",
+        "Correct (10th): black screen, then the player is back at the spawn with Ryuuko and Elena in front",
+        "Wrong: lose 1 HP, the door stays shut and the player is bounced back in front of it, same word again"
+      ]
+    },
+    {
+      "id": "F-3",
+      "name": "HP",
+      "whatItDoes": "Max 3 HP; a wrong answer takes 1.",
+      "details": [
+        "0 HP = fail, then the existing quests' give-up / retry flow",
+        "No time limit"
+      ]
+    },
+    {
+      "id": "F-4",
+      "name": "Question set",
+      "whatItDoes": "10 questions per run.",
+      "details": [
+        "The 10 counts correct answers; clearing all 10 = clear",
+        "One run only, no levels: 10 of the 14 pool verbs, so runs differ",
+        "Questions 1-5 use a far decoy, questions 6-10 a close decoy"
+      ]
+    },
+    {
+      "id": "F-5",
+      "name": "Door room",
+      "whatItDoes": "One small wooden room with the dojo walls, exactly as wide as the two doors (side by side, nothing between them, no floor at the sides); the doors stand fully in the back wall.",
+      "details": [
+        "Ryuuko stands right in front of the player at the start; talking to her starts the run",
+        "After a clear she stands in front of the player again (the 'next room'); after a fail she comes to the player",
+        "Scene notes: docs/scenes/hallway.md"
+      ]
+    },
+    {
+      "id": "F-6",
+      "name": "Voice and dialogs",
+      "whatItDoes": "Ryuuko hosts the quest; her lines live in ryuuko.json and are voiced.",
+      "details": [
+        "Each new target word is read aloud when it appears on the sign (one mp3 per verb)",
+        "Ryuuko has lines for: start / rules, correct, wrong, clear, fail, and a {target} line for each word",
+        "Ryuuko is not on screen during the run"
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "Play a run",
+      "steps": [
+        "Player spawns at the bottom of the room with Ryuuko right in front; talking to her gives the start / rules line, はい starts",
+        "Ryuuko leaves; the sign above the doors shows target word 1 (kanji + romaji) and its reading plays with her {target} line",
+        "Two doors show English meanings: red left, blue right",
+        "Player walks up the room into one door",
+        "Correct: Ryuuko's correct line, black screen, player back at the start of the hall, next word",
+        "Wrong: lose 1 HP, Ryuuko's wrong line, bounced back in front of the doors, same word again",
+        "After the 10th correct answer: black screen, the player comes back out at the spawn with Ryuuko and Elena in front (clear lines)",
+        "At 0 HP: Ryuuko and Elena come to the player; fail line and the give-up / retry choice"
+      ]
+    }
+  ],
+  "examples": [
+    {
+      "situation": "Target 食べる; red: to eat, blue: to sleep. Player takes red.",
+      "whatHappens": "Correct; the next target word appears."
+    },
+    {
+      "situation": "Target 歩く; red: to walk, blue: to talk. Player takes blue.",
+      "whatHappens": "Wrong; player loses 1 HP, Ryuuko's wrong line shows on the sign, and 歩く comes back."
+    },
+    {
+      "situation": "Player has 1 HP left and walks into the wrong door.",
+      "whatHappens": "HP hits 0; Ryuuko's fail line plays and the give-up / retry choice appears."
+    }
+  ],
+  "leftOut": [
+    "Time limit",
+    "Level 1 / level 2",
+    "Ryuuko standing in the dojo during the questions",
+    "Tapping doors to choose"
+  ],
+  "decisions": [
+    {
+      "id": "D-1",
+      "date": "2026-10-12",
+      "decision": "Max HP 3, 10 questions per run, red door left and blue door right, dojo-style scene. Replaces #54's earlier corridor/spike-wall idea."
+    },
+    {
+      "id": "D-2",
+      "date": "2026-10-12",
+      "decision": "Target words are verbs: Island 1 lesson 10's easy verbs plus a few more (e.g. 歩く, 話す)."
+    },
+    {
+      "id": "D-3",
+      "date": "2026-10-12",
+      "decision": "Difficulty rises by making the decoy closer to the answer as the run goes on."
+    },
+    {
+      "id": "D-4",
+      "date": "2026-10-12",
+      "decision": "The sign shows kanji + romaji (no furigana)."
+    },
+    {
+      "id": "D-5",
+      "date": "2026-10-12",
+      "decision": "One run of 10 questions, no level 1 / level 2."
+    },
+    {
+      "id": "D-6",
+      "date": "2026-10-12",
+      "decision": "Each new target word is voiced when it appears."
+    },
+    {
+      "id": "D-7",
+      "date": "2026-10-12",
+      "decision": "Ryuuko hosts; new lines go in ryuuko.json."
+    },
+    {
+      "id": "D-8",
+      "date": "2026-10-12",
+      "decision": "Spoken lines at: start / rules, correct / wrong, clear / fail, and a per-word {target} line."
+    },
+    {
+      "id": "D-9",
+      "date": "2026-10-12",
+      "decision": "Ryuuko is not on screen while the run is going."
+    },
+    {
+      "id": "D-10",
+      "date": "2026-10-12",
+      "decision": "In-run lines are voiced and shown briefly as text on the sign."
+    },
+    {
+      "id": "D-11",
+      "date": "2026-10-12",
+      "decision": "The player chooses by walking into a door."
+    },
+    {
+      "id": "D-12",
+      "date": "2026-10-12",
+      "decision": "A wrong door costs 1 HP and repeats the same word; 10 means 10 correct answers."
+    },
+    {
+      "id": "D-13",
+      "date": "2026-10-12",
+      "decision": "No time limit; 0 HP = fail with the existing give-up / retry flow, 10 correct = clear."
+    },
+    {
+      "id": "D-14",
+      "date": "2026-10-12",
+      "decision": "Word pool is 14 verbs (8 easy verbs + 歩く, 話す, 聞く, 読む, 書く, 起きる); a run picks 10."
+    },
+    {
+      "id": "D-15",
+      "date": "2026-10-12",
+      "decision": "Questions 1-5 have a far decoy, 6-10 a close decoy (partner pairs)."
+    },
+    {
+      "id": "D-16",
+      "date": "2026-10-12",
+      "decision": "The correct door is red or blue at random each question."
+    },
+    {
+      "id": "D-17",
+      "date": "2026-10-12",
+      "decision": "Scene changed from the dojo room to a long wooden hallway as wide as the two doors (small post between, no side space). One door row for every question; correct -> back to the hall start; wrong -> bounced back in front of the doors; 10th correct -> doors open and the player walks through to Ryuuko; fail -> Ryuuko comes to the player. Ryuuko stands in front of the player at the start.",
+      "reason": "Replaces the dojo part of D-1 and F-5."
+    },
+    {
+      "id": "D-18",
+      "date": "2026-10-12",
+      "decision": "A solid wall behind the doors partitions the hall from the end room. Going through a correct door fades to a black screen and moves the player while black: back to the hall start (Q1-9), or into the end room below Ryuuko (10th, her clear talk opens). The doors never open.",
+      "reason": "Replaces the walk-through on clear from D-17."
+    },
+    {
+      "id": "D-19",
+      "date": "2026-10-12",
+      "decision": "The hall shrinks to one room (552 px, about one screen) with the doors at the foot of the back wall; no partition and no end room. After the 10th correct door the player comes back out at the spawn (the 'next room' is the same room) with Ryuuko and Elena in front of them.",
+      "reason": "Replaces the partition / end room of D-18; the black-screen transition stays."
+    },
+    {
+      "id": "D-20",
+      "date": "2026-10-12",
+      "decision": "No post between the doors (they touch); the doors stand fully in the back wall; the word sign moves to a fixed box at the top of the screen.",
+      "reason": "Replaces 'sign above each row' (no room on the wall once the doors fill it)."
+    }
+  ],
+  "assumptions": [
+    {
+      "statement": "Pool verbs without a natural partner (e.g. 待つ, 買う) get a far decoy and are placed in questions 1-5."
+    }
+  ],
+  "openQuestions": []
+}

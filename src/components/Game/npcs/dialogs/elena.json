@@ -19,7 +19,7 @@
       ]
     },
     {
-      "condition": ["level1-fail", "level2-fail"],
+      "condition": ["level1-fail", "level2-fail", "lr-fail"],
       "choices": [
         ["はい", "Yes"],
         ["いいえ", "No"]
@@ -34,7 +34,7 @@
       ]
     },
     {
-      "condition": ["level2-clear", "retry"],
+      "condition": ["level2-clear", "retry", "lr-clear"],
       "choices": [
         ["はい", "Yes"],
         ["いいえ", "No"]

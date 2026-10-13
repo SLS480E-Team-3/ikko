@@ -1,0 +1,48 @@
+scene: ryuuko_verbs
+lines:
+  - speaker: ryuuko
+    text: 食べる
+    style: read just this one word, clear model pronunciation
+  - speaker: ryuuko
+    text: 飲む
+    style: read just this one word, clear model pronunciation
+  - speaker: ryuuko
+    text: 行く
+    style: read just this one word, clear model pronunciation
+  - speaker: ryuuko
+    text: 来る
+    style: read just this one word, clear model pronunciation
+  - speaker: ryuuko
+    text: 見る
+    style: read just this one word, clear model pronunciation
+  - speaker: ryuuko
+    text: 聞く
+    style: read just this one word, clear model pronunciation
+  - speaker: ryuuko
+    text: 歩く
+    style: read just this one word, clear model pronunciation
+  - speaker: ryuuko
+    text: 話す
+    style: read just this one word, clear model pronunciation
+  - speaker: ryuuko
+    text: 読む
+    style: read just this one word, clear model pronunciation
+  - speaker: ryuuko
+    text: 書く
+    style: read just this one word, clear model pronunciation
+  - speaker: ryuuko
+    text: 寝る
+    style: read just this one word, clear model pronunciation
+  - speaker: ryuuko
+    text: 起きる
+    style: read just this one word, clear model pronunciation
+  - speaker: ryuuko
+    text: 買う
+    style: read just this one word, clear model pronunciation
+  - speaker: ryuuko
+    text: 待つ
+    style: read just this one word, clear model pronunciation
+# the Left or Right quest's 14 verbs (docs/left-or-right.spec.json), one
+# line each. Each renders to public/dialog/ryuuko/<verb>.mp3: the word read
+# when it appears on the sign, and the {target} clip of ryuuko.json's lr-word
+# line. Own file (not ryuuko.yaml) so a render touches only these

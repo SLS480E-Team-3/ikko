@@ -145,6 +145,12 @@ Lines are not written in `npcs.ts`.
 | `level<N>-clear` | — | Level N is cleared (`levelUp` / `break` for N = 1, `success` for N = 2) |
 | `level<N>-fail` | — | Level N failed (`fail`) |
 | `retry` | — | After the last level: the replay offer (`again`) |
+| `lr-intro` | — | Left or Right quest: Ryuuko's rules + start offer (`intro`, `again`) |
+| `lr-word` | — | Left or Right: read when a word appears, `{target}` = the verb (shown on the sign, not a bubble) |
+| `lr-correct` / `lr-wrong` | — | Left or Right: after a door (shown on the sign) |
+| `lr-clear` / `lr-fail` | — | Left or Right: 10 correct (`success`) / 0 HP (`fail`); Elena shares her level2-clear / fail lines |
+
+The Left or Right quest (`docs/left-or-right.spec.json`) reads `lr-word` / `lr-correct` / `lr-wrong` itself with `toDialogs` and plays them while Ryuuko is off screen. Its 14 verb clips (`ryuuko/<verb>.mp3`, the `{target}` clip) come from `python/dialogs/ryuuko_verbs.yaml`.
 
 ### Into the game
 

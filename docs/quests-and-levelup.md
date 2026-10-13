@@ -81,6 +81,11 @@
 3. **Compliments**: 日本語が上手ですね, with the modest reply いえいえ、まだまだです; おいしい, きれい
 4. **Saying goodbye**: じゃあね / またね, ありがとうございました, used at the end of a conversation
 
+## Quest types
+
+- **Catch** (`questIsland.tsx`), **shoot** (`shootQuestIsland.tsx`), **dodge** (`dodgeQuestIsland.tsx`): blocks with the target kana.
+- **Left or Right** (`leftRightQuestIsland.tsx`): walk up a small room into the red or blue door in its back wall with the verb's meaning ([scene](scenes/hallway.md)). Spec: [left-or-right.spec.json](left-or-right.spec.json). MobileTester tab `quest door` only for now (not on the quest page / no SQL).
+
 ## Reward Points
 
 

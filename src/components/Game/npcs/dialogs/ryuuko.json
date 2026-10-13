@@ -102,6 +102,86 @@
           "style": "calm and inviting, letting the player pick a level"
         }
       ]
+    },
+    {
+      "condition": "lr-intro",
+      "choices": [
+        ["はい", "Yes"],
+        ["いいえ", "No"]
+      ],
+      "lines": [
+        {
+          "kana": "ただしいドアをとおって！",
+          "text": "正しいドアを通って！",
+          "en": "Go through the right door!",
+          "style": "confident trainer, explaining the rule with a challenge in her voice"
+        },
+        {
+          "kana": "じゅんびはできてる？",
+          "text": "準備はできてる？",
+          "en": "Ready?",
+          "style": "confident trainer, a teasing challenge before the drill starts"
+        }
+      ]
+    },
+    {
+      "condition": "lr-word",
+      "lines": [
+        {
+          "kana": "「{target}」はどういういみ？",
+          "text": "{target}はどういう意味？",
+          "en": "What does \"{target}\" mean?",
+          "style": "confident trainer, quizzing the player, a word comes right before this so start mid-sentence; the first は is the topic particle, read it as wa"
+        }
+      ]
+    },
+    {
+      "condition": "lr-correct",
+      "lines": [
+        {
+          "kana": "いいね！",
+          "text": "いいね！",
+          "en": "Nice!",
+          "style": "quick and pleased, a short bright praise"
+        }
+      ]
+    },
+    {
+      "condition": "lr-wrong",
+      "lines": [
+        {
+          "kana": "ちがうわよ！",
+          "text": "違うわよ！",
+          "en": "Wrong!",
+          "style": "quick teasing correction, not harsh"
+        }
+      ]
+    },
+    {
+      "condition": "lr-clear",
+      "lines": [
+        {
+          "kana": "おつかれさま！",
+          "text": "お疲れ様！",
+          "en": "Good job!",
+          "style": "warm and satisfied, praising the player after the drill"
+        }
+      ]
+    },
+    {
+      "condition": "lr-fail",
+      "choices": [
+        ["はい", "Yes"],
+        ["いいえ", "No"]
+      ],
+      "lines": [
+        {
+          "kana": "まだまだいけるでしょ？",
+          "text": "まだまだいけるでしょ？",
+          "en": "You can keep going, right?",
+          "style": "teasing but encouraging, pushing the player to try again"
+        }
+      ]
     }
   ]
 }

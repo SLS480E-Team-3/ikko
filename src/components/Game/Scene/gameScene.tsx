@@ -60,6 +60,7 @@ export type BGProps = {
     // ground areas drawn over color and under every object and entity. None
     // = the whole world is the one flat color, as before
     border?: boolean, // border: **none** -> **optional**, reason: the Quest Island has a black square edge like DialogBubble, mechanism: the world div draws BUBBLE_BORDER_W of BUBBLE_BOARDER inside its box (border-box), so the playable size stays w x h
+    borderTopColor?: string, // borderTopColor: **none** -> **optional**, reason: the Left or Right room has no black edge at its top, mechanism: overrides only the top side's color of the bubble border (width stays, so world px don't move); unset = black like the other sides
 }
 
 export const BG_H = 2_000 // size: **10_000** -> **2_000**, reason: every island is the same 1400 x 2000 world, mechanism: TEMP_BG, islandBg and the TEST_PLAYER spawn all derive from BG_W / BG_H // export: **local** -> **exported**, reason: MobileTester places test NPCs around the spawn point, mechanism: named export like BG_COLOR
@@ -147,11 +148,11 @@ export const islandBg = (islandId: number): BGProps => ({ ...TEMP_BG, color: ISL
 // back to BG_COLOR). GameScene reads bgProps once at mount, so callers
 // switching islands remount it with key={islandId}
 
-const DOJO_SIDE = 48
+export const DOJO_SIDE = 48 // export: **local** -> **exported**, mechanism: leftRightTraining.ts places its sign, doors and spawn inside the walls
 const DOJO_CAP = 16
-const DOJO_TOP = 104
+export const DOJO_TOP = 104 // export: see DOJO_SIDE
 const DOJO_PANEL = 40
-const DOJO_BOTTOM = 88
+export const DOJO_BOTTOM = 88 // export: see DOJO_SIDE
 const DOJO_BAND = 12
 const DOJO_BASE = 8
 const DOJO_LINE = 4
@@ -162,7 +163,7 @@ const DOJO_SEAM = '#b3a255' // color: **#7d5229** -> **#b3a255**, mechanism: a d
 const DOJO_HERI = '#2f3b55'
 // the navy cloth border (heri) on the long sides of a tatami mat
 const DOJO_WOOD = '#8a5a2e'
-const DOJO_WALL = '#6b4424'
+export const DOJO_WALL = '#6b4424' // export: **local** -> **exported**, mechanism: the Left or Right shell paints the screen around the room in the walls' color
 const DOJO_POST = '#5a3a1e'
 const DOJO_SHADOW = '#3d2a18'
 const DOJO_PLASTER = '#f4efe2'
@@ -293,6 +294,51 @@ export const dojoSections = (w: number, h: number): BgSection[] => {
 //   blocking boxes, so the player stops at them. Everything else is paint
 
 export const questBg = (w: number, h: number): BGProps => ({ x: w / 2, y: h / 4 + 300, w, h, color: DOJO_FLOOR, sections: dojoSections(w, h), border: true }) // color, sections: **SHRINE_SAND, shrineSections(w, h)** -> **DOJO_FLOOR, dojoSections(w, h)**, mechanism: the Quest Island is the kendo dojo now; same BGProps shape, so the three quest scenes change with no edit // color, sections: **BUBBLE_BG, none** -> **SHRINE_SAND, shrineSections(w, h)**, mechanism: the ground is sand and the shrine's walls and path ride along as sections; GameScene already draws sections and blocks on the solid ones, so every quest scene that uses questBg gets the yard with no other change // QUEST_BG: **fixed 1000 x 700 const** -> **questBg(w, h)**, reason: the island is 2x the screen, mechanism: the caller measures the window and passes the size; color is BUBBLE_BG ('#fffff2') and border: true draws the bubble's black edge
+const HALL_FLOOR = '#a9743f'
+const HALL_SEAM = '#7d5229'
+const HALL_PLANK_TILE = svgTile(HALL_SEAM, [[15, 0, 1, 64], [31, 0, 1, 64], [47, 0, 1, 64], [63, 0, 1, 64], [0, 20, 15, 1], [16, 52, 15, 1], [32, 8, 15, 1], [48, 36, 15, 1]])
+// the Left or Right hallway's floor: wood, upright planks 16 units (64 world
+// px) wide, four across a tile. A 1 unit seam on each plank's right edge,
+// and one end joint per plank at a different height, so the joints are
+// staggered like a real floor
+
+export const hallSections = (w: number, h: number): BgSection[] => { // args: **(w, h, doors)** -> **(w, h)**, mechanism: the door post was the only part that needed the door row
+    const iw = w - BUBBLE_BORDER_W * 2
+    const ih = h - BUBBLE_BORDER_W * 2
+    const inner = iw - DOJO_SIDE * 2
+    const by = ih - DOJO_BOTTOM
+    return [
+        { id: 'floor', x: 0, y: 0, w: iw, h: ih, color: HALL_FLOOR, tile: HALL_PLANK_TILE, tileX: DOJO_SIDE },
+        { id: 'wall-top', x: 0, y: DOJO_CAP, w: iw, h: DOJO_TOP - DOJO_CAP, color: DOJO_PLASTER, solid: true }, // y: **0** -> **DOJO_CAP**, reason: a light line showed along the room's top edge, mechanism: the plaster started under the dark cap, and at a fractional zoom the cap's anti-aliased top edge let it show through; starting below the cap leaves only wall color behind that edge
+        { id: 'panel-top', x: DOJO_SIDE, y: DOJO_TOP - DOJO_PANEL, w: inner, h: DOJO_PANEL, color: DOJO_WOOD, tile: DOJO_PANEL_TILE },
+        // partition: **a wall behind the doors** -> **removed**, reason: the hall is one room with the doors in its back wall, mechanism: the far wall (plaster + panels above) is that back wall
+        { id: 'wall-left', x: 0, y: 0, w: DOJO_SIDE, h: ih, color: DOJO_WALL, solid: true },
+        { id: 'wall-right', x: iw - DOJO_SIDE, y: 0, w: DOJO_SIDE, h: ih, color: DOJO_WALL, solid: true },
+        { id: 'cap-top', x: 0, y: 0, w: iw, h: DOJO_CAP, color: DOJO_WALL },
+        { id: 'edge-top', x: DOJO_SIDE, y: DOJO_CAP - DOJO_LINE, w: inner, h: DOJO_LINE, color: DOJO_SHADOW },
+        { id: 'edge-left', x: DOJO_SIDE - DOJO_LINE, y: DOJO_CAP - DOJO_LINE, w: DOJO_LINE, h: by - DOJO_CAP + DOJO_LINE, color: DOJO_SHADOW },
+        { id: 'edge-right', x: iw - DOJO_SIDE, y: DOJO_CAP - DOJO_LINE, w: DOJO_LINE, h: by - DOJO_CAP + DOJO_LINE, color: DOJO_SHADOW },
+        // door-post: **solid post between the doors** -> **removed**, reason: no splitter, mechanism: the doors touch; they sit in the back wall, which is solid
+        { id: 'wall-bottom', x: 0, y: by, w: iw, h: DOJO_BOTTOM, color: DOJO_WOOD, tile: DOJO_SIDING_TILE, solid: true },
+        { id: 'cap-bottom', x: 0, y: by, w: iw, h: DOJO_CAP, color: DOJO_WALL },
+        { id: 'edge-bottom', x: DOJO_SIDE, y: by, w: inner, h: DOJO_LINE, color: DOJO_SHADOW },
+        { id: 'band-bottom', x: 0, y: by + DOJO_CAP, w: iw, h: DOJO_BAND, color: DOJO_PLASTER },
+        { id: 'base-bottom', x: 0, y: ih - DOJO_BASE, w: iw, h: DOJO_BASE, color: DOJO_STONE },
+    ]
+}
+// the Left or Right quest's room (docs/scenes/hallway.md): the dojo's
+// walls (same colors, caps, shadow edges, solid) around a plank floor only
+// as wide as the two doors, which stand at the foot of the back (far) wall. Same rules as dojoSections (iw / ih inside the
+// border, paint order = array order), with less on it: the far wall keeps
+// its plaster + wood panels, the near wall its cap, plaster band, siding and
+// stone base. The doors themselves are drawn by the quest (renderWorld); the
+// doors stand in the back wall's face, which is solid.
+// tileX: DOJO_SIDE starts a plank at the left wall
+
+export const hallBg = (w: number, h: number, spawnY: number): BGProps => ({ x: w / 2, y: spawnY, w, h, color: DOJO_WALL, sections: hallSections(w, h), border: true, borderTopColor: DOJO_WALL }) // color: **HALL_FLOOR** -> **DOJO_WALL**, reason: a light line showed along the top edge, mechanism: at a fractional zoom the world's own background bleeds through the anti-aliased seam between the border and the wall cap; wall-colored, it blends in, and the floor section still paints the planks // borderTopColor: **black** -> **DOJO_WALL**, reason: remove the top black border, mechanism: the top edge takes the back wall's cap color, which the shell's background also uses
+// the hallway as a BGProps, like questBg: the same black bubble border, the
+// player spawns at (w / 2, spawnY)
+
 // the Quest Island a quest opens on, painted the dialog bubble's bg color.
 // x/y is where the player spawns and the camera starts // spawn: **island center (h / 2)** -> **bottom middle (h - 80)**, reason: Ryuuko throws from the top middle, mechanism: bgProps.x/y is only read as the player's spawn and the camera's start, so moving it moves just those // spawn: **bottom middle (h - 80)** -> **partway up (h * 3 / 4)**, reason: the walk to Ryuuko was ~25s, mechanism: half the island (one screen) below her at h / 4, about a 7s walk // spawn: **h * 3 / 4** -> **h / 4 + 300**, reason: arrive 300px from Ryuuko, mechanism: h / 4 is her y (throwSpot), so the player starts 300px straight below her; throwSpot isn't imported here since training.ts already imports gameScene
 
@@ -425,7 +471,7 @@ export const objectHitBoxes = (objects: PlacedObject[]): HitBox[] => objects.fla
 export type PlayerBox = { x: number, y: number, w: number, h: number }
 // the player's center + size handed to onTick, same shape overlaps() reads
 
-export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sensitivity = SENSITIVITY_DEF, objects = NO_OBJECTS, npcs = NO_NPCS, onQuest, onChoice, onTalkEnd, onTick, renderWorld, talkRequest, moveRequest, wallY, playerLabel, onShoot }: { bgProps?: BGProps, player?: PlayerProps, screenSize?: { w: number, h: number }, sensitivity?: number, objects?: PlacedObject[], npcs?: SceneNPC[], onQuest?: (npc: number) => void, onChoice?: (npc: number, choice: number) => void, onTalkEnd?: (npc: number) => void, onTick?: (dt: number, player: PlayerBox) => void, renderWorld?: () => ReactNode, talkRequest?: { npc: number, key: number }, moveRequest?: { x: number, y: number, key: number }, wallY?: number, playerLabel?: () => string | undefined, onShoot?: () => boolean }) { // props: **no onShoot** -> **onShoot?**, reason: the shooting quest copy fires bullets with Space / a tap, mechanism: returns true when it fired; Space falls back to talking and taps to the stick / pinch when it returns false or is unset, so every other caller is unchanged // props: **no playerLabel** -> **playerLabel?**, reason: Quest Island shows current/quota over the player, mechanism: called every render (the scene force()-renders each frame) and its string replaces the name tag; undefined keeps the real name // props: **no onChoice / onTick / renderWorld / talkRequest** -> **optional hooks**, reason: the Quest Island runs a minigame on top of the scene, mechanism: onChoice gets every choice tap (npc index, choice index), onTick runs each frame after the player moves, renderWorld draws extra world-px children, talkRequest opens a talk with an NPC when its key changes; islands pass none, so they behave as before // props: **no onQuest** -> **onQuest?**, reason: NPCs offer the island's next quest, mechanism: called when the player picks choice 0 (はい); left out = no quest open, so NPCs skip their 'quest' entry // props: **moveInput?, zoomInput?** -> **sensitivity?**, reason: MobileGameScene merged into GameScene so edits happen in one place, mechanism: the joystick and pinch live here now and write to the scene's own stickRef / zoomTarget, so no caller passes refs in; sensitivity is the one knob MobileGameScene had on top // props: **no npcs** -> **npcs?**, reason: entities with dialog in the scene, mechanism: each is drawn with EntityRenderer at its bottom-edge zIndex like the player; optional so a bare <GameScene /> has none // props: **no objects** -> **objects?**, reason: an island draws its map, mechanism: a PlacedObject list (island_N.ts) resolved against the OBJECTS catalog below; optional so a bare <GameScene /> is an empty field // props: **no onTalkEnd** -> **onTalkEnd?**, reason: the Quest Island moves on after a talk without choices (Ryuuko's おつかれさま！), mechanism: endTalk calls it with the NPC index, before onChoice on a choice tap // props: **no wallY** -> **wallY?**, reason: during Quest Island training the player could stand next to Ryuuko and catch every block, mechanism: a world-px y the player's top edge can't go above, applied in the tick's y clamp; undefined = no wall
+export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sensitivity = SENSITIVITY_DEF, objects = NO_OBJECTS, npcs = NO_NPCS, onQuest, onChoice, onTalkEnd, onTick, renderWorld, talkRequest, moveRequest, wallY, playerLabel, onShoot, feetH }: { bgProps?: BGProps, player?: PlayerProps, screenSize?: { w: number, h: number }, sensitivity?: number, objects?: PlacedObject[], npcs?: SceneNPC[], onQuest?: (npc: number) => void, onChoice?: (npc: number, choice: number) => void, onTalkEnd?: (npc: number) => void, onTick?: (dt: number, player: PlayerBox) => void, renderWorld?: () => ReactNode, talkRequest?: { npc: number, key: number }, moveRequest?: { x: number, y: number, key: number }, wallY?: number, playerLabel?: () => string | undefined, onShoot?: () => boolean, feetH?: number }) { // props: **no feetH** -> **feetH?**, reason: in the Left or Right room only the player's feet should hit the walls, mechanism: when set, the move checks use the bottom feetH px of the body instead of the whole body; unset = whole body, so every other scene is unchanged // // props: **no onShoot** -> **onShoot?**, reason: the shooting quest copy fires bullets with Space / a tap, mechanism: returns true when it fired; Space falls back to talking and taps to the stick / pinch when it returns false or is unset, so every other caller is unchanged // props: **no playerLabel** -> **playerLabel?**, reason: Quest Island shows current/quota over the player, mechanism: called every render (the scene force()-renders each frame) and its string replaces the name tag; undefined keeps the real name // props: **no onChoice / onTick / renderWorld / talkRequest** -> **optional hooks**, reason: the Quest Island runs a minigame on top of the scene, mechanism: onChoice gets every choice tap (npc index, choice index), onTick runs each frame after the player moves, renderWorld draws extra world-px children, talkRequest opens a talk with an NPC when its key changes; islands pass none, so they behave as before // props: **no onQuest** -> **onQuest?**, reason: NPCs offer the island's next quest, mechanism: called when the player picks choice 0 (はい); left out = no quest open, so NPCs skip their 'quest' entry // props: **moveInput?, zoomInput?** -> **sensitivity?**, reason: MobileGameScene merged into GameScene so edits happen in one place, mechanism: the joystick and pinch live here now and write to the scene's own stickRef / zoomTarget, so no caller passes refs in; sensitivity is the one knob MobileGameScene had on top // props: **no npcs** -> **npcs?**, reason: entities with dialog in the scene, mechanism: each is drawn with EntityRenderer at its bottom-edge zIndex like the player; optional so a bare <GameScene /> has none // props: **no objects** -> **objects?**, reason: an island draws its map, mechanism: a PlacedObject list (island_N.ts) resolved against the OBJECTS catalog below; optional so a bare <GameScene /> is an empty field // props: **no onTalkEnd** -> **onTalkEnd?**, reason: the Quest Island moves on after a talk without choices (Ryuuko's おつかれさま！), mechanism: endTalk calls it with the NPC index, before onChoice on a choice tap // props: **no wallY** -> **wallY?**, reason: during Quest Island training the player could stand next to Ryuuko and catch every block, mechanism: a world-px y the player's top edge can't go above, applied in the tick's y clamp; undefined = no wall
     // props are optional (?) because they have defaults -- lets a page mount
     // a bare <GameScene /> while the db-backed bg/player aren't wired yet.
     // screenSize has no default and isn't read yet, so it's undefined for now
@@ -577,10 +623,13 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
             if (ent) {
                 const x = ent.x ?? 0
                 const y = ent.y ?? 0
+                const feet = feetHRef.current
+                const hits = (cx: number, cy: number, s: HitBox) => feet ? overlaps(cx, cy + (ent.h - feet) / 2, ent.w, feet, s) : overlaps(cx, cy, ent.w, ent.h, s)
+                // hits: **overlaps(whole body)** -> **the body, or only its bottom feet px**, mechanism: with feetH the box is ent.w x feet, centered (ent.h - feet) / 2 below the body's center, so its bottom edge is the feet; the body above can overlap a wall
                 const nx = Math.min(Math.max(x + vel.x * dt, ent.w / 2), bg.w - ent.w / 2)
-                if (!solids.some(s => overlaps(nx, y, ent.w, ent.h, s) && !overlaps(x, y, ent.w, ent.h, s))) ent.x = nx // move: **always** -> **only if the new x hits no hitBox**, mechanism: a blocked step is dropped, so the player stops at the object's edge // block: **any hitBox at the new x** -> **only one the player isn't already inside**, reason: Quest Island NPCs appear mid-game and can spawn on top of the player, mechanism: a box already overlapping doesn't block, so the player can walk out of it instead of freezing
+                if (!solids.some(s => hits(nx, y, s) && !hits(x, y, s))) ent.x = nx // move: **always** -> **only if the new x hits no hitBox**, mechanism: a blocked step is dropped, so the player stops at the object's edge // block: **any hitBox at the new x** -> **only one the player isn't already inside**, reason: Quest Island NPCs appear mid-game and can spawn on top of the player, mechanism: a box already overlapping doesn't block, so the player can walk out of it instead of freezing
                 const ny = Math.min(Math.max(y + vel.y * dt, (wallYRef.current ?? 0) + ent.h / 2), bg.h - ent.h / 2) // top: **ent.h / 2** -> **wallY + ent.h / 2**, mechanism: with a wall the lowest allowed center moves down to it, so the player's top edge stops at the line; no wall = 0, the world's top as before
-                if (!solids.some(s => overlaps(ent.x ?? x, ny, ent.w, ent.h, s) && !overlaps(ent.x ?? x, y, ent.w, ent.h, s))) ent.y = ny // move: **always** -> **only if the new y hits no hitBox**, mechanism: same as x // block: **any hitBox** -> **one not already overlapped**, mechanism: same as x
+                if (!solids.some(s => hits(ent.x ?? x, ny, s) && !hits(ent.x ?? x, y, s))) ent.y = ny // move: **always** -> **only if the new y hits no hitBox**, mechanism: same as x // block: **any hitBox** -> **one not already overlapped**, mechanism: same as x
                 for (const b of waveBoxes) {
                     if (overlaps(ent.x ?? 0, ent.y ?? 0, ent.w, ent.h, b)) ent.y = Math.max(b.y - ent.h / 2, ent.h / 2)
                 }
@@ -809,6 +858,9 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
     // tap (shoot) from a hold / drag (walk)
     const wallYRef = useRef(wallY)
     wallYRef.current = wallY
+    const feetHRef = useRef(feetH)
+    feetHRef.current = feetH
+    // latest feetH for the mount-time rAF tick, same as wallY
     // latest wallY for the mount-time rAF tick, same as onTick
     // latest onTick for the mount-time rAF tick
 
@@ -990,7 +1042,8 @@ export default function GameScene({ bgProps = TEMP_BG, player = TEST_PLAYER, sen
                     // player in the tick) instead of the fixed bg center
                     transformOrigin: '0 0',
                     backgroundColor: bg.color,
-                    ...(bg.border && { border: `${BUBBLE_BORDER_W}px solid ${BUBBLE_BOARDER}`, boxSizing: 'border-box' }) // border: **none** -> **bubble edge when bg.border**, mechanism: border-box keeps the div bg.w x bg.h, so world px and the clamp are unchanged
+                    ...(bg.border && { border: `${BUBBLE_BORDER_W}px solid ${BUBBLE_BOARDER}`, boxSizing: 'border-box' }),
+                    ...(bg.border && bg.borderTopColor && { borderTopColor: bg.borderTopColor }) // borderTopColor: **always BUBBLE_BOARDER** -> **bg.borderTopColor when set**, mechanism: spread after the shorthand so it wins for the top side only // border: **none** -> **bubble edge when bg.border**, mechanism: border-box keeps the div bg.w x bg.h, so world px and the clamp are unchanged
                 }}
             >
                 {bg.sections?.map(sec => (

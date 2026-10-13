@@ -12,7 +12,7 @@ export type NpcScript = { npc: string, name: string, color: string, kana?: strin
 // imported .json; conditionOf() below checks the labels when the file is
 // turned into Dialogs
 
-const CONDITION = /^(greeting|default|spoken|quest|questCleared|retry|level\d+-(start|clear|fail))$/
+const CONDITION = /^(greeting|default|spoken|quest|questCleared|retry|level\d+-(start|clear|fail)|lr-(intro|word|correct|wrong|clear|fail))$/ // CONDITION: **+ lr-...** , mechanism: same labels as the Condition type
 const conditionOf = (label: string, npc: string): Condition => {
     if (!CONDITION.test(label)) throw new Error(`dialogs/${npc}.json: unknown condition '${label}'`)
     return label as Condition
