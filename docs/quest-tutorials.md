@@ -32,7 +32,7 @@ Every quest type has a tutorial, given in dialog only by **Hiroko**. She stands 
   - `ask`: the question, as a `quest` talk with choices.
   - `teach`: the tutorial, as a `default` talk.
   - `bye`: the hand-off line, then back to `teach`.
-- **No account** (`/Dev/Quest*`, MobileTester): no `tutorial` prop, so she asks every time.
+- **No account** (`/MobDev/Quest*`, MobileTester): no `tutorial` prop, so she asks every time.
 - **Account:** the real quest page (`/Game/[island]/[quest]`) only runs the original quest. It reads `user_tutorials` for `'original'`, and `QuestScene` posts to `/api/Tutorial` when the player answers.
 
 ## English lines

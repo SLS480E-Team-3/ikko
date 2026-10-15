@@ -31,13 +31,12 @@ import LogInPage from "@/app/LogIn/page"
 import InfoRecovery from "@/app/InfoRecovery/page"
 import EditInfo from "@/app/EditInfo/page"
 import { ISLAND_MAPS } from "@/components/Game/islands"
-import NPCRenderer from "@/components/Game/Entity/npcRenderer"
-import { ISLAND_1_NPC } from "@/components/Game/npcs/npcs" // imports: **ISLAND_1_NPC** -> **+ npcsForRow**, mechanism: the preview moves the NPCs to the chosen kana row // imports: **+ QUEST_ISLAND_NPC** -> **ISLAND_1_NPC**, mechanism: QuestIsland builds its own NPCs from the training phase // imports: **+ npcsForRow** -> **removed**, mechanism: see IslandPreview
 import QuestIsland from "@/components/Game/Scene/questIsland"
 import { ShootQuestIsland } from "@/components/Game/Scene/shootQuestIsland" // imports: **none** -> **ShootQuestIsland**, mechanism: the quest island copy with shooting, for its own tab
 import { LeftRightQuestIsland } from "@/components/Game/Scene/leftRightQuestIsland" // imports: **none** -> **LeftRightQuestIsland**, mechanism: the Left or Right door quest, for its own tab
 import { DodgeQuestIsland } from "@/components/Game/Scene/dodgeQuestIsland" // imports: **none** -> **DodgeQuestIsland**, mechanism: the square dodging-quest island, for its own tab
-import EntityRenderer, { ENT_H, ENT_W } from "@/components/Game/Entity/entityRenderer" // imports: **ENT_H** -> **ENT_H, ENT_W**, mechanism: the hard-coded 12 px width below follows the shared entity width
+import { ENT_H, ENT_W } from "@/components/Game/Entity/entityRenderer" // imports: **EntityRenderer + NPCRenderer + ISLAND_1_NPC** -> **ENT_H, ENT_W only**, mechanism: BubblePreview (their only user) moved to Entity/bubblePreview.tsx for /MobDev/DialogBubble // imports: **ENT_H** -> **ENT_H, ENT_W**, mechanism: the hard-coded 12 px width below follows the shared entity width
+import BubblePreview from "@/components/Game/Entity/bubblePreview" // imports: **BubblePreview defined in this file** -> **imported**, mechanism: moved out so /MobDev can load it alone
 import IslandPreview from "@/components/Game/Scene/islandPreview" // imports: **none** -> **IslandPreview**, mechanism: moved out of this file so /Dev can use it
 // imports: **none** -> **KANA_ROWS**, mechanism: bounds and labels for the row buttons
 
@@ -125,27 +124,6 @@ const TEST_NPCS: SceneNPC[] = npcSpots.map((n, i) => ({ // spots: **fixed ±60 /
 // four entities at random spots near the player spawn (world center);
 // module-level so the array is the same every render. Bubbles can overlap
 // now that they're close, but only NPCs near the player show one
-
-function BubblePreview() {
-    const spots = [
-        { x: 25, y: 70, text: 'はい (hai) = yes', name: 'Sensei' },
-        { x: 25, y: 185, text: 'こんにちは (konnichiwa) = hello! はじめまして (hajimemashite) = nice to meet you' },
-    ]
-    return (
-        <div style={{ position: 'relative', width: 130, height: 265, transform: 'scale(3)', transformOrigin: 'top left' }}> {/* height: **205** -> **265**, mechanism: room for the translated NPC below */}
-            {spots.map((s) => (
-                <EntityRenderer key={s.text} velocity={{ x: 0, y: 0 }} ent={{ name: s.name, x: s.x, y: s.y, w: ENT_W, h: ENT_H, color: 'gray', facing: 'none' }} dialog={s.text} /> // preview: **EntityRenderer + DialogBubble side by side** -> **EntityRenderer dialog prop**, mechanism: the bubble is wired inside EntityRenderer now, so the preview goes through the same path the game will
-            ))}
-            <NPCRenderer npc={{ ...ISLAND_1_NPC[0], ent: { ...ISLAND_1_NPC[0].ent, x: 25, y: 245 } }} index={0} velocity={{ x: 0, y: 0 }} inRange selected line={0} />
-            {/* translated NPC: Hana's first talk line with its English
-                typing underneath, through NPCRenderer like the game */}
-        </div>
-    )
-}
-// dialog bubble preview: two standing entities at 3x (world px are tiny on
-// a phone), one short and one long text, to check the square border, the
-// tail tip above the entity, the shadow and the wrap at maxWidth; the
-// first one has a name so the tag can be checked against the bubble
 
 export default function MobileTester() {
 

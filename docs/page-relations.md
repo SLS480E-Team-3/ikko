@@ -15,6 +15,8 @@
 IslandScene is rendered by `/Game/[island]`, QuestScene by `/Game/[island]/[quest]`.
 The pages (server) do the checks and Supabase work, then pass `IslandSceneProps` / `QuestSceneProps` to the scenes (client), which only render.
 
+Dev only (no login, not in the proxy matcher): `/Dev` (dev nav), `/MobileTester` (desktop phone-frame viewer), `/MobDev` and `/MobDev/<ScreenType>` (one screen full-screen on a phone, see [mobile-testing.md](mobile-testing.md)).
+
 # on Action
 
 - `/` logged out -> LogIn (proxy)

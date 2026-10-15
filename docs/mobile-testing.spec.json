@@ -1,0 +1,162 @@
+{
+  "$schema": "../.claude/spec.schema.json",
+  "status": "clear",
+  "title": "Mobile testing: /MobDev screen URLs",
+  "idea": "A dev URL that opens one demo screen directly and full-screen on a real phone, loading only that screen's code.",
+  "glossary": [
+    {
+      "term": "screen",
+      "meaning": "One demo page that can be opened on its own (e.g. a quest island, the log-in form). Named by a short string in the URL."
+    },
+    {
+      "term": "screen type",
+      "meaning": "The PascalCase name of a screen as it appears in the URL (e.g. 'QuestShoot'). The list: GameScene, QuestOriginal, QuestShoot, QuestDodge, QuestDoor, SignUp, LogIn, InfoRecovery, EditInfo, DialogBubble."
+    },
+    {
+      "term": "MobDev",
+      "meaning": "The new dev route that serves screens by name for testing on a real phone."
+    },
+    {
+      "term": "MobileTester",
+      "meaning": "The existing desktop page (/MobileTester) that shows a screen inside a phone-sized frame picked from 20 device sizes."
+    },
+    {
+      "term": "screen setting",
+      "meaning": "An optional query value that tweaks a screen (island number, joystick sensitivity). Missing = the screen's default."
+    },
+    {
+      "term": "screen list",
+      "meaning": "The page at plain /MobDev: one link per screen type, nothing else loaded."
+    }
+  ],
+  "features": [
+    {
+      "id": "F-1",
+      "name": "Screen route",
+      "whatItDoes": "Opening /MobDev/<screen type> shows that screen full-screen, with only its own code downloaded.",
+      "details": [
+        "A screen type that isn't in the list shows a not-found page.",
+        "Screens (10, same as the MobileTester dropdown): GameScene, QuestOriginal, QuestShoot, QuestDodge, QuestDoor, SignUp, LogIn, InfoRecovery, EditInfo, DialogBubble."
+      ]
+    },
+    {
+      "id": "F-4",
+      "name": "Screen list",
+      "whatItDoes": "Plain /MobDev shows one tap-sized link per screen type.",
+      "details": [
+        "Static page; loads no game code.",
+        "Links carry no settings; add ?island= / ?sens= by hand."
+      ]
+    },
+    {
+      "id": "F-2",
+      "name": "Screen settings",
+      "whatItDoes": "Optional query values tweak the chosen screen.",
+      "details": [
+        "island=N picks the island for the game scene (default 1).",
+        "sens=X sets joystick sensitivity (default SENSITIVITY_DEF)."
+      ]
+    },
+    {
+      "id": "F-3",
+      "name": "Old route cleanup",
+      "whatItDoes": "/Dev/Quest* folders and /Dev?Island=N are removed; home-form buttons link to /MobDev/<screen type>.",
+      "details": [
+        "/MobileTester is unchanged.",
+        "/MobDev needs no login and works on the deployed Vercel build, like /Dev today."
+      ]
+    },
+    {
+      "id": "F-5",
+      "name": "Quest leave",
+      "whatItDoes": "On a quest screen, the leave action (Elena's はい) goes back to the screen list at /MobDev.",
+      "details": [
+        "Applies to QuestOriginal, QuestShoot, QuestDodge, QuestDoor."
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "Test a screen on a phone",
+      "steps": [
+        "Open <host>/MobDev on the phone (local Wi-Fi or the Vercel URL)",
+        "Tap a screen, e.g. QuestShoot",
+        "Only that screen's code loads; it fills the phone screen",
+        "Play / test; for a quest, Elena's はい at the end goes back to /MobDev",
+        "Optionally edit the URL to /MobDev/GameScene?island=2&sens=1.5 to change settings"
+      ]
+    }
+  ],
+  "examples": [
+    {
+      "situation": "Open /MobDev/QuestDoor on a phone.",
+      "whatHappens": "The door quest fills the screen; the other 9 screens' code is not downloaded."
+    },
+    {
+      "situation": "Open /MobDev/GameScene?island=2&sens=1.5.",
+      "whatHappens": "Island 2 preview, joystick sensitivity 1.5."
+    },
+    {
+      "situation": "Open /MobDev/GameScene with no query.",
+      "whatHappens": "Island 1, default sensitivity (SENSITIVITY_DEF)."
+    },
+    {
+      "situation": "Open /MobDev/Foo.",
+      "whatHappens": "Not-found page."
+    },
+    {
+      "situation": "Open /MobDev.",
+      "whatHappens": "List of 10 links, one per screen type."
+    }
+  ],
+  "leftOut": [
+    "Phone-size frame on /MobDev (that stays /MobileTester's job)",
+    "Changing /MobileTester",
+    "Settings controls on the page itself (settings only via the URL)",
+    "Login gating for /MobDev"
+  ],
+  "decisions": [
+    {
+      "id": "D-1",
+      "date": "2026-10-14",
+      "decision": "URL shape is /MobDev/<screen type> (path segment), not ?screen=. Why: Each screen is prebuilt as its own page and the phone downloads only that screen's code; no client-side search-param read before drawing."
+    },
+    {
+      "id": "D-2",
+      "date": "2026-10-14",
+      "decision": "/MobDev covers the same 10 screens as the MobileTester dropdown. Why: one list of testable screens."
+    },
+    {
+      "id": "D-3",
+      "date": "2026-10-14",
+      "decision": "/Dev/QuestShoot, /Dev/QuestDodge, /Dev/QuestDoor, /Dev/QuestOriginal and /Dev?Island=N are replaced by /MobDev; /MobileTester stays as the desktop phone-frame viewer; home-form buttons point to /MobDev. Why: One full-screen dev route instead of a folder per screen."
+    },
+    {
+      "id": "D-4",
+      "date": "2026-10-14",
+      "decision": "Small settings go in optional query values with defaults (e.g. ?island=2&sens=1.5). Why: Screen name stays in the path; tweaks don't need new routes."
+    },
+    {
+      "id": "D-5",
+      "date": "2026-10-14",
+      "decision": "Plain /MobDev is a static link list of all screen types."
+    },
+    {
+      "id": "D-6",
+      "date": "2026-10-14",
+      "decision": "A quest's leave action on /MobDev goes back to /MobDev."
+    },
+    {
+      "id": "D-7",
+      "date": "2026-10-14",
+      "decision": "/MobDev is reachable without login, in dev and in the deployed Vercel build, like /Dev."
+    },
+    {
+      "id": "D-8",
+      "date": "2026-10-14",
+      "decision": "Screen types are PascalCase: GameScene, QuestOriginal, QuestShoot, QuestDodge, QuestDoor, SignUp, LogIn, InfoRecovery, EditInfo, DialogBubble. QuestOriginal and InfoRecovery keep the names of the existing routes."
+    }
+  ],
+  "assumptions": [],
+  "openQuestions": []
+}

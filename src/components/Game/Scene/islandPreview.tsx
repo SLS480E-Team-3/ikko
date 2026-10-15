@@ -10,11 +10,11 @@ import { npcsForRow } from "@/components/Game/npcs/npcs"
 import QuestIsland from "@/components/Game/Scene/questIsland"
 import { ISLAND_NPCS } from "@/components/Game/npcs"
 import { KANA_ROWS } from "@/components/Game/kana"
-// MobileTester's 'game scene' page, moved here so /Dev?Island=N can show it
+// MobileTester's 'game scene' page, moved here so /MobDev/GameScene?island=N can show it
 // full-screen on a phone too
 
-export default function IslandPreview({ sensitivity, start = 1 }: { sensitivity?: number, start?: number }) { // props: **sensitivity** -> **+ start, sensitivity optional**, mechanism: /Dev?Island=N opens on island N; GameScene falls back to SENSITIVITY_DEF
-    const [island, setIsland] = useState(Math.min(ISLAND_COUNT, Math.max(1, start))) // initial: **1** -> **start, clamped to 1..ISLAND_COUNT**, mechanism: a bad ?Island= still opens a real island
+export default function IslandPreview({ sensitivity, start = 1 }: { sensitivity?: number, start?: number }) { // props: **sensitivity** -> **+ start, sensitivity optional**, mechanism: /MobDev/GameScene?island=N opens on island N; GameScene falls back to SENSITIVITY_DEF
+    const [island, setIsland] = useState(Math.min(ISLAND_COUNT, Math.max(1, start))) // initial: **1** -> **start, clamped to 1..ISLAND_COUNT**, mechanism: a bad ?island= still opens a real island
     const [row, setRow] = useState(0)
     // the kana row the NPCs offer (0 = あ–お): with no login there's no quest
     // progress, so the row buttons stand in for clearing a row
