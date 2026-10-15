@@ -1,8 +1,8 @@
 // DEV
 'use client'
 
-import { CSSProperties, useEffect, useState } from "react"
-import { ISLAND_BGM, playBgm } from "@/components/Game/Entity/voice"
+import { CSSProperties, /* useEffect, */ useState } from "react" // imports: **useEffect** -> **commented out**, mechanism: its only use, the island BGM, is commented out
+// import { ISLAND_BGM, playBgm } from "@/components/Game/Entity/voice" // music: **on** -> **commented out**, reason: BGM and quest clear / fail music turned off for now, mechanism: uncomment to bring it back
 import GameScene, { ISLAND_COUNT, islandBg } from "@/components/Game/Scene/gameScene"
 import { ISLAND_MAPS } from "@/components/Game/islands"
 import { BUBBLE_BG } from "@/components/Game/Entity/dialogBubble"
@@ -21,10 +21,10 @@ export default function IslandPreview({ sensitivity, start = 1, tint = false }: 
     const npcs = npcsForRow(ISLAND_NPCS[island] ?? [], row)
     const [inQuest, setInQuest] = useState<string | false>(false) // inQuest: **boolean** -> **kana | false**, mechanism: holds the kana of the NPC whose quest was accepted
     const btn: CSSProperties = { padding: '8px 12px' }
-    useEffect(() => {
-        const url = inQuest ? undefined : ISLAND_BGM[island]
-        return url ? playBgm(url) : undefined
-    }, [island, inQuest])
+    // useEffect(() => {
+    //     const url = inQuest ? undefined : ISLAND_BGM[island]
+    //     return url ? playBgm(url) : undefined
+    // }, [island, inQuest]) // music: **on** -> **commented out**, reason: BGM and quest clear / fail music turned off for now, mechanism: uncomment to bring it back
     // same island BGM as IslandScene: it loops while the island is shown and
     // stops for the quest island, like the real game leaving for a quest page.
     // Placed above the early return so the hook order never changes

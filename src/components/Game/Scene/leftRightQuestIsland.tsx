@@ -6,7 +6,7 @@ import { TrainingHud } from "./training"
 import { FEET_H, HALL_W, hallH, spawnSpot, useLeftRightTraining } from "./leftRightTraining"
 import { leftRightNpcs } from "../npcs/npcs"
 import { BUBBLE_BG, BUBBLE_BOARDER, BUBBLE_BORDER_W } from "../Entity/dialogBubble"
-import { QUEST_BGM, playBgm, stopBgm } from "../Entity/voice"
+import { stopBgm /* , QUEST_BGM, playBgm */ } from "../Entity/voice"
 import { HIROKO_DX, useMergedTalk, useTutorial, type TutorialProps } from "./tutorial"
 // Hiroko's quest tutorial (tutorial.ts): her NPC, her choice / talk-end
 // handlers and her talk request for this quest type
@@ -84,8 +84,8 @@ function Training({ w, h, onLeave, sensitivity, tutorial, children }: { w: numbe
     // the cast from leftRightNpcs (moved out of the JSX); intro only: Hiroko
     // appended as index 1 (HIROKO), HIROKO_DX px right of Ryuuko (npcs[0]);
     // Elena is never out in 'intro'
-    const bgm = t.phase === 'success' || t.phase === 'again' ? QUEST_BGM.clear : t.phase === 'fail' ? QUEST_BGM.fail : undefined
-    useEffect(() => bgm ? playBgm(bgm) : undefined, [bgm])
+    // const bgm = t.phase === 'success' || t.phase === 'again' ? QUEST_BGM.clear : t.phase === 'fail' ? QUEST_BGM.fail : undefined
+    // useEffect(() => bgm ? playBgm(bgm) : undefined, [bgm]) // music: **on** -> **commented out**, reason: BGM and quest clear / fail music turned off for now, mechanism: uncomment to bring it back
     return (
         <>
             <GameScene bgProps={hallBg(w, h, spawnSpot(w, h).y)} npcs={cast} feetH={FEET_H} onChoice={(n, c) => tut.onChoice(n, c) || t.onChoice(n, c)} onTalkEnd={n => tut.onTalkEnd(n) || t.onTalkEnd(n)} onTick={t.onTick} renderWorld={t.renderWorld} talkRequest={talk} moveRequest={t.moveRequest} playerLabel={t.playerLabel} sensitivity={sensitivity} /> {/* props: **npcs, t.onChoice, t.onTalkEnd, t.talkRequest** -> **cast with Hiroko, tut handlers first, merged talk**, mechanism: tut.onChoice / onTalkEnd return true when the event was Hiroko's, so || skips the training's (which would read npc 1 as Elena); talk carries whichever request changed last */}

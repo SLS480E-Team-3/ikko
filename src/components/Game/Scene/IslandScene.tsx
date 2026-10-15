@@ -7,8 +7,8 @@ import { ISLAND_MAPS } from "../islands"
 import { ISLAND_NPCS } from "../npcs"
 import { npcsForRow } from "../npcs/npcs"
 import { KANA_ROWS } from "../kana"
-import { useEffect } from "react"
-import { ISLAND_BGM, playBgm } from "../Entity/voice"
+// import { useEffect } from "react" // imports: **useEffect** -> **commented out**, mechanism: its only use, the island BGM, is commented out
+// import { ISLAND_BGM, playBgm } from "../Entity/voice" // music: **on** -> **commented out**, reason: BGM and quest clear / fail music turned off for now, mechanism: uncomment to bring it back
 // imports: **none** -> **useEffect, ISLAND_BGM, playBgm**, mechanism: the island's looping BGM starts with the scene
 // imports: **ISLAND_NPCS** -> **+ npcsForRow, KANA_ROWS**, mechanism: the NPCs are moved to the player's current kana row before the quests attach // imports: **none** -> **ISLAND_NPCS**, mechanism: the per-island NPC lists, looked up by id like the maps
 
@@ -23,10 +23,10 @@ export type IslandSceneProps = {
 
 export default function IslandScene({ islandId, points, quests }: IslandSceneProps) { // props: **{ islandId: number }** -> **IslandSceneProps**, mechanism: the page passes points and the quest list along with the id, so the scene can draw them without its own queries
     const router = useRouter()
-    useEffect(() => {
-        const url = ISLAND_BGM[islandId]
-        return url ? playBgm(url) : undefined
-    }, [islandId])
+    // useEffect(() => {
+    //     const url = ISLAND_BGM[islandId]
+    //     return url ? playBgm(url) : undefined
+    // }, [islandId]) // music: **on** -> **commented out**, reason: BGM and quest clear / fail music turned off for now, mechanism: uncomment to bring it back
     // the island's track loops while its scene is on screen; leaving (a quest
     // page, another island) runs the cleanup, which stops it
     const done = (k: string) => quests.some(q => q.kana === k && q.status === 'done')

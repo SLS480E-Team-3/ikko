@@ -5,7 +5,7 @@ import GameScene, { questBg } from "./gameScene"
 import { useTraining, TrainingHud } from "./training"
 import { questIslandNpcs } from "../npcs/npcs"
 import { BUBBLE_BG, BUBBLE_BOARDER, BUBBLE_BORDER_W } from "../Entity/dialogBubble"
-import { QUEST_BGM, playBgm, stopBgm } from "../Entity/voice" // imports: **QUEST_BGM, playBgm** -> **+ stopBgm**, mechanism: the island track is stopped on mount // imports: **none** -> **QUEST_BGM, playBgm**, mechanism: clear / fail music in Training
+import { stopBgm /* , QUEST_BGM, playBgm */ } from "../Entity/voice" // imports: **QUEST_BGM, playBgm** -> **+ stopBgm**, mechanism: the island track is stopped on mount // imports: **none** -> **QUEST_BGM, playBgm**, mechanism: clear / fail music in Training
 import { HIROKO_DX, useMergedTalk, useTutorial, type TutorialProps } from "./tutorial"
 // Hiroko's quest tutorial (tutorial.ts): her NPC, her choice / talk-end
 // handlers and her talk request for this quest type
@@ -70,8 +70,8 @@ function Training({ w, h, onLeave, kana, sensitivity, tutorial, children }: { w:
     // intro only: Hiroko appended as index 1 (HIROKO), HIROKO_DX px right of
     // Ryuuko (npcs[0]); Elena is never out in 'intro', so nothing clashes
     // (ent x / y are optional; ?? 0 matches how GameScene reads them)
-    const bgm = t.phase === 'success' || t.phase === 'again' ? QUEST_BGM.clear : t.phase === 'fail' ? QUEST_BGM.fail : undefined
-    useEffect(() => bgm ? playBgm(bgm) : undefined, [bgm])
+    // const bgm = t.phase === 'success' || t.phase === 'again' ? QUEST_BGM.clear : t.phase === 'fail' ? QUEST_BGM.fail : undefined
+    // useEffect(() => bgm ? playBgm(bgm) : undefined, [bgm]) // music: **on** -> **commented out**, reason: BGM and quest clear / fail music turned off for now, mechanism: uncomment to bring it back
     // result music: the clear track through 'success' and Ryuuko's replay
     // offer ('again'), the fail track through 'fail'. The effect depends on
     // the url, not the phase, so success -> again keeps the same track
