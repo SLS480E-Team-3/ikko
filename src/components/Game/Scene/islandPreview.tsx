@@ -13,7 +13,7 @@ import { KANA_ROWS } from "@/components/Game/kana"
 // MobileTester's 'game scene' page, moved here so /MobDev/GameScene?island=N can show it
 // full-screen on a phone too
 
-export default function IslandPreview({ sensitivity, start = 1 }: { sensitivity?: number, start?: number }) { // props: **sensitivity** -> **+ start, sensitivity optional**, mechanism: /MobDev/GameScene?island=N opens on island N; GameScene falls back to SENSITIVITY_DEF
+export default function IslandPreview({ sensitivity, start = 1, tint = false }: { sensitivity?: number, start?: number, tint?: boolean }) { // props: **sensitivity, start** -> **+ tint**, reason: the page color around the scene stayed on the first island after next ▶, mechanism: tint is drawn here, where the current island is known // props: **sensitivity** -> **+ start, sensitivity optional**, mechanism: /MobDev/GameScene?island=N opens on island N; GameScene falls back to SENSITIVITY_DEF // props: **sensitivity** -> **+ start, sensitivity optional**, mechanism: /MobDev/GameScene?island=N opens on island N; GameScene falls back to SENSITIVITY_DEF
     const [island, setIsland] = useState(Math.min(ISLAND_COUNT, Math.max(1, start))) // initial: **1** -> **start, clamped to 1..ISLAND_COUNT**, mechanism: a bad ?island= still opens a real island
     const [row, setRow] = useState(0)
     // the kana row the NPCs offer (0 = あ–お): with no login there's no quest
@@ -28,8 +28,14 @@ export default function IslandPreview({ sensitivity, start = 1 }: { sensitivity?
     // same island BGM as IslandScene: it loops while the island is shown and
     // stops for the quest island, like the real game leaving for a quest page.
     // Placed above the early return so the hook order never changes
+    const pageTint = tint && <style>{`html, body { background-color: ${inQuest ? BUBBLE_BG : islandBg(island).color}; }`}</style>
+    // with tint (full-screen /MobDev), paints the page behind the scene in the
+    // current island's ground color, or the quest's cream while in a quest,
+    // so Safari's strips above and below follow prev / next. Off in
+    // MobileTester, where the page around the phone frame should stay as is
     if (inQuest) return (
         <div style={{ position: 'relative', width: '100%', height: '100%', background: BUBBLE_BG }}>
+            {pageTint}
             <QuestIsland key={`quest-${island}`} kana={inQuest} sensitivity={sensitivity} onLeave={() => setInQuest(false)} /> {/* scene: **<GameScene QUEST_BG>** -> **<QuestIsland>**, mechanism: same training island as the tab; onLeave returns to the island in place */}
             {/* <span style={{ position: 'absolute', top: 16, left: 16, zIndex: 2 }}>quest island (from island {island})</span> */} {/* label: **shown** -> **commented out**, mechanism: hidden for now; uncomment to show which island the quest came from */}
         </div>
@@ -38,6 +44,7 @@ export default function IslandPreview({ sensitivity, start = 1 }: { sensitivity?
     // same island: the no-login stand-in for QuestScene's router.push
     return (
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+            {pageTint}
             <GameScene key={`${island}-${row}`} sensitivity={sensitivity} bgProps={islandBg(island)} objects={ISLAND_MAPS[island] ?? []} npcs={npcs} onQuest={i => setInQuest(npcs[i]?.kana ?? 'あ')} /> {/* npcs: **ISLAND_NPCS[island]** -> **npcsForRow(..., row)**, mechanism: kana and quest line follow the row; key: **island** -> **island-row**, mechanism: remounts GameScene so the new NPC lines show */} {/* onQuest: **setInQuest(true)** -> **setInQuest(npc kana)**, mechanism: the training targets the kana of the NPC that asked */} {/* onQuest: **alert** -> **setInQuest(true)**, mechanism: はい renders the Quest Island in place instead of only alerting */}
             <div style={{ position: 'absolute', bottom: 'calc(var(--safe-bottom) + 128px)', left: 16, right: 16, zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', pointerEvents: 'none' }}>
                 <button style={{ ...btn, pointerEvents: 'auto' }} disabled={row <= 0} onClick={() => setRow(r => Math.max(0, r - 1))}>◀ row</button>

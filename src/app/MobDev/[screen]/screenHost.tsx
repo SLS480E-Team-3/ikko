@@ -15,10 +15,10 @@ const Tint = ({ color }: { color: string }) => <style>{`html, body { background-
 // /MobDev list and form screens stay white
 
 const SCREENS: Record<ScreenType, ComponentType<ScreenProps>> = {
-    GameScene: dynamic(() => Promise.all([import("@/components/Game/Scene/islandPreview"), import("@/components/Game/Scene/gameScene")]).then(([m, g]) => {
+    GameScene: dynamic(() => import("@/components/Game/Scene/islandPreview").then(m => {
         const C = m.default
-        return ({ island, sensitivity }: ScreenProps) => <><Tint color={g.islandBg(island).color} /><C start={island} sensitivity={sensitivity} /></>
-    }), { ssr: false }), // adapter: **IslandPreview only** -> **+ Tint with the island's ground color**, mechanism: gameScene is already in this chunk (islandPreview imports it), so the color costs no extra download
+        return ({ island, sensitivity }: ScreenProps) => <C start={island} sensitivity={sensitivity} tint />
+    }), { ssr: false }), // adapter: **Tint with islandBg(start island)** -> **IslandPreview tint prop**, reason: the strips kept the first island's color after prev / next, mechanism: IslandPreview tints with the island it is showing now
     QuestOriginal: dynamic(() => Promise.all([import("@/components/Game/Scene/questIsland"), import("@/components/Game/Entity/dialogBubble")]).then(([m, { BUBBLE_BG }]) => {
         const C = m.default
         return ({ sensitivity, onLeave }: ScreenProps) => <><Tint color={BUBBLE_BG} /><C sensitivity={sensitivity} onLeave={onLeave} /></>

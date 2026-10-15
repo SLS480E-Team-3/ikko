@@ -34,7 +34,7 @@ Reads `?island` (int, default 1) and `?sens` (number or `undefined`) via `useSea
 
 ### `Tint`
 
-`({ color }) => <style>`: sets `html, body` background to `color` while the screen is mounted, so Safari's status-bar strip and the area under its URL bar match the scene. GameScene uses the island's ground color, quests use `BUBBLE_BG`; both colors load inside that screen's own chunk.
+`({ color }) => <style>`: sets `html, body` background to `color` while the screen is mounted, so Safari's status-bar strip and the area under its URL bar match the scene. Quests use `BUBBLE_BG` (loaded inside the quest chunk). GameScene instead passes `tint` to IslandPreview, which paints the current island's color (or the quest cream) so it follows prev / next.
 
 ### `toNum`
 
