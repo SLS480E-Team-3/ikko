@@ -8,27 +8,33 @@ import type { ScreenType } from "../screenTypes"
 
 type ScreenProps = { island: number, sensitivity?: number, onLeave: () => void }
 
+const Tint = ({ color }: { color: string }) => <style>{`html, body { background-color: ${color}; }`}</style>
+// paints the page behind the scene, like Game/layout.tsx: Safari tints its
+// status-bar strip and the area under its floating URL bar with the page
+// background, which was white. The <style> unmounts with the screen, so the
+// /MobDev list and form screens stay white
+
 const SCREENS: Record<ScreenType, ComponentType<ScreenProps>> = {
-    GameScene: dynamic(() => import("@/components/Game/Scene/islandPreview").then(m => {
+    GameScene: dynamic(() => Promise.all([import("@/components/Game/Scene/islandPreview"), import("@/components/Game/Scene/gameScene")]).then(([m, g]) => {
         const C = m.default
-        return ({ island, sensitivity }: ScreenProps) => <C start={island} sensitivity={sensitivity} />
-    }), { ssr: false }),
-    QuestOriginal: dynamic(() => import("@/components/Game/Scene/questIsland").then(m => {
+        return ({ island, sensitivity }: ScreenProps) => <><Tint color={g.islandBg(island).color} /><C start={island} sensitivity={sensitivity} /></>
+    }), { ssr: false }), // adapter: **IslandPreview only** -> **+ Tint with the island's ground color**, mechanism: gameScene is already in this chunk (islandPreview imports it), so the color costs no extra download
+    QuestOriginal: dynamic(() => Promise.all([import("@/components/Game/Scene/questIsland"), import("@/components/Game/Entity/dialogBubble")]).then(([m, { BUBBLE_BG }]) => {
         const C = m.default
-        return ({ sensitivity, onLeave }: ScreenProps) => <C sensitivity={sensitivity} onLeave={onLeave} />
-    }), { ssr: false }),
-    QuestShoot: dynamic(() => import("@/components/Game/Scene/shootQuestIsland").then(m => {
+        return ({ sensitivity, onLeave }: ScreenProps) => <><Tint color={BUBBLE_BG} /><C sensitivity={sensitivity} onLeave={onLeave} /></>
+    }), { ssr: false }), // adapter: **quest only** -> **+ Tint BUBBLE_BG**, mechanism: the quest island's cream fills the strips Safari leaves around the page
+    QuestShoot: dynamic(() => Promise.all([import("@/components/Game/Scene/shootQuestIsland"), import("@/components/Game/Entity/dialogBubble")]).then(([m, { BUBBLE_BG }]) => {
         const C = m.ShootQuestIsland
-        return ({ sensitivity, onLeave }: ScreenProps) => <C sensitivity={sensitivity} onLeave={onLeave} />
-    }), { ssr: false }),
-    QuestDodge: dynamic(() => import("@/components/Game/Scene/dodgeQuestIsland").then(m => {
+        return ({ sensitivity, onLeave }: ScreenProps) => <><Tint color={BUBBLE_BG} /><C sensitivity={sensitivity} onLeave={onLeave} /></>
+    }), { ssr: false }), // adapter: **quest only** -> **+ Tint BUBBLE_BG**, mechanism: the quest island's cream fills the strips Safari leaves around the page
+    QuestDodge: dynamic(() => Promise.all([import("@/components/Game/Scene/dodgeQuestIsland"), import("@/components/Game/Entity/dialogBubble")]).then(([m, { BUBBLE_BG }]) => {
         const C = m.DodgeQuestIsland
-        return ({ sensitivity, onLeave }: ScreenProps) => <C sensitivity={sensitivity} onLeave={onLeave} />
-    }), { ssr: false }),
-    QuestDoor: dynamic(() => import("@/components/Game/Scene/leftRightQuestIsland").then(m => {
+        return ({ sensitivity, onLeave }: ScreenProps) => <><Tint color={BUBBLE_BG} /><C sensitivity={sensitivity} onLeave={onLeave} /></>
+    }), { ssr: false }), // adapter: **quest only** -> **+ Tint BUBBLE_BG**, mechanism: the quest island's cream fills the strips Safari leaves around the page
+    QuestDoor: dynamic(() => Promise.all([import("@/components/Game/Scene/leftRightQuestIsland"), import("@/components/Game/Entity/dialogBubble")]).then(([m, { BUBBLE_BG }]) => {
         const C = m.LeftRightQuestIsland
-        return ({ sensitivity, onLeave }: ScreenProps) => <C sensitivity={sensitivity} onLeave={onLeave} />
-    }), { ssr: false }),
+        return ({ sensitivity, onLeave }: ScreenProps) => <><Tint color={BUBBLE_BG} /><C sensitivity={sensitivity} onLeave={onLeave} /></>
+    }), { ssr: false }), // adapter: **quest only** -> **+ Tint BUBBLE_BG**, mechanism: the quest island's cream fills the strips Safari leaves around the page
     SignUp: dynamic(() => import("@/app/SignUp/page"), { ssr: false }),
     LogIn: dynamic(() => import("@/app/LogIn/page"), { ssr: false }),
     InfoRecovery: dynamic(() => import("@/app/InfoRecovery/page"), { ssr: false }),
@@ -49,7 +55,7 @@ export default function ScreenHost({ screen }: { screen: ScreenType }) {
     const query = useSearchParams()
     const Screen = SCREENS[screen]
     return (
-        <div style={{ width: '100%', height: '100lvh' }}>
+        <div style={{ position: 'fixed', inset: 0, overflow: 'auto' }}> {/* wrapper: **width 100%, height 100lvh** -> **position fixed, inset 0**, reason: lvh is taller than what Safari shows, so the bottom of the scene (island buttons) sat under the floating URL bar, mechanism: a fixed box pinned to all 4 edges is exactly the visible viewport and resizes with the bars, no vh units; overflow auto lets a form taller than the screen scroll inside it */}
             <Screen
                 island={Math.trunc(toNum(query.get('island')) ?? 1)}
                 sensitivity={toNum(query.get('sens'))}
@@ -61,5 +67,5 @@ export default function ScreenHost({ screen }: { screen: ScreenType }) {
 // full-screen host for one screen. ?island=N (default 1, IslandPreview clamps
 // it to a real island) and ?sens=X (missing or not a number = undefined, so
 // the scene uses SENSITIVITY_DEF). onLeave (Elena's はい on a quest) goes back
-// to the /MobDev list. The 100lvh wrapper gives the scene the full screen
-// height, like the old /Dev/Quest* pages and Game/page.tsx
+// to the /MobDev list. The fixed inset-0 wrapper gives the scene exactly the
+// visible screen; Tint fills whatever Safari draws around it

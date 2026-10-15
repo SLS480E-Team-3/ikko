@@ -8,7 +8,7 @@
 
 ### `ScreenHost` (default export)
 
-Renders `SCREENS[screen]` in a `100% x 100lvh` wrapper.
+Renders `SCREENS[screen]` in a `position: fixed; inset: 0` wrapper (exactly the visible screen, no vh units; scrolls if the content is taller).
 
 **Input**
 
@@ -31,6 +31,10 @@ Reads `?island` (int, default 1) and `?sens` (number or `undefined`) via `useSea
 ### `SCREENS` (module const)
 
 `Record<ScreenType, ComponentType<ScreenProps>>`; each value is `next/dynamic(..., { ssr: false })`. Quest and island entries adapt `ScreenProps` to the component's own props; form pages take none.
+
+### `Tint`
+
+`({ color }) => <style>`: sets `html, body` background to `color` while the screen is mounted, so Safari's status-bar strip and the area under its URL bar match the scene. GameScene uses the island's ground color, quests use `BUBBLE_BG`; both colors load inside that screen's own chunk.
 
 ### `toNum`
 

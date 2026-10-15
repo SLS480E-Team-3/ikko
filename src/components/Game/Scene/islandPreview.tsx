@@ -39,18 +39,20 @@ export default function IslandPreview({ sensitivity, start = 1 }: { sensitivity?
     return (
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
             <GameScene key={`${island}-${row}`} sensitivity={sensitivity} bgProps={islandBg(island)} objects={ISLAND_MAPS[island] ?? []} npcs={npcs} onQuest={i => setInQuest(npcs[i]?.kana ?? 'あ')} /> {/* npcs: **ISLAND_NPCS[island]** -> **npcsForRow(..., row)**, mechanism: kana and quest line follow the row; key: **island** -> **island-row**, mechanism: remounts GameScene so the new NPC lines show */} {/* onQuest: **setInQuest(true)** -> **setInQuest(npc kana)**, mechanism: the training targets the kana of the NPC that asked */} {/* onQuest: **alert** -> **setInQuest(true)**, mechanism: はい renders the Quest Island in place instead of only alerting */}
-            <div style={{ position: 'absolute', bottom: 64, left: 16, right: 16, zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', pointerEvents: 'none' }}>
+            <div style={{ position: 'absolute', bottom: 'calc(var(--safe-bottom) + 128px)', left: 16, right: 16, zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', pointerEvents: 'none' }}>
                 <button style={{ ...btn, pointerEvents: 'auto' }} disabled={row <= 0} onClick={() => setRow(r => Math.max(0, r - 1))}>◀ row</button>
                 <span>row {KANA_ROWS[row].join('')}</span>
                 <button style={{ ...btn, pointerEvents: 'auto' }} disabled={row >= KANA_ROWS.length - 1} onClick={() => setRow(r => Math.min(KANA_ROWS.length - 1, r + 1))}>row ▶</button>
             </div>
+            {/* bottom: **64** -> **safe-bottom + 128px**, reason: stays one line above the island buttons, which moved up, mechanism: same 48px gap as before */}
             {/* kana row switcher, one line above the island buttons: same
                 layout, steps row through KANA_ROWS */}
-            <div style={{ position: 'absolute', bottom: 16, left: 16, right: 16, zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', pointerEvents: 'none' }}>
+            <div style={{ position: 'absolute', bottom: 'calc(var(--safe-bottom) + 80px)', left: 16, right: 16, zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', pointerEvents: 'none' }}>
                 <button style={{ ...btn, pointerEvents: 'auto' }} disabled={island <= 1} onClick={() => setIsland(i => Math.max(1, i - 1))}>◀ prev</button>
                 <span>island {island}</span>
                 <button style={{ ...btn, pointerEvents: 'auto' }} disabled={island >= ISLAND_COUNT} onClick={() => setIsland(i => Math.min(ISLAND_COUNT, i + 1))}>next ▶</button>
             </div>
+            {/* bottom: **16** -> **safe-bottom + 80px**, reason: on iPhone Safari next ▶ sat under the floating URL bar and couldn't be tapped, mechanism: lifted clear of the bar (about 64px tall) plus the home-indicator inset (--safe-bottom, globals.css) */}
         </div>
     )
 }
