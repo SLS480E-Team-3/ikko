@@ -6,6 +6,10 @@ SLS480E Team 3 Japanese learning App for Beginners
 [WEB LINK](https://ikko.vercel.app/)
 for dev purpose some auth fields are disabled
 
+## Mobile testing
+
+Open any screen on your phone at `/MobDev` (e.g. [ikko.vercel.app/MobDev](https://ikko.vercel.app/MobDev)). See the [mobile testing manual](docs/mobile-testing-manual.md).
+
 ## Target
 
 [TBD]
@@ -45,6 +49,7 @@ flowchart TD
 | `/Game/[island]/[quest]` | QuestScene | login required. First visit starts the quest; later visits resume it |
 | `/InfoRecovery`, `/EditInfo` | account | password reset / edit profile |
 | `/Dev`, `/MobileTester` | dev only | open logged in or out |
+| `/MobDev`, `/MobDev/<ScreenType>` | dev only | one screen full-screen on a phone, no login. See the [manual](docs/mobile-testing-manual.md) |
 
 ### Rules
 
