@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation"
 import QuestScene, { type QuestSceneProps } from "@/components/Game/Scene/QuestScene"
 import { adminClient, serverClient } from "@/utils/supabase"
+import { islandQuestType } from "@/utils/islands" // imports: **none** -> **islandQuestType**, mechanism: which quest type this island runs
 
 export default async function QuestPage({ // name: **QuestScene** -> **QuestPage**, mechanism: frees the name for the imported QuestScene component this page now renders
     params,
@@ -41,12 +42,12 @@ export default async function QuestPage({ // name: **QuestScene** -> **QuestPage
     // started_at and completed_at are kept. Admin client because
     // user_quests has no write policies; the read goes back through RLS
 
+    const questType = islandQuestType(islandId)
     const { data: tutorial } = await supabase.from('user_tutorials')
-        .select('quest_type').eq('user_id', user.id).eq('quest_type', 'original').maybeSingle()
-    // has Hiroko already asked this player about the catch quest's tutorial?
-    // Read through RLS (select policy: own rows only); the real quest page
-    // only runs the original catch quest, so only 'original' is checked
+        .select('quest_type').eq('user_id', user.id).eq('quest_type', questType).maybeSingle() // quest_type: **'original'** -> **islandQuestType(islandId)**, mechanism: island 2 runs the dodge quest, so its tutorial row is 'dodge'
+    // has Hiroko already asked this player about this quest type's tutorial?
+    // Read through RLS (select policy: own rows only)
 
-    const props: QuestSceneProps = { islandId, quest: row, cleared: !!mine?.completed_at, tutorialSeen: !!tutorial } // props: **no tutorialSeen** -> **+ tutorialSeen**, mechanism: a row in user_tutorials means she already asked, so QuestScene skips the question
+    const props: QuestSceneProps = { islandId, quest: row, cleared: !!mine?.completed_at, tutorialSeen: !!tutorial, questType } // props: **no questType** -> **+ questType**, mechanism: QuestScene picks QuestIsland or DodgeQuestIsland from it // props: **no tutorialSeen** -> **+ tutorialSeen**, mechanism: a row in user_tutorials means she already asked, so QuestScene skips the question
     return <QuestScene {...props} /> // render: **inline JSX** -> **<QuestScene>**, mechanism: the page keeps the guards and the start/resume write; QuestScene ('use client') gets the quest and cleared flag as plain props and draws them
 }
