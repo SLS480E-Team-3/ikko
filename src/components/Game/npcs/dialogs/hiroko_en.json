@@ -272,6 +272,76 @@
           "style": "calm, warm, clear"
         }
       ]
+    },
+    {
+      "condition": "tut-particle-touch",
+      "lines": [
+        {
+          "text": "The sign shows a sentence with a blank.",
+          "en": "The sign shows a sentence with a blank.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Ryuuko throws wood pieces with particles on them.",
+          "en": "Ryuuko throws wood pieces with particles on them.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Catch the piece that fits the blank. Wrong ones cost you HP.",
+          "en": "Catch the piece that fits the blank. Wrong ones cost you HP.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Fill ten blanks before the timer runs out.",
+          "en": "Fill ten blanks before the timer runs out.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Drag anywhere to move. Pinch to zoom.",
+          "en": "Drag anywhere to move. Pinch to zoom.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Talk to Ryuuko when you are ready.",
+          "en": "Talk to Ryuuko when you are ready.",
+          "style": "calm, warm, clear"
+        }
+      ]
+    },
+    {
+      "condition": "tut-particle-keys",
+      "lines": [
+        {
+          "text": "The sign shows a sentence with a blank.",
+          "en": "The sign shows a sentence with a blank.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Ryuuko throws wood pieces with particles on them.",
+          "en": "Ryuuko throws wood pieces with particles on them.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Catch the piece that fits the blank. Wrong ones cost you HP.",
+          "en": "Catch the piece that fits the blank. Wrong ones cost you HP.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Fill ten blanks before the timer runs out.",
+          "en": "Fill ten blanks before the timer runs out.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Move with W A S D. Scroll to zoom.",
+          "en": "Move with W A S D. Scroll to zoom.",
+          "style": "calm, warm, clear"
+        },
+        {
+          "text": "Talk to Ryuuko when you are ready.",
+          "en": "Talk to Ryuuko when you are ready.",
+          "style": "calm, warm, clear"
+        }
+      ]
     }
   ]
 }

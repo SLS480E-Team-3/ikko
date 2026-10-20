@@ -137,6 +137,17 @@ export const ISLAND_SECTIONS: Record<number, BgSection[]> = {
     // over the bottom 300 px. The magma is island 1's ocean in another color:
     // merge gives it the dithered shore, solid stops the player at its edge,
     // and wave makes it rise and fall and push the player up
+    3: [
+        { id: 'forest', x: 0, y: 0, w: 1400, h: 800, color: '#7fae5a' },
+        { id: 'clearing', x: 0, y: 800, w: 1400, h: 800, color: '#a9cf7a', merge: true },
+        { id: 'bank', x: 0, y: 1600, w: 1400, h: 100, color: '#f3e9c6', merge: true },
+        { id: 'river', x: 0, y: 1700, w: 1400, h: 300, color: '#87ceeb', merge: true, solid: true },
+    ],
+    // island 3, the forest-island scene (docs/scenes/forest-island.md): four
+    // full-width bands top to bottom, each one plain color. The dark moss
+    // forest, the light moss clearing with the spawn, a 100 px strip of sand
+    // and the river. merge on the lower three gives each top border the
+    // dithered line; solid stops the player at the river, which has no wave
 } // sections: **{}** -> **island 2's three sections**, mechanism: the tropical-island scene (docs/scenes/tropical-island.md): three full-width bands that cover the 1400 x 2000 world top to bottom; each is one plain color with no tile (moss light green, sand off-white and a bit yellow, volcano sand red-brown)
 // the ground sections of each island, keyed by island id. The /make-scene
 // skill adds an island's entry when it builds that scene. An island with no

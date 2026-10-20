@@ -7,7 +7,8 @@ export type Condition =
     | 'greeting' | 'default' | 'spoken' | 'quest' | 'questCleared' | 'retry'
     | `level${number}-${'start' | 'clear' | 'fail'}`
     | `lr-${'intro' | 'word' | 'correct' | 'wrong' | 'clear' | 'fail'}`
-    | `tut-${'ask' | 'bye'}` | `tut-${'original' | 'dodge' | 'shoot' | 'door'}-${'touch' | 'keys'}` // labels: **+ tut-...**, reason: Hiroko's quest tutorials (docs/quest-tutorials.spec.json), mechanism: tut-ask is her first-time question, tut-bye her hand-off to Ryuuko, tut-<quest>-<touch|keys> the tutorial for one quest type and device // labels: **+ lr-...** , reason: the Left or Right quest (docs/left-or-right.spec.json) has its own lines, mechanism: lr-intro / lr-clear / lr-fail are NPC talks (sceneDialog), lr-word / lr-correct / lr-wrong are read by the quest hook and shown on its sign
+    | `tut-${'ask' | 'bye'}` | // tut types: **+ 'particle'**, mechanism: Hiroko's tutorial for island 3's particle quest
+    `tut-${'original' | 'dodge' | 'shoot' | 'door' | 'particle'}-${'touch' | 'keys'}` // labels: **+ tut-...**, reason: Hiroko's quest tutorials (docs/quest-tutorials.spec.json), mechanism: tut-ask is her first-time question, tut-bye her hand-off to Ryuuko, tut-<quest>-<touch|keys> the tutorial for one quest type and device // labels: **+ lr-...** , reason: the Left or Right quest (docs/left-or-right.spec.json) has its own lines, mechanism: lr-intro / lr-clear / lr-fail are NPC talks (sceneDialog), lr-word / lr-correct / lr-wrong are read by the quest hook and shown on its sign
 // when a Dialog is said. Island NPCs use the first five (picked by
 // pickDialog in npcRenderer.tsx). The Quest Island uses 'quest' (before the
 // quest), 'retry' and the level labels: level1-start, level2-clear,

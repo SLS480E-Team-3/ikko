@@ -8,7 +8,7 @@ import hirokoScript from "../npcs/dialogs/hiroko_en.json"
 // Hiroko's quest tutorials (docs/quest-tutorials.spec.json): she stands next
 // to Ryuuko before a run and explains the quest type in English
 
-export type QuestType = 'original' | 'dodge' | 'shoot' | 'door'
+export type QuestType = 'original' | 'dodge' | 'shoot' | 'door' | 'particle' // types: **4** -> **+ 'particle'**, mechanism: island 3's catch-the-right-wood quest (docs/island-3.spec.json)
 export type TutorialProps = { seen: boolean, onSeen: () => void }
 // seen: the player was already asked about this quest type (Supabase,
 // user_tutorials); onSeen: called once when they answer. No props at all =

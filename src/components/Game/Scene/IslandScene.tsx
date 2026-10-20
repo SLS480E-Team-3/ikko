@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation" // imports: **none** -> **useRouter*
 import GameScene, { ISLAND_COUNT, islandBg } from "./gameScene" // imports: **GameScene** -> **+ ISLAND_COUNT, islandBg**, mechanism: per-island bg color and the bounds for the prev/next links
 import { ISLAND_MAPS } from "../islands"
 import { ISLAND_NPCS } from "../npcs"
-import { npcsForRow } from "../npcs/npcs"
+import { npcsForParticles, npcsForRow, PARTICLE_STEPS } from "../npcs/npcs" // imports: **npcsForRow** -> **+ npcsForParticles, PARTICLE_STEPS**, mechanism: island 3 hands its quests out one NPC at a time
+import { islandQuestType } from "@/utils/islands"
 import { KANA_ROWS } from "../kana"
 // import { useEffect } from "react" // imports: **useEffect** -> **commented out**, mechanism: its only use, the island BGM, is commented out
 // import { ISLAND_BGM, playBgm } from "../Entity/voice" // music: **on** -> **commented out**, reason: BGM and quest clear / fail music turned off for now, mechanism: uncomment to bring it back
@@ -35,7 +36,15 @@ export default function IslandScene({ islandId, points, quests }: IslandScenePro
     // the current kana row: the first one with a quest not yet done, so か–こ
     // open only once all of あ–お are cleared. With every row done the last
     // row stays, where each quest is done and no NPC offers one
-    const npcs = npcsForRow(ISLAND_NPCS[islandId] ?? [], row).map(n => { // npcs: **ISLAND_NPCS[islandId]** -> **npcsForRow(..., row)**, mechanism: each NPC's kana and quest line follow the current row, then the kana -> quest match below is unchanged
+    const step = PARTICLE_STEPS.findIndex(k => !done(k))
+    const base = islandQuestType(islandId) === 'particle'
+        ? npcsForParticles(ISLAND_NPCS[islandId] ?? [], step === -1 ? PARTICLE_STEPS.length - 1 : step)
+        : npcsForRow(ISLAND_NPCS[islandId] ?? [], row)
+    // island 3 (particle quests): the first step not done yet (に, で, mix)
+    // picks the one NPC that offers a quest; with all done the last step
+    // stays, whose quest is done so no one offers. Other islands follow the
+    // kana rows as before
+    const npcs = base.map(n => { // source: **npcsForRow(...)** -> **base**, mechanism: island 3 uses npcsForParticles instead // npcs: **ISLAND_NPCS[islandId]** -> **npcsForRow(..., row)**, mechanism: each NPC's kana and quest line follow the current row, then the kana -> quest match below is unchanged
         const quest = quests.find(q => q.kana && q.kana === n.kana)
         return quest ? { ...n, quest } : { ...n, dialog: n.dialog?.filter(d => d.condition !== 'quest') }
     })

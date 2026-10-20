@@ -9,7 +9,7 @@
 
 ## Structure
 
-Content is organized into **5 islands**. Island 1 teaches the characters. Island 2 teaches the core phrases. Islands 3–5 each cover real travel situations, with their vocabulary, phrases, and listening practice nested inside them.
+Content is organized into **5 islands**. Island 1 teaches the characters. Island 2 teaches the core phrases. Since 2026-10-19 islands 3–5 follow `ikko-vision.pdf`: island 3 teaches the particles に / で, island 4 は / が and basic phrases in a port town, island 5 is the final boss. The travel units below (airport, restaurants, small talk) were the earlier plan for islands 3–5 and are kept for reuse.
 
 Each island should define:
 
@@ -132,7 +132,19 @@ Taught the same way: the word with a photo of the action (食べる, someone eat
 
 Quests exist for こんにちは, ありがとう, すみません, ごめんなさい and さようなら (`src/components/Game/islands/quests/island_2_quests.ts`). The other rows have no quests yet.
 
-### 3. Airport / Directions
+### 3. Particles に / で
+
+Sentences with one blank: に for where something is, where you go, and when; で for where an action happens and by what means. Hiragana only, with the English under each sentence. Content: `src/components/Game/particles.ts`; spec: [island-3.spec.json](island-3.spec.json).
+
+### 4. は / が and basic phrases
+
+To be planned in Issue #61.
+
+### 5. Final boss
+
+To be planned in Issue #62.
+
+### Earlier plan: Airport / Directions
 
 - Immigration
 - Baggage
@@ -283,7 +295,7 @@ Quests exist for こんにちは, ありがとう, すみません, ごめんな
 
 Rows marked "you hear this" are listening practice: the learner only needs to understand them, not say them.
 
-### 4. Restaurants
+### Earlier plan: Restaurants
 
 - Party size (何名様)
 - Ordering
@@ -354,7 +366,7 @@ Rows marked "you hear this" are listening practice: the learner only needs to un
 | 〜円になります (〜えんになります) | ~ en ni narimasu | that will be ~ yen | you hear this |
 | 領収書 (りょうしゅうしょ) | ryoushuusho | receipt | レシート is the everyday word |
 
-### 5. Small Talk
+### Earlier plan: Small Talk
 
 - Where you're from
 - How long you're staying

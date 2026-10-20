@@ -20,9 +20,11 @@
 
 1. **Characters / Useful Kanji** (Okinawa Theme)
 2. **Vocabulary / Phrases** (Osaka)
-3. **Airport / Directions** (Kyoto)
-4. **Restaurants** (Tokyo)
-5. **Small Talk** (Hokkaido)
+3. **Particles に / で** (forest island, Issue #60). Spec: [island-3.spec.json](island-3.spec.json)
+4. **は / が and basic phrases** (port town, Issue #61)
+5. **Final boss** (Issue #62)
+
+Islands 3–5 follow `ikko-vision.pdf` since 2026-10-19. The older travel plan for them (airport, restaurants, small talk) is kept below as "Earlier plan" for later reuse.
 
 **COMPLETE**
 
@@ -50,7 +52,23 @@
 7. **Bigger numbers, prices and times**: up to 10,000, 〜円, 〜時, 〜分
 8. **Core patterns**: 〜をください, 〜はどこですか, 〜ありますか, 〜たいです, 〜てもいいですか
 
-### Island 3
+### Island 3: Particles に / で
+
+1. **に**: place of existence (いえにいる), destination (がっこうにいく), time
+2. **で**: place of an action (こうえんであそぶ), means (ふねでいく)
+3. **Mix**: に and で sentences together; を / へ fly as decoys in level 2
+
+One quest each, unlocked in order (に → で → mix), played as the particle quest (catch the right wood).
+
+### Island 4: は / が and basic phrases
+
+Planned in Issue #61 (port town; talk-and-reply and listen-and-match quests).
+
+### Island 5: Final boss
+
+Planned in Issue #62 (boss rush through every quest type).
+
+### Earlier plan: Island 3 (airport / directions)
 
 1. **Immigration**: パスポート, 観光です, 〜日間です
 2. **Baggage**: 荷物, baggage claim, customs (ありません)
@@ -65,7 +83,7 @@
 11. **Requests**: 荷物を預かってもらえますか, 〜をください, 〜が壊れています
 12. **Ryokan etiquette**: 畳, スリッパ, 浴衣, 温泉; culture: shoes off, onsen rules
 
-### Island 4
+### Earlier plan: Island 4 (restaurants)
 
 1. **Party size**: いらっしゃいませ, 何名様ですか, 一人 / 二人 / 三人
 2. **Ordering**: すみません！, これをください, 〜を一つください, お水
@@ -74,7 +92,7 @@
 5. **Paying**: お会計お願いします, 別々で / 一緒で, 〜円になります
 6. **Table manners**: いただきます / ごちそうさまでした; culture: no tipping, money goes on the tray
 
-### Island 5
+### Earlier plan: Island 5 (small talk)
 
 1. **Where you're from**: どこから来ましたか, 〜から来ました, 〜人です
 2. **How long you're staying**: 日本は初めてですか, 一週間です, 旅行です
@@ -84,6 +102,7 @@
 ## Quest types
 
 - **Catch** (`questIsland.tsx`), **shoot** (`shootQuestIsland.tsx`), **dodge** (`dodgeQuestIsland.tsx`): blocks with the target kana.
+- **Particle** (`particleQuestIsland.tsx`): island 3. A sentence with a blank on the sign, catch the wood piece with the right particle. Spec: [island-3.spec.json](island-3.spec.json).
 - **Left or Right** (`leftRightQuestIsland.tsx`): walk up a small room into the red or blue door in its back wall with the verb's meaning ([scene](scenes/hallway.md)). Spec: [left-or-right.spec.json](left-or-right.spec.json). MobileTester tab `quest door` only for now (not on the quest page / no SQL).
 
 ## Reward Points

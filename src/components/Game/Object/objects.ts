@@ -72,6 +72,42 @@ export const OBJECTS: Record<string, ObjectDef> = {
     // `sprite.py make <name>` with no reference image, as a 32 px wide
     // sprite drawn 8x (so w is 256, like the 64 px sprites drawn 4x). None
     // has a hitBox or a sign: decoration the player walks through
+    'pine-tree': {
+        sprite: { src: '/img/pine-tree.webp', w: 256, h: 400, alt: 'pine-tree' },
+        hitBox: { x: 112, y: 320, w: 40, h: 80 },
+    },
+    stump: {
+        sprite: { src: '/img/stump.webp', w: 256, h: 240, alt: 'stump' },
+        hitBox: { x: 56, y: 192, w: 152, h: 48 },
+    },
+    cabin: {
+        sprite: { src: '/img/cabin.webp', w: 256, h: 216, alt: 'cabin' },
+        hitBox: { x: 40, y: 176, w: 144, h: 40 },
+    },
+    woodpile: {
+        sprite: { src: '/img/woodpile.webp', w: 256, h: 176, alt: 'woodpile' },
+        hitBox: { x: 40, y: 144, w: 168, h: 32 },
+    },
+    'apple-tree': {
+        sprite: { src: '/img/apple-tree.webp', w: 256, h: 496, alt: 'apple-tree' },
+        hitBox: { x: 56, y: 400, w: 160, h: 96 },
+    },
+    axe: { sprite: { src: '/img/axe.webp', w: 256, h: 208, alt: 'axe' } },
+    bridge: { sprite: { src: '/img/bridge.webp', w: 256, h: 240, alt: 'bridge' } },
+    fish: { sprite: { src: '/img/fish.webp', w: 256, h: 112, alt: 'fish' } },
+    boat: {
+        sprite: { src: '/img/boat.webp', w: 256, h: 288, alt: 'boat' },
+        hitBox: { x: 32, y: 192, w: 192, h: 96 },
+    },
+    // the forest-island props (docs/scenes/forest-island.md), each made by
+    // python/sprite.py `make <key> --ref output/refs/<key>.png` (pixabay
+    // references) as a 32 px wide sprite drawn 8x. The blocking props keep
+    // the printed hitBox (the bottom 20% at the width of the base), except
+    // boat: the printed box (x 32, w 56) was only the bow, because the hull
+    // lies diagonally, so it is set by hand to the lower third at most of
+    // the hull's width. axe, bridge and fish have no hitBox, so the player
+    // walks through them; their sign shows when the player is within
+    // SIGN_RANGE of the sprite
 }
 // the object catalog: one ObjectDef per kind, keyed by the name a
 // PlacedObject's def uses. tower is the temp art (public/img/temp.png,
