@@ -8,6 +8,8 @@ import { ISLAND_MAPS } from "@/components/Game/islands"
 import { BUBBLE_BG } from "@/components/Game/Entity/dialogBubble"
 import { npcsForRow } from "@/components/Game/npcs/npcs"
 import QuestIsland from "@/components/Game/Scene/questIsland"
+import { DodgeQuestIsland } from "@/components/Game/Scene/dodgeQuestIsland" // imports: **none** -> **DodgeQuestIsland**, mechanism: island 2's NPCs open the dodge quest, like QuestScene
+import { islandQuestType } from "@/utils/islands"
 import { ISLAND_NPCS } from "@/components/Game/npcs"
 import { KANA_ROWS } from "@/components/Game/kana"
 // MobileTester's 'game scene' page, moved here so /MobDev/GameScene?island=N can show it
@@ -36,7 +38,9 @@ export default function IslandPreview({ sensitivity, start = 1, tint = false }: 
     if (inQuest) return (
         <div style={{ position: 'relative', width: '100%', height: '100%', background: BUBBLE_BG }}>
             {pageTint}
-            <QuestIsland key={`quest-${island}`} kana={inQuest} sensitivity={sensitivity} onLeave={() => setInQuest(false)} /> {/* scene: **<GameScene QUEST_BG>** -> **<QuestIsland>**, mechanism: same training island as the tab; onLeave returns to the island in place */}
+            {islandQuestType(island) === 'dodge'
+                ? <DodgeQuestIsland key={`quest-${island}`} kana={inQuest} sensitivity={sensitivity} onLeave={() => setInQuest(false)} />
+                : <QuestIsland key={`quest-${island}`} kana={inQuest} sensitivity={sensitivity} onLeave={() => setInQuest(false)} />} {/* scene: **<QuestIsland> always** -> **DodgeQuestIsland on island 2**, mechanism: islandQuestType, the same pick QuestScene makes */} {/* scene: **<GameScene QUEST_BG>** -> **<QuestIsland>**, mechanism: same training island as the tab; onLeave returns to the island in place */}
             {/* <span style={{ position: 'absolute', top: 16, left: 16, zIndex: 2 }}>quest island (from island {island})</span> */} {/* label: **shown** -> **commented out**, mechanism: hidden for now; uncomment to show which island the quest came from */}
         </div>
     )

@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import type { QuestType } from '@/components/Game/Scene/tutorial'
 
 export async function firstIsland(supabase: SupabaseClient): Promise<number> {
     const { data } = await supabase.from('islands').select('id').order('sort_order').limit(1).maybeSingle()
@@ -16,3 +17,9 @@ export async function homeIsland(supabase: SupabaseClient, userId: string): Prom
 // redirect): the island they last opened, else the first island.
 // `supabase` must be signed in as userId -- RLS lets them read profiles
 // and islands
+
+export const islandQuestType = (islandId: number): QuestType => islandId === 2 ? 'dodge' : 'original'
+// which quest island an island's NPCs send the player to: island 2 runs the
+// dodge quest (DodgeQuestIsland), every other island the original catch
+// quest (QuestIsland). Plain module, not tutorial.ts ('use client'), so the
+// server quest page can call it to read the matching user_tutorials row
