@@ -14,6 +14,12 @@ Open any screen on your phone at `/MobDev` (e.g. [ikko.vercel.app/MobDev](https:
 
 [TBD]
 
+## Survey
+
+- Links for Responders
+Pre-game Survey    : https://forms.gle/YfkfJ3dYtmbSCFmL9
+Post-game Survey   : https://forms.gle/a9McRVfvsXG6SjAz7
+
 ## Story Line
 
 [TBD]
