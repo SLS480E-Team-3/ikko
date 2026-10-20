@@ -1,7 +1,7 @@
 ---
 name: make-quest
 description: Plan a new quest - ask for its name and description, then run /grill-me to turn it into docs/<quest>.spec.json. Use when the user says "make quest" or asks to plan a new quest.
-argument-hint: [quest name]
+argument-hint: "[quest name]"
 ---
 
 # Make a quest
