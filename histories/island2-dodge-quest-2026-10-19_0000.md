@@ -11,3 +11,7 @@
 
 ## Next
 - Try island 2 → NPC → はい on a phone, in /Game (logged in) and /MobDev/GameScene?island=2.
+
+## Island 3 → door quest
+- `islandQuestType`: 3 → `'door'`. `QuestScene` and islandPreview render `LeftRightQuestIsland` for it (no `kana` prop: the door quest teaches verbs).
+- Branch `island3-door-quest`; not clicked through in the browser either.

@@ -8,6 +8,7 @@ import { ISLAND_MAPS } from "@/components/Game/islands"
 import { BUBBLE_BG } from "@/components/Game/Entity/dialogBubble"
 import { npcsForRow } from "@/components/Game/npcs/npcs"
 import QuestIsland from "@/components/Game/Scene/questIsland"
+import { LeftRightQuestIsland } from "@/components/Game/Scene/leftRightQuestIsland" // imports: **none** -> **LeftRightQuestIsland**, mechanism: island 3's NPCs open the door quest, like QuestScene
 import { DodgeQuestIsland } from "@/components/Game/Scene/dodgeQuestIsland" // imports: **none** -> **DodgeQuestIsland**, mechanism: island 2's NPCs open the dodge quest, like QuestScene
 import { islandQuestType } from "@/utils/islands"
 import { ISLAND_NPCS } from "@/components/Game/npcs"
@@ -38,9 +39,11 @@ export default function IslandPreview({ sensitivity, start = 1, tint = false }: 
     if (inQuest) return (
         <div style={{ position: 'relative', width: '100%', height: '100%', background: BUBBLE_BG }}>
             {pageTint}
-            {islandQuestType(island) === 'dodge'
+            {islandQuestType(island) === 'door'
+                ? <LeftRightQuestIsland key={`quest-${island}`} sensitivity={sensitivity} onLeave={() => setInQuest(false)} />
+                : islandQuestType(island) === 'dodge'
                 ? <DodgeQuestIsland key={`quest-${island}`} kana={inQuest} sensitivity={sensitivity} onLeave={() => setInQuest(false)} />
-                : <QuestIsland key={`quest-${island}`} kana={inQuest} sensitivity={sensitivity} onLeave={() => setInQuest(false)} />} {/* scene: **<QuestIsland> always** -> **DodgeQuestIsland on island 2**, mechanism: islandQuestType, the same pick QuestScene makes */} {/* scene: **<GameScene QUEST_BG>** -> **<QuestIsland>**, mechanism: same training island as the tab; onLeave returns to the island in place */}
+                : <QuestIsland key={`quest-${island}`} kana={inQuest} sensitivity={sensitivity} onLeave={() => setInQuest(false)} />} {/* scene: **<QuestIsland> always** -> **DodgeQuestIsland on island 2**, mechanism: islandQuestType, the same pick QuestScene makes; door quest on island 3 */} {/* scene: **<GameScene QUEST_BG>** -> **<QuestIsland>**, mechanism: same training island as the tab; onLeave returns to the island in place */}
             {/* <span style={{ position: 'absolute', top: 16, left: 16, zIndex: 2 }}>quest island (from island {island})</span> */} {/* label: **shown** -> **commented out**, mechanism: hidden for now; uncomment to show which island the quest came from */}
         </div>
     )
