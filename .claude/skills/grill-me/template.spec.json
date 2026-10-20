@@ -1,0 +1,14 @@
+{
+  "$schema": "./.claude/spec.schema.json",
+  "status": "draft",
+  "title": "",
+  "idea": "",
+  "glossary": [],
+  "features": [],
+  "flows": [],
+  "examples": [],
+  "leftOut": [],
+  "decisions": [],
+  "assumptions": [],
+  "openQuestions": []
+}
