@@ -1,4 +1,8 @@
-.claude
+.claude/*
+!.claude/skills/
+# symlinks into the ignored .agents folder
+.claude/skills/supabase
+.claude/skills/supabase-postgres-best-practices
 
 node_modules
 .agents
