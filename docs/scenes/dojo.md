@@ -53,7 +53,7 @@ The tatami, panel and siding lines are tiles made in code by `svgTile(color, rec
 
 ## Notes
 
-- **Blocking:** the four `solid` walls are blocking boxes, by the same code as island 2's ocean (see [Blocking](../objects-and-background.md#blocking)). The player stops at a wall and slides along it.
+- **Blocking:** the four `solid` walls are blocking boxes, by the same code as island 1's ocean (see [Blocking](../objects-and-background.md#blocking)). The player stops at a wall and slides along it.
 - **Walkable area:** 48 px in from the left and right, 104 px from the top, 88 px from the bottom.
 - **Blocks and bullets** are not stopped by the walls. They fly in over them.
 - **Props:** none. The floor is kept clear for the minigames.

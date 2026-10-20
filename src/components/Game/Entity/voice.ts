@@ -182,7 +182,7 @@ const BGM_VOLUME = VOLUME * 0.2
 // line (same iOS caveat as VOLUME: Safari plays it at full volume)
 
 export const ISLAND_BGM: Record<number, string> = {
-    1: '/BGM/8bits/canon-3_8bit.mp3',
+    5: '/BGM/8bits/canon-3_8bit.mp3', // key: **1** -> **5**, mechanism: the track moves with its island (1 -> 5)
 }
 // one looping track per island, by island id; an island without an entry is silent
 

@@ -15,3 +15,9 @@
 ## Island 3 → door quest
 - `islandQuestType`: 3 → `'door'`. `QuestScene` and islandPreview render `LeftRightQuestIsland` for it (no `kana` prop: the door quest teaches verbs).
 - Branch `island3-door-quest`; not clicked through in the browser either.
+
+## Islands renumbered (1 → 5, 2 → 1, 3 → 2)
+- Each scene moved whole: map (`ISLAND_N` renamed), `ISLAND_SECTIONS`, `ISLAND_BG` color, `ISLAND_BGM`, and `islandQuestType` (now 1 = dodge, 2 = door).
+- Island 3 is empty now and took old island 5's pastel red. Object ids (tree-2-N, volcano-3-1) kept as-is; they only need to be unique.
+- Scene docs' island ids updated. `island_2_quests.ts` (curriculum, unused in code) and the Supabase `quests.island_id` rows were not touched.
+- Branch `island-renumber`.
