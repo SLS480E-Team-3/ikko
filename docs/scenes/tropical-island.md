@@ -1,8 +1,8 @@
 # Scene: tropical-island
 
-- **Island id:** 2
+- **Island id:** 1 (was 2 before the 2026-10-19 renumbering)
 - **Made by:** `/make-scene tropical-island 2`
-- **Status:** built. The sprites are made and placed on island 2.
+- **Status:** built. The sprites are made and placed on island 2, now island 1 (islands renumbered 2026-10-19).
 
 The world is 1400 x 2000 world px. The player spawns at (700, 1000), inside the beach.
 

@@ -111,14 +111,14 @@ const waveOffset = (now: number) => Math.round(-WAVE_RISE * (1 - Math.cos((now /
 
 export const ISLAND_COUNT = 5
 export const ISLAND_BG: Record<number, string> = {
-    1: 'lightgreen',
-    2: '#f5e8a0', // color: **yellow** -> **#f5e8a0**, mechanism: pastel yellow, same softness as lightgreen
-    3: '#a9d4f0', // color: **blue** -> **#a9d4f0**, mechanism: pastel blue
+    1: '#f5e8a0', // key: **2** -> **1**, mechanism: islands renumbered (1 -> 5, 2 -> 1, 3 -> 2), the color moves with its scene // color: **yellow** -> **#f5e8a0**, mechanism: pastel yellow, same softness as lightgreen
+    2: '#a9d4f0', // key: **3** -> **2**, mechanism: same renumbering // color: **blue** -> **#a9d4f0**, mechanism: pastel blue
+    3: '#f2aaa2', // key: **5** -> **3**, mechanism: island 3 is empty now and takes the color island 5 gave up // color: **red** -> **#f2aaa2**, mechanism: pastel red
     4: '#cdb8e8', // color: **purple** -> **#cdb8e8**, mechanism: lavender
-    5: '#f2aaa2', // color: **red** -> **#f2aaa2**, mechanism: pastel red
+    5: 'lightgreen', // key: **1** -> **5**, mechanism: same renumbering
 }
 export const ISLAND_SECTIONS: Record<number, BgSection[]> = {
-    2: [
+    1: [ // key: **2** -> **1**, mechanism: islands renumbered (1 -> 5, 2 -> 1, 3 -> 2)
         { id: 'volcano', x: 0, y: 0, w: 1400, h: 500, color: '#8f4a36' }, // color, tile: **#853d2a, /img/bg/red-rock.webp** -> **#8f4a36, none**, mechanism: the ground is one plain color (red-brown), no texture; with no tile the section div shows only its backgroundColor
         { id: 'forest', x: 0, y: 500, w: 1400, h: 400, color: '#a9cf7a', merge: true }, // color, tile: **#46591d, /img/bg/moss.webp** -> **#a9cf7a, none**, mechanism: same as volcano (light green); merge stays, so the green reaches up over the volcano border
         { id: 'beach', x: 0, y: 900, w: 1400, h: 800, color: '#f3e9c6', merge: true }, // color, tile: **#cdad87, /img/bg/sand.webp** -> **#f3e9c6, none**, mechanism: same as volcano (off-white, a bit yellow); merge stays, so the sand reaches up over the forest border // h: **1100** -> **800**, mechanism: the bottom 300 px of the world is the ocean section now
@@ -128,13 +128,13 @@ export const ISLAND_SECTIONS: Record<number, BgSection[]> = {
         // bottom edge through the mask, so the shore is an uneven, dithered
         // line like the other borders
     ],
-    3: [
-        { id: 'volcano', x: 0, y: 0, w: 1400, h: 1700, color: '#7a3f2e' }, // color: **#8f4a36** -> **#7a3f2e**, mechanism: the same red-brown about 15% darker; island 2's volcano section keeps #8f4a36
+    2: [ // key: **3** -> **2**, mechanism: same renumbering
+        { id: 'volcano', x: 0, y: 0, w: 1400, h: 1700, color: '#7a3f2e' }, // color: **#8f4a36** -> **#7a3f2e**, mechanism: the same red-brown about 15% darker; island 1's volcano section keeps #8f4a36
         { id: 'magma', x: 0, y: 1700, w: 1400, h: 300, color: '#f08a24', merge: true, solid: true, wave: true },
     ],
-    // island 3, the volcano scene (docs/scenes/volcano.md): island 2's
+    // island 2, the volcano scene (docs/scenes/volcano.md): island 1's
     // red-brown volcano soil from the top down to y 1700, and magma (orange)
-    // over the bottom 300 px. The magma is island 2's ocean in another color:
+    // over the bottom 300 px. The magma is island 1's ocean in another color:
     // merge gives it the dithered shore, solid stops the player at its edge,
     // and wave makes it rise and fall and push the player up
 } // sections: **{}** -> **island 2's three sections**, mechanism: the tropical-island scene (docs/scenes/tropical-island.md): three full-width bands that cover the 1400 x 2000 world top to bottom; each is one plain color with no tile (moss light green, sand off-white and a bit yellow, volcano sand red-brown)

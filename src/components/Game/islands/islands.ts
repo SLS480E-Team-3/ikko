@@ -44,16 +44,16 @@ const scatter = (prefix: string, defs: string[], rect: { dx: number, dy: number,
 // SPAWN_CLEAR to the spawn is thrown away and drawn again. A different seed
 // gives a different layout
 
-export const ISLAND_1: PlacedObject[] = [
+export const ISLAND_5: PlacedObject[] = [ // island: **1 (ISLAND_1)** -> **5 (ISLAND_5)**, mechanism: the islands were renumbered (1 -> 5, 2 -> 1, 3 -> 2)
     place('tower-1', 'tower', -154, -494, 0.2, { kind: 'sign', text: 'タワー (tawā) = tower' }), // x, y: **BG_W / 2 - 192, BG_H / 2 - 600** -> **place(dx -154, dy -494)**, mechanism: the old offsets had the scaled sprite size mixed in; place() takes the base position and reads the size from the catalog. Same spot on screen
     place('tree-1', 'tree', 197, -178, 0.6, { kind: 'sign', text: 'き (ki) = tree' }), // x, y: **BG_W / 2 + 120, BG_H / 2 - 320** -> **place(dx 197, dy -178)**, mechanism: same as the tower
     place('tokyo-tower-1', 'Tokyo-tower', -243, -62, 0.6, { kind: 'sign', text: 'とうきょうタワー (Tōkyō tawā) = Tokyo Tower' }), // x, y: **BG_W / 2 - 320, BG_H / 2 - 420** -> **place(dx -243, dy -62)**, mechanism: same as the tower
 ]
-// island 1's map: every object placed on it. The temp tower stands far above
+// island 5's map: every object placed on it. The temp tower stands far above
 // the spawn, the tree to the upper right, and Tokyo-tower to the upper left
 // with its base 62 px above the spawn's y
 
-export const ISLAND_2: PlacedObject[] = [
+export const ISLAND_1: PlacedObject[] = [ // island: **2 (ISLAND_2)** -> **1 (ISLAND_1)**, mechanism: the islands were renumbered (1 -> 5, 2 -> 1, 3 -> 2)
     // beach (world y 900-1700, dy -100..700)
     place('palm-tree-1', 'palm-tree', -220, 60, 0.6, { kind: 'sign', text: 'やしのき (yashi no ki) = palm tree' }),
     place('palm-tree-2', 'palm-tree', 260, 240, 0.6),
@@ -76,20 +76,21 @@ export const ISLAND_2: PlacedObject[] = [
 ] // ground plants: **none** -> **three scatter() calls**, mechanism: the sections are flat colors now, so four small walk-through plants per section are spread over each band in place of a texture. Each rectangle sits 40 px inside its section so no plant's base crosses a border; the beach is the tallest band, so it gets 12, the others 6 (one or two in a phone view)
 // amount and size: **32 / 18 / 18 plants at scale 0.2, 26 props** -> **12 / 6 / 6 plants at scale 0.12, 21 props**, mechanism: the island was crowded and the small things were too large. scatter()'s default scale is 0.12 (a plant is about 31 world px wide, was 51); coconut, apple and banana are 0.12, flower and mushroom 0.15, rock 0.3, fire 0.2; one repeat each of palm-tree, coconut, tree, flower and rock is removed. Every word still has its signed first placement
 // props: **21, with coconut, apple, flower and banana** -> **13**, mechanism: the two placements of each of the four are removed (and their catalog entries in objects.ts); the beach keeps the palm trees, the forest the trees and mushrooms
-// island 2's map, the tropical-island scene (docs/scenes/tropical-island.md).
-// Each object stands inside its ground section (ISLAND_SECTIONS[2] in
+// island 1's map, the tropical-island scene (docs/scenes/tropical-island.md).
+// Each object stands inside its ground section (ISLAND_SECTIONS[1] in
 // gameScene.tsx): beach around and below the spawn, forest above it, volcano
 // at the top. The column 100 px either side of the spawn's x is left clear
 // from the beach up through the forest, so the player walks straight up to
 // the volcano's foot. Nothing is within 120 px of the spawn. The first
 // placement of each prop carries the sign with its word; the repeats are
-// silent. Ids of the trees are tree-2-N because tree-1 is on island 1
+// silent. Ids of the trees are tree-2-N because tree-1 is on island 5
+// (the ids keep the old island numbers; they only need to be unique)
 
-export const ISLAND_3: PlacedObject[] = [
+export const ISLAND_2: PlacedObject[] = [ // island: **3 (ISLAND_3)** -> **2 (ISLAND_2)**, mechanism: the islands were renumbered (1 -> 5, 2 -> 1, 3 -> 2)
     place('volcano-3-1', 'volcano', 0, -630, 2, { kind: 'sign', text: 'かざん (kazan) = volcano' }),
 ]
-// island 3's map, the volcano scene (docs/scenes/volcano.md): the same
-// volcano as island 2, at the same place and scale (base 630 px above the
+// island 2's map, the volcano scene (docs/scenes/volcano.md): the same
+// volcano as island 1, at the same place and scale (base 630 px above the
 // spawn, 512x264 world px). The id is volcano-3-1 because volcano-1 is on
-// island 2. The ground is red soil down to the magma (ISLAND_SECTIONS[3] in
+// island 1. The ground is red soil down to the magma (ISLAND_SECTIONS[2] in
 // gameScene.tsx)

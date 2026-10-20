@@ -18,9 +18,9 @@ export async function homeIsland(supabase: SupabaseClient, userId: string): Prom
 // `supabase` must be signed in as userId -- RLS lets them read profiles
 // and islands
 
-export const islandQuestType = (islandId: number): QuestType => islandId === 2 ? 'dodge' : islandId === 3 ? 'door' : 'original' // types: **2 = dodge** -> **+ 3 = door**, mechanism: island 3's NPCs open LeftRightQuestIsland
-// which quest island an island's NPCs send the player to: island 2 runs the
-// dodge quest (DodgeQuestIsland), island 3 the door quest
+export const islandQuestType = (islandId: number): QuestType => islandId === 1 ? 'dodge' : islandId === 2 ? 'door' : 'original' // types: **2 = dodge, 3 = door** -> **1 = dodge, 2 = door**, mechanism: the quests follow their scenes when the islands were renumbered (2 -> 1, 3 -> 2)
+// which quest island an island's NPCs send the player to: island 1 runs the
+// dodge quest (DodgeQuestIsland), island 2 the door quest
 // (LeftRightQuestIsland), every other island the original catch
 // quest (QuestIsland). Plain module, not tutorial.ts ('use client'), so the
 // server quest page can call it to read the matching user_tutorials row

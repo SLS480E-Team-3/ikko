@@ -1,6 +1,6 @@
 # Scene: volcano
 
-- **Island id:** 3
+- **Island id:** 2 (was 3 before the 2026-10-19 renumbering)
 - **Status:** built.
 
 The world is 1400 x 2000 world px. The player spawns at (700, 1000), on the red soil.
@@ -12,13 +12,13 @@ The world is 1400 x 2000 world px. The player spawns at (700, 1000), on the red 
 | volcano | `0, 0, 1400, 1700` | red-brown volcano soil | none | `#7a3f2e` | Island 2's volcano soil, a bit darker, from the top down to the magma. |
 | magma | `0, 1700, 1400, 300` | magma, orange | none | `#f08a24` | Magma at the bottom of the world. `merge: true`: an uneven, dithered shore. `solid: true`: the player stops at its edge. `wave: true`: it rises 40 px and falls back every 4 s, and pushes the player up. |
 
-The magma works like island 2's ocean; only the color is different. See [objects-and-background.md](../objects-and-background.md#waves).
+The magma works like island 1's ocean; only the color is different. See [objects-and-background.md](../objects-and-background.md#waves).
 
 ## Props
 
 | Key | Kana | Romaji | English | Section | Blocking | Count | New or reuse |
 |---|---|---|---|---|---|---|---|
-| `volcano` | かざん | kazan | volcano | volcano | yes | 1 | reuse (island 2's sprite, same place and scale) |
+| `volcano` | かざん | kazan | volcano | volcano | yes | 1 | reuse (island 1's sprite, same place and scale) |
 
 ## Where it is in the code
 
