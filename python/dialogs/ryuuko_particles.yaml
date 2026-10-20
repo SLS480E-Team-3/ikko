@@ -1,0 +1,83 @@
+scene: ryuuko_particles
+lines:
+  - speaker: ryuuko
+    text: いえにいる
+    style: read this short sentence slowly and clearly, clear model pronunciation
+  - speaker: ryuuko
+    text: がっこうにいく
+    style: read this short sentence slowly and clearly, clear model pronunciation
+  - speaker: ryuuko
+    text: こうえんにいく
+    style: read this short sentence slowly and clearly, clear model pronunciation
+  - speaker: ryuuko
+    text: みせにいく
+    style: read this short sentence slowly and clearly, clear model pronunciation
+  - speaker: ryuuko
+    text: いえにかえる
+    style: read this short sentence slowly and clearly, clear model pronunciation
+  - speaker: ryuuko
+    text: えきにつく
+    style: read this short sentence slowly and clearly, clear model pronunciation
+  - speaker: ryuuko
+    text: ふねにのる
+    style: read this short sentence slowly and clearly, clear model pronunciation
+  - speaker: ryuuko
+    text: しちじにおきる
+    style: read this short sentence slowly and clearly, clear model pronunciation
+  - speaker: ryuuko
+    text: くじにねる
+    style: read this short sentence slowly and clearly, clear model pronunciation
+  - speaker: ryuuko
+    text: かわにさかながいる
+    style: read this short sentence slowly and clearly, clear model pronunciation
+  - speaker: ryuuko
+    text: きにとりがいる
+    style: read this short sentence slowly and clearly, clear model pronunciation
+  - speaker: ryuuko
+    text: いえにねこがいる
+    style: read this short sentence slowly and clearly, clear model pronunciation
+  - speaker: ryuuko
+    text: こうえんであそぶ
+    style: read this short sentence slowly and clearly, clear model pronunciation
+  - speaker: ryuuko
+    text: こうえんではしる
+    style: read this short sentence slowly and clearly, clear model pronunciation
+  - speaker: ryuuko
+    text: がっこうでべんきょうする
+    style: read this short sentence slowly and clearly, clear model pronunciation
+  - speaker: ryuuko
+    text: いえでたべる
+    style: read this short sentence slowly and clearly, clear model pronunciation
+  - speaker: ryuuko
+    text: いえでほんをよむ
+    style: read this short sentence slowly and clearly, clear model pronunciation
+  - speaker: ryuuko
+    text: みせでかう
+    style: read this short sentence slowly and clearly, clear model pronunciation
+  - speaker: ryuuko
+    text: えきでまつ
+    style: read this short sentence slowly and clearly, clear model pronunciation
+  - speaker: ryuuko
+    text: かわでおよぐ
+    style: read this short sentence slowly and clearly, clear model pronunciation
+  - speaker: ryuuko
+    text: ふねでいく
+    style: read this short sentence slowly and clearly, clear model pronunciation
+  - speaker: ryuuko
+    text: でんしゃでいく
+    style: read this short sentence slowly and clearly, clear model pronunciation
+  - speaker: ryuuko
+    text: えんぴつでかく
+    style: read this short sentence slowly and clearly, clear model pronunciation
+  - speaker: ryuuko
+    text: はしでたべる
+    style: read this short sentence slowly and clearly, clear model pronunciation
+  - speaker: ryuuko
+    text: にとで
+    style: read just this one word, clear model pronunciation
+# island 3's particle quest (docs/island-3.spec.json): the 24 sentences of
+# src/components/Game/particles.ts (12 に, 12 で), each the full sentence with
+# its right particle, read on a right catch; then the single particle clips
+# said on a wrong catch (に / で / を / へ) and にとで, the mix quest's {target} in
+# ryuuko.json's quest line. Each renders to public/dialog/ryuuko/<text>.mp3
+# (audioName). Own file (not ryuuko.yaml) so a render touches only these

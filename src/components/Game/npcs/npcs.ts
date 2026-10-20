@@ -148,3 +148,29 @@ export const leftRightNpcs = (w: number, h: number, phase: LrPhase, failAt?: { x
 // - fail: the same pair FAIL_BEHIND px down the hall from where the player
 //   stood at 0 hp (they turn around to talk), centered in the hall so both stay inside the walls
 // position: **Ryuuko at signSpot, Elena 60 px right (40 / -40 in fail)** -> **startSpot / endSpot / behind failAt, ±PAIR_DX**, reason: the hallway redesign, mechanism: the hall is too narrow for a 60 px offset, so the pair is centered
+
+//npcs on island 3 (particle quests)
+export const PARTICLE_STEPS = ['に', 'で', 'mix'] as const
+export const particleLabel = (step: string) => step === 'mix' ? 'にとで' : step
+const PARTICLE_GIVERS = ['shuto', 'jordi', 'tiffany']
+// island 3's three quests in unlock order (docs/island-3.spec.json D-9) and
+// the NPC voice that offers each: Shuto に, Jordi で, Tiffany the mix. A
+// step's key is also its quest row's kana and the ParticleQuestIsland kana
+// prop; particleLabel is what is said and shown for it (mix = にとで)
+
+export const npcsForParticles = (npcs: NPCProps[], step: number): NPCProps[] => npcs.map(n => {
+    const key = PARTICLE_STEPS[step]
+    const line = n.voice ? QUEST_LINE[n.voice] : undefined
+    if (n.voice !== PARTICLE_GIVERS[step] || !key || !line) return { ...n, kana: undefined }
+    const [ja, en, audio] = line(particleLabel(key))
+    return {
+        ...n, kana: key,
+        dialog: n.dialog?.map(d => d.condition === 'quest'
+            ? { ...d, jp: [ja, ...list(d.jp).slice(1)], en: [en, ...list(d.en).slice(1)], audio: [audio ?? '', ...list(d.audio).slice(1)] }
+            : d),
+    }
+})
+// island 3's version of npcsForRow: only the NPC offering the current step
+// keeps a kana (the step key), so IslandScene's kana -> quest match gives
+// that one NPC its quest and the others lose their 'quest' entry and just
+// talk. Its offer line is QUEST_LINE with the spoken label (「に」のクエストだ！)

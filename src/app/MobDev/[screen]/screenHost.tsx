@@ -35,6 +35,12 @@ const SCREENS: Record<ScreenType, ComponentType<ScreenProps>> = {
         const C = m.LeftRightQuestIsland
         return ({ sensitivity, onLeave }: ScreenProps) => <><Tint color={BUBBLE_BG} /><C sensitivity={sensitivity} onLeave={onLeave} /></>
     }), { ssr: false }), // adapter: **quest only** -> **+ Tint BUBBLE_BG**, mechanism: the quest island's cream fills the strips Safari leaves around the page
+    QuestParticle: dynamic(() => Promise.all([import("@/components/Game/Scene/particleQuestIsland"), import("@/components/Game/Entity/dialogBubble")]).then(([m, { BUBBLE_BG }]) => {
+        const C = m.ParticleQuestIsland
+        return ({ sensitivity, onLeave }: ScreenProps) => <><Tint color={BUBBLE_BG} /><C sensitivity={sensitivity} onLeave={onLeave} /></>
+    }), { ssr: false }),
+    // same adapter as QuestDoor for island 3's particle quest; no kana is
+    // passed, so it runs the mix pool (に and で sentences)
     SignUp: dynamic(() => import("@/app/SignUp/page"), { ssr: false }),
     LogIn: dynamic(() => import("@/app/LogIn/page"), { ssr: false }),
     InfoRecovery: dynamic(() => import("@/app/InfoRecovery/page"), { ssr: false }),

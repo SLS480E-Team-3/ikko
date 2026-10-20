@@ -62,7 +62,7 @@ def resolve_voices(scene: dict, src: str) -> dict[str, str]:
 
 # ---------- npc files ----------
 
-CONDITION = re.compile(r"^(greeting|default|spoken|quest|questCleared|retry|level\d+-(start|clear|fail)|lr-(intro|word|correct|wrong|clear|fail)|tut-(ask|bye)|tut-(original|dodge|shoot|door)-(touch|keys))$")  # labels: **+ tut-...**, mechanism: Hiroko's quest tutorials, same labels as the Condition type  # CONDITION: **+ lr-...**, mechanism: the Left or Right quest labels, same as toNPCProps.ts
+CONDITION = re.compile(r"^(greeting|default|spoken|quest|questCleared|retry|level\d+-(start|clear|fail)|lr-(intro|word|correct|wrong|clear|fail)|tut-(ask|bye)|tut-(original|dodge|shoot|door|particle)-(touch|keys))$")  # labels: **+ particle**, mechanism: Hiroko's island 3 tutorial, same as the Condition type  # labels: **+ tut-...**, mechanism: Hiroko's quest tutorials, same labels as the Condition type  # CONDITION: **+ lr-...**, mechanism: the Left or Right quest labels, same as toNPCProps.ts
 
 
 def is_npc(scene) -> bool:
@@ -89,7 +89,7 @@ def validate_npc(script: dict, src: str) -> None:
         for label in labels:
             if not isinstance(label, str) or not CONDITION.match(label):
                 g.die(f"{src}: dialog {i} has unknown condition '{label}' (greeting, default, spoken, quest, "
-                      f"questCleared, retry, level<N>-start, level<N>-clear, level<N>-fail, lr-intro/word/correct/wrong/clear/fail, tut-ask/bye, tut-<original|dodge|shoot|door>-<touch|keys>)")
+                      f"questCleared, retry, level<N>-start, level<N>-clear, level<N>-fail, lr-intro/word/correct/wrong/clear/fail, tut-ask/bye, tut-<original|dodge|shoot|door|particle>-<touch|keys>)")
         for c in entry.get("choices") or []:
             if not isinstance(c, list) or len(c) != 2:
                 g.die(f"{src}: dialog {i} choices must be [kana, en] pairs")

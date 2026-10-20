@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation"
 import QuestComplete from "../questComplete"
 import QuestIsland from "./questIsland" // imports: **GameScene, QUEST_BG, BUBBLE_BG, QUEST_ISLAND_NPC** -> **QuestIsland**, mechanism: QuestIsland owns the bg, NPCs and training
 import { DodgeQuestIsland } from "./dodgeQuestIsland" // imports: **QuestIsland only** -> **+ DodgeQuestIsland**, mechanism: island 2's NPCs open the dodge quest
-import { LeftRightQuestIsland } from "./leftRightQuestIsland" // imports: **no LeftRightQuestIsland** -> **+ LeftRightQuestIsland**, mechanism: island 3's NPCs open the door quest
+import { LeftRightQuestIsland } from "./leftRightQuestIsland"
+import { ParticleQuestIsland } from "./particleQuestIsland" // imports: **no ParticleQuestIsland** -> **+ ParticleQuestIsland**, mechanism: island 3's NPCs open the particle quest // imports: **no LeftRightQuestIsland** -> **+ LeftRightQuestIsland**, mechanism: island 3's NPCs open the door quest
 import type { QuestType } from "./tutorial"
 
 export type QuestSceneProps = {
@@ -17,7 +18,8 @@ export type QuestSceneProps = {
     // tutorial (a user_tutorials row for questType)
     questType: QuestType
     // which quest island to run (islandQuestType): 'dodge' = DodgeQuestIsland,
-    // 'door' = LeftRightQuestIsland, anything else = QuestIsland's catch quest
+    // 'door' = LeftRightQuestIsland, 'particle' = ParticleQuestIsland (kana
+    // = に / で / mix), anything else = QuestIsland's catch quest
 }
 // what the quest page loaded: the quest itself and whether this player
 // already cleared it. The page (server) checks access and records the
@@ -25,7 +27,7 @@ export type QuestSceneProps = {
 
 export default function QuestScene({ islandId, quest, cleared, tutorialSeen, questType }: QuestSceneProps) { // params: **no questType** -> **+ questType**, mechanism: picks the island component and the tutorial type below // params: **no tutorialSeen** -> **+ tutorialSeen**, mechanism: passed on to QuestIsland as tutorial.seen
     const router = useRouter()
-    const Island = questType === 'door' ? LeftRightQuestIsland : questType === 'dodge' ? DodgeQuestIsland : QuestIsland // Island: **dodge or catch** -> **+ door**, mechanism: LeftRightQuestIsland on island 3
+    const Island = questType === 'particle' ? ParticleQuestIsland : questType === 'door' ? LeftRightQuestIsland : questType === 'dodge' ? DodgeQuestIsland : QuestIsland // Island: **dodge or catch** -> **+ door, particle**, mechanism: LeftRightQuestIsland on island 3
     // all take onLeave, tutorial and children (the success slot); kana is
     // passed only to the two kana quests, since the door quest teaches verbs
     const kana = questType === 'door' ? {} : { kana: quest.kana ?? undefined }

@@ -3,7 +3,7 @@ import { adminClient, serverClient } from '@/utils/supabase'
 import type { QuestType } from '@/components/Game/Scene/tutorial'
 
 const fail = (error: string, status: number) => NextResponse.json({ error }, { status })
-const TYPES: QuestType[] = ['original', 'dodge', 'shoot', 'door']
+const TYPES: QuestType[] = ['original', 'dodge', 'shoot', 'door', 'particle'] // types: **4** -> **+ 'particle'**, mechanism: island 3's quest saves its tutorial row too
 // the quest types Hiroko has a tutorial for; anything else is a bad request
 
 export async function POST(req: Request) {

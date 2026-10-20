@@ -1,0 +1,176 @@
+{
+  "$schema": "../.claude/spec.schema.json",
+  "status": "clear",
+  "title": "Island 3: Particles (に / で)",
+  "idea": "A forest island where the player learns the particles に and で by catching the wood piece with the right particle for a sentence Ryuuko shows, and keeps the supplies they earn.",
+  "glossary": [
+    {
+      "term": "particle",
+      "meaning": "A small Japanese word after a noun that marks its role in the sentence; island 3 teaches に and で."
+    },
+    {
+      "term": "sentence sign",
+      "meaning": "A box at the top of the screen showing the current sentence with one blank where the particle goes."
+    },
+    {
+      "term": "wood piece",
+      "meaning": "A block Ryuuko throws, labelled with one particle; catching it is the player's answer."
+    },
+    {
+      "term": "supply",
+      "meaning": "What the player keeps when they catch the right wood piece (food, wood, other supplies)."
+    },
+    {
+      "term": "decoy",
+      "meaning": "A wood piece with a particle that is never the answer on island 3 (を or へ); thrown only in level 2."
+    },
+    {
+      "term": "supply counter",
+      "meaning": "A +1 count in the quest HUD with a small supply icon (wood, apple, mushroom...) for each right catch. Not saved after the quest."
+    },
+    {
+      "term": "sentence",
+      "meaning": "A short beginner sentence in hiragana with one blank for the particle, shown with its English meaning under it (e.g. がっこう＿いく / I go to school)."
+    }
+  ],
+  "features": [
+    {
+      "id": "F-1",
+      "name": "Forest island scene",
+      "whatItDoes": "Island 3's map: a forest with lots of trees, built with /make-scene.",
+      "details": [
+        "Same island NPCs as the other islands; their quest offer opens the particle quest",
+        "Sections top to bottom: deep forest (y 0-800, #7fae5a), clearing (y 800-1600, #a9cf7a, spawn), bank (y 1600-1700, sand #f3e9c6), river (y 1700-2000, #87ceeb, solid)",
+        "Deep forest: き tree (reuse), まつ pine tree, きりかぶ stump",
+        "Clearing: いえ cabin, まき woodpile, りんごのき apple tree, おの axe",
+        "Bank / river: はし bridge, いわ rock (reuse), さかな fish, ふね boat",
+        "Ground plants reuse fern / grass-tuft / clover / small-bush (forest, clearing) and pebbles / driftwood (bank)",
+        "Full tables in docs/scenes/forest-island.md"
+      ]
+    },
+    {
+      "id": "F-2",
+      "name": "Particle quest (catch the right wood)",
+      "whatItDoes": "A copy of the catch quest: the sentence sign shows a sentence with a blank, Ryuuko throws wood pieces labelled with particles, the right catch keeps the supply, a wrong catch costs HP.",
+      "details": [
+        "Quest type 'particle'; islandQuestType(3) returns 'particle'",
+        "Hiroko explains it first, like the other quest types",
+        "The answer is always に or で; level 2 also throws を and へ as decoys",
+        "Shaped like the catch quest: level 1 and level 2, 60 s each, 10 HP, quota 10 sentences per level",
+        "Each right catch moves the sign to the next sentence and adds +1 to the supply counter",
+        "Level 1 throws only the two choices に / で, slowly; level 2 throws faster and adds the decoys",
+        "A wrong catch costs 1 HP and the same sentence stays",
+        "The sign shows the sentence in hiragana with ＿ for the blank, and its English under it; no kanji, no romaji",
+        "A right catch plays Ryuuko reading the whole sentence with the right particle (one mp3 per sentence)",
+        "A wrong catch plays the damage sound and Ryuuko says the particle that was caught"
+      ]
+    },
+    {
+      "id": "F-3",
+      "name": "Island 3 quests",
+      "whatItDoes": "Three quests on island 3: に sentences, で sentences, then a mix of both.",
+      "details": [
+        "Quest 1: に only (place of existence, time, destination)",
+        "Quest 2: で only (place of an action)",
+        "Quest 3: に and で mixed",
+        "One NPC at a time offers a quest, like the kana rows: に first, then で once に is cleared, then the mix",
+        "The other NPCs just talk",
+        "Claude drafts 12 sentences for に and 12 for で (the mix draws from both); the user edits and adds more later"
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "Play the に quest",
+      "steps": [
+        "On island 3, the NPC offering the に quest says 「に」のクエスト and asks はい / いいえ",
+        "はい opens the particle quest; Hiroko offers the tutorial the first time",
+        "Talking to Ryuuko starts level 1: the sign shows a sentence with a blank and its English",
+        "Ryuuko throws wood pieces labelled に and で; the player catches one",
+        "Right: Ryuuko reads the full sentence, supply counter +1, the next sentence shows",
+        "Wrong: damage sound, Ryuuko says the caught particle, -1 HP, same sentence",
+        "After 10 right catches, Ryuuko offers level 2 (faster, を / へ decoys added)",
+        "Clearing level 2 ends the quest (COMPLETE); running out of HP or time shows Elena and Ryuuko's retry offer"
+      ]
+    }
+  ],
+  "examples": [
+    {
+      "situation": "Sign: がっこう＿いく / I go to school. The player catches で.",
+      "whatHappens": "Wrong: -1 HP, damage sound, Ryuuko says で, the same sentence stays."
+    },
+    {
+      "situation": "Sign: こうえん＿あそぶ / I play in the park. The player catches で.",
+      "whatHappens": "Right: Ryuuko says こうえんであそぶ, supply counter +1, the next sentence shows."
+    },
+    {
+      "situation": "Level 2 of the mix quest: an を piece flies past.",
+      "whatHappens": "It is a decoy; catching it costs 1 HP. Dodging it costs nothing."
+    }
+  ],
+  "leftOut": [
+    "Saving supplies or a boat inventory",
+    "Kanji or furigana on the sign",
+    "Romaji on the sign",
+    "Particles other than に / で as answers",
+    "Sentence editing UI (the user edits particles.ts directly)"
+  ],
+  "decisions": [
+    {
+      "id": "D-1",
+      "date": "2026-10-19",
+      "decision": "Island 3 follows ikko-vision.pdf (particles に / で, tree-heavy island) rather than docs/curriculum.md's airport unit."
+    },
+    {
+      "id": "D-2",
+      "date": "2026-10-19",
+      "decision": "The quest is 'catch the right wood', reusing the catch quest (training.ts / questIsland.tsx) plus a sentence sign like the door quest's."
+    },
+    {
+      "id": "D-3",
+      "date": "2026-10-19",
+      "decision": "Answers are に or で only; を and へ are level-2 decoys."
+    },
+    {
+      "id": "D-4",
+      "date": "2026-10-19",
+      "decision": "Three quests: に, で, mix."
+    },
+    {
+      "id": "D-5",
+      "date": "2026-10-19",
+      "decision": "Run shape copies the catch quest: 2 levels, 60 s, 10 HP, 10 sentences per level."
+    },
+    {
+      "id": "D-6",
+      "date": "2026-10-19",
+      "decision": "Supplies are a HUD counter only, nothing saved."
+    },
+    {
+      "id": "D-7",
+      "date": "2026-10-19",
+      "decision": "Sentence sign: hiragana with a blank plus English; no kanji or romaji."
+    },
+    {
+      "id": "D-8",
+      "date": "2026-10-19",
+      "decision": "Right catch plays the full sentence; wrong catch plays damage + the caught particle."
+    },
+    {
+      "id": "D-9",
+      "date": "2026-10-19",
+      "decision": "Quests unlock one at a time (に -> で -> mix), each offered by one NPC."
+    },
+    {
+      "id": "D-10",
+      "date": "2026-10-19",
+      "decision": "Scene: deep forest / clearing / bank / river, 9 new props (pine-tree, stump, cabin, woodpile, apple-tree, axe, bridge, fish, boat) plus reused tree and rock."
+    }
+  ],
+  "assumptions": [
+    {
+      "statement": "\"Generate 12\" means 12 sentences per particle (に and で), so each 10-sentence level has variety; the mix quest draws from both lists."
+    }
+  ],
+  "openQuestions": []
+}

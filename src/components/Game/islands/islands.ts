@@ -94,3 +94,50 @@ export const ISLAND_2: PlacedObject[] = [ // island: **3 (ISLAND_3)** -> **2 (IS
 // spawn, 512x264 world px). The id is volcano-3-1 because volcano-1 is on
 // island 1. The ground is red soil down to the magma (ISLAND_SECTIONS[2] in
 // gameScene.tsx)
+
+export const ISLAND_3: PlacedObject[] = [
+    // forest (world y 0-800, dy -1000..-200)
+    place('tree-3-1', 'tree', -520, -300, 0.6, { kind: 'sign', text: 'き (ki) = tree' }),
+    place('tree-3-2', 'tree', -300, -480, 0.6),
+    place('tree-3-3', 'tree', 250, -330, 0.6),
+    place('tree-3-4', 'tree', 480, -560, 0.6),
+    place('tree-3-5', 'tree', -580, -820, 0.6),
+    place('tree-3-6', 'tree', 320, -850, 0.6),
+    place('pine-tree-1', 'pine-tree', -200, -640, 0.6, { kind: 'sign', text: 'まつ (matsu) = pine tree' }),
+    place('pine-tree-2', 'pine-tree', 180, -560, 0.6),
+    place('pine-tree-3', 'pine-tree', 600, -760, 0.6),
+    place('pine-tree-4', 'pine-tree', -420, -400, 0.6),
+    place('stump-1', 'stump', 400, -240, 0.3, { kind: 'sign', text: 'きりかぶ (kirikabu) = tree stump' }),
+    place('stump-2', 'stump', -620, -560, 0.3),
+    // clearing (world y 800-1600, dy -200..600), the spawn
+    place('cabin-1', 'cabin', -380, 200, 1, { kind: 'sign', text: 'いえ (ie) = house' }),
+    place('woodpile-1', 'woodpile', -200, 230, 0.3, { kind: 'sign', text: 'まき (maki) = firewood' }),
+    place('woodpile-2', 'woodpile', -560, 320, 0.3),
+    place('axe-1', 'axe', -130, 270, 0.15, { kind: 'sign', text: 'おの (ono) = axe' }),
+    place('apple-tree-1', 'apple-tree', 330, 100, 0.5, { kind: 'sign', text: 'りんごのき (ringo no ki) = apple tree' }),
+    place('apple-tree-2', 'apple-tree', 520, 420, 0.5),
+    // bank (world y 1600-1700, dy 600..700)
+    place('rock-3-1', 'rock', -450, 695, 0.3, { kind: 'sign', text: 'いわ (iwa) = rock' }),
+    place('rock-3-2', 'rock', 300, 690, 0.3),
+    place('rock-3-3', 'rock', 580, 695, 0.3),
+    place('boat-1', 'boat', -220, 690, 0.3, { kind: 'sign', text: 'ふね (fune) = boat' }),
+    // river (world y 1700-2000, dy 700..1000)
+    place('bridge-1', 'bridge', 0, 850, 0.6, { kind: 'sign', text: 'はし (hashi) = bridge' }),
+    place('fish-1', 'fish', 200, 726, 0.15, { kind: 'sign', text: 'さかな (sakana) = fish' }),
+    place('fish-2', 'fish', -420, 900, 0.15),
+    // ground plants
+    ...scatter('forest-3-plant', ['fern', 'grass-tuft', 'clover', 'small-bush'], { dx: -660, dy: -960, w: 1320, h: 720 }, 8, 44),
+    ...scatter('clearing-3-plant', ['fern', 'grass-tuft', 'clover', 'small-bush'], { dx: -660, dy: -160, w: 1320, h: 720 }, 8, 55),
+    ...scatter('bank-3-plant', ['pebbles', 'driftwood', 'pebbles', 'driftwood'], { dx: -660, dy: 640, w: 1320, h: 20 }, 3, 66),
+]
+// island 3's map, the forest-island scene (docs/scenes/forest-island.md).
+// Each object stands inside its ground section (ISLAND_SECTIONS[3] in
+// gameScene.tsx): dense trees and pines with two stumps in the forest at the
+// top, the cabin with its firewood, axe and apple trees in the clearing
+// around the spawn, rocks and the boat on the thin bank, and the bridge and
+// fish in the river. The river is solid, so the bridge and the first fish
+// reach up to within SIGN_RANGE of the bank (their sprite tops are at dy
+// 706 and 708, the shore at 700) and their signs show from the shore. The
+// column 100 px either side of the spawn's x is left clear from the bank up
+// into the forest; nothing is within 120 px of the spawn. Blocking hitBoxes
+// do not touch. Ids end in -3-N where the same key is used on another island

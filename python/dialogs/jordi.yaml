@@ -31,6 +31,10 @@ lines:
   - speaker: jordi
     text: 「ち」のクエストだよ！
     style: upbeat and playful, announcing a fun challenge
+  # island 3 particle quest offer (npcsForParticles in npcs.ts)
+  - speaker: jordi
+    text: 「で」のクエストだよ！
+    style: upbeat and playful, announcing a fun challenge
 # Jordi's island-1 lines from src/components/Game/npcs/npcs.ts, in kanji
 # form. line_mp3 drops ！ 、 and keeps ？, so each file lands on the third
 # item of its say() line (こんにちは, 私はお寿司が大好き, ...). The greeting

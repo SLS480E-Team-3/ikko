@@ -31,6 +31,10 @@ lines:
   - speaker: shuto
     text: 「た」のクエストだ！
     style: calm, laid-back announcement of the next quest
+  # island 3 particle quest offer (npcsForParticles in npcs.ts)
+  - speaker: shuto
+    text: 「に」のクエストだ！
+    style: calm, laid-back announcement of the next quest
 # Shuto's island-1 lines from src/components/Game/npcs/npcs.ts, in kanji
 # form. line_mp3 drops ！ 、 and keeps ？, so each file lands on the third
 # item of its say() line (やあ, 俺はラーメンが好きやで, ...). Styles stay

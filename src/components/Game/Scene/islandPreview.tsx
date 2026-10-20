@@ -6,9 +6,10 @@ import { CSSProperties, /* useEffect, */ useState } from "react" // imports: **u
 import GameScene, { ISLAND_COUNT, islandBg } from "@/components/Game/Scene/gameScene"
 import { ISLAND_MAPS } from "@/components/Game/islands"
 import { BUBBLE_BG } from "@/components/Game/Entity/dialogBubble"
-import { npcsForRow } from "@/components/Game/npcs/npcs"
+import { npcsForParticles, npcsForRow, PARTICLE_STEPS } from "@/components/Game/npcs/npcs" // imports: **+ npcsForParticles, PARTICLE_STEPS**, mechanism: island 3 hands its quests out one NPC at a time, stepped by the row buttons here
 import QuestIsland from "@/components/Game/Scene/questIsland"
-import { LeftRightQuestIsland } from "@/components/Game/Scene/leftRightQuestIsland" // imports: **none** -> **LeftRightQuestIsland**, mechanism: island 3's NPCs open the door quest, like QuestScene
+import { LeftRightQuestIsland } from "@/components/Game/Scene/leftRightQuestIsland"
+import { ParticleQuestIsland } from "@/components/Game/Scene/particleQuestIsland" // imports: **none** -> **ParticleQuestIsland**, mechanism: island 3's NPCs open the particle quest // imports: **none** -> **LeftRightQuestIsland**, mechanism: island 3's NPCs open the door quest, like QuestScene
 import { DodgeQuestIsland } from "@/components/Game/Scene/dodgeQuestIsland" // imports: **none** -> **DodgeQuestIsland**, mechanism: island 2's NPCs open the dodge quest, like QuestScene
 import { islandQuestType } from "@/utils/islands"
 import { ISLAND_NPCS } from "@/components/Game/npcs"
@@ -21,7 +22,8 @@ export default function IslandPreview({ sensitivity, start = 1, tint = false }: 
     const [row, setRow] = useState(0)
     // the kana row the NPCs offer (0 = あ–お): with no login there's no quest
     // progress, so the row buttons stand in for clearing a row
-    const npcs = npcsForRow(ISLAND_NPCS[island] ?? [], row)
+    const particle = islandQuestType(island) === 'particle'
+    const npcs = particle ? npcsForParticles(ISLAND_NPCS[island] ?? [], Math.min(row, PARTICLE_STEPS.length - 1)) : npcsForRow(ISLAND_NPCS[island] ?? [], row) // npcs: **npcsForRow always** -> **npcsForParticles on island 3**, mechanism: the row buttons stand in for clearing に / で / mix
     const [inQuest, setInQuest] = useState<string | false>(false) // inQuest: **boolean** -> **kana | false**, mechanism: holds the kana of the NPC whose quest was accepted
     const btn: CSSProperties = { padding: '8px 12px' }
     // useEffect(() => {
@@ -39,7 +41,9 @@ export default function IslandPreview({ sensitivity, start = 1, tint = false }: 
     if (inQuest) return (
         <div style={{ position: 'relative', width: '100%', height: '100%', background: BUBBLE_BG }}>
             {pageTint}
-            {islandQuestType(island) === 'door'
+            {islandQuestType(island) === 'particle'
+                ? <ParticleQuestIsland key={`quest-${island}`} kana={inQuest} sensitivity={sensitivity} onLeave={() => setInQuest(false)} />
+                : islandQuestType(island) === 'door'
                 ? <LeftRightQuestIsland key={`quest-${island}`} sensitivity={sensitivity} onLeave={() => setInQuest(false)} />
                 : islandQuestType(island) === 'dodge'
                 ? <DodgeQuestIsland key={`quest-${island}`} kana={inQuest} sensitivity={sensitivity} onLeave={() => setInQuest(false)} />
@@ -55,7 +59,7 @@ export default function IslandPreview({ sensitivity, start = 1, tint = false }: 
             <GameScene key={`${island}-${row}`} sensitivity={sensitivity} bgProps={islandBg(island)} objects={ISLAND_MAPS[island] ?? []} npcs={npcs} onQuest={i => setInQuest(npcs[i]?.kana ?? 'あ')} /> {/* npcs: **ISLAND_NPCS[island]** -> **npcsForRow(..., row)**, mechanism: kana and quest line follow the row; key: **island** -> **island-row**, mechanism: remounts GameScene so the new NPC lines show */} {/* onQuest: **setInQuest(true)** -> **setInQuest(npc kana)**, mechanism: the training targets the kana of the NPC that asked */} {/* onQuest: **alert** -> **setInQuest(true)**, mechanism: はい renders the Quest Island in place instead of only alerting */}
             <div style={{ position: 'absolute', bottom: 'calc(var(--safe-bottom) + 128px)', left: 16, right: 16, zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', pointerEvents: 'none' }}>
                 <button style={{ ...btn, pointerEvents: 'auto' }} disabled={row <= 0} onClick={() => setRow(r => Math.max(0, r - 1))}>◀ row</button>
-                <span>row {KANA_ROWS[row].join('')}</span>
+                <span>{particle ? `quest ${PARTICLE_STEPS[Math.min(row, PARTICLE_STEPS.length - 1)]}` : `row ${KANA_ROWS[row].join('')}`}</span> {/* label: **row only** -> **quest に / で / mix on island 3**, mechanism: same buttons, they step the particle quests there */}
                 <button style={{ ...btn, pointerEvents: 'auto' }} disabled={row >= KANA_ROWS.length - 1} onClick={() => setRow(r => Math.min(KANA_ROWS.length - 1, r + 1))}>row ▶</button>
             </div>
             {/* bottom: **64** -> **safe-bottom + 128px**, reason: stays one line above the island buttons, which moved up, mechanism: same 48px gap as before */}

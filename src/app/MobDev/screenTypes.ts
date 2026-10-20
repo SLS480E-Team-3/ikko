@@ -5,6 +5,7 @@ export const SCREEN_TYPES = [
     'QuestShoot',
     'QuestDodge',
     'QuestDoor',
+    'QuestParticle', // screens: **+ QuestParticle**, mechanism: island 3's particle quest on its own page
     'SignUp',
     'LogIn',
     'InfoRecovery',
